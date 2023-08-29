@@ -1,0 +1,55 @@
+.CodeEditorTheme__code {
+    background-color: rgba(0, 0, 0, 0%);
+    font-family: Menlo, Consolas, Monaco, monospace;
+    display: block;
+    padding: 8px 8px 8px 40px;
+    line-height: 1.53;
+    font-size: 14px;
+    margin: 0;
+    overflow-x: auto;
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    white-space: nowrap;
+}
+.CodeEditorTheme__code:before {
+    content: attr(data-gutter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    /*border-right: 1px solid #ccc;*/
+    padding: 8px;
+    color: #1b1f234d;
+    white-space: pre-wrap;
+    text-align: right;
+    min-width: 2rem;
+    min-height: 150px;
+}
+.CodeEditorTheme__tokenComment {
+    color: #6a737d;
+}
+.CodeEditorTheme__tokenPunctuation {
+    color: #1b1f23;
+}
+.CodeEditorTheme__tokenProperty {
+    color: #005cc5;
+}
+.CodeEditorTheme__tokenSelector {
+    color: #032f62;
+}
+.CodeEditorTheme__tokenOperator {
+    color: #005cc5;
+}
+.CodeEditorTheme__tokenAttr {
+    color: #d73a49;
+}
+.CodeEditorTheme__tokenVariable {
+    color: #e36209;
+}
+.CodeEditorTheme__tokenFunction {
+    color: #6f42c1;
+}
+
+.code-editor-content >p {
+    height: 100%;
+}
