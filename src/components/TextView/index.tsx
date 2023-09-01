@@ -13,9 +13,9 @@ export const TextView = async () => {
   const argsString = undefined;
   const args = argsString ? JSON.parse(argsString) : undefined;
   return (
-    <div className='flex flex-col w-3/5 shadow-sm bg-white p-1 m-1'>
+    <div className='flex flex-col w-3/5 bg-white p-1 m-1'>
       <div className='flex text-xl font-bold p-1 h-12 text-neutral-600 items-center select-none'>Document</div>
-      <div className='p-2 overflow-auto'>
+      <div className='overflow-auto pr-2'>
         {args ? (
           <>
             {args.prevSteps.map((item: any, id: number) => (
