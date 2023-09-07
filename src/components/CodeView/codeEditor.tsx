@@ -1,53 +1,70 @@
-'use client';
-import {RichTextPlugin} from "@lexical/react/LexicalRichTextPlugin";
-import {ContentEditable} from "@lexical/react/LexicalContentEditable";
-import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
-import {HistoryPlugin} from "@lexical/react/LexicalHistoryPlugin";
-import {LexicalComposer} from "@lexical/react/LexicalComposer";
-import {CodeHighlightNode, CodeNode} from "@lexical/code";
-import CodeHighlightPlugin from '@/plugins/CodeHighlightPlugin';
-import codeEditorTheme from "@/themes/codeEditorTheme";
-import {EditorProvider, EditorRegister} from "@/providers/Editor";
-import {CodeTransformPlugin} from "@/plugins/CodeTransformPlugin";
-import TreeViewPlugin from "@/plugins/TreeViewPlugin";
+"use client"; 
+import React from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { useEffect, useMemo, useRef } from 'react';
+import { useCodeMirror } from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import { quietlight } from '@uiw/codemirror-theme-quietlight';
+import sproutTheme from './theme';
 
-const initialConfig = {
-  namespace: 'CodeEditor',
-  theme: codeEditorTheme,
-  onError: (e: any) => {
-    console.error(e)
-  },
-  nodes: [
-    CodeNode,
-    CodeHighlightNode,
-  ]
-};
-const CodeEditor = () => {
+function CodeEditor() {
+  const onChange = React.useCallback((value:any, viewUpdate:any) => {
+    console.log('value:', value);
+  }, []);
+
+  const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
+      distances = {node: 32767 for node in graph}
+      distances[start] = 0
+
+      nodes = [node for node in graph]
+
+      while nodes:
+          nodes.sort(key=lambda node: distances[node])
+
+          current_node = nodes[0]
+
+          if current_node == end:
+              break
+
+          for neighbor in graph[current_node]:
+              distance = distances[current_node] + graph[current_node][neighbor]
+              
+              if distance < distances[neighbor]:
+                  distances[neighbor] = distance
+
+          nodes.remove(current_node)
+      
+      return distances[end]
+`;
   return (
-    <EditorProvider>
-      <LexicalComposer initialConfig={initialConfig}>
-        <EditorRegister id={'code-editor'}/>
-        <div className="relative h-full">
-          <RichTextPlugin
-            contentEditable={<ContentEditable className="code-editor-content h-full" style={{}}/>}
-            placeholder={null}
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <HistoryPlugin/>
-          <CodeHighlightPlugin/>
-          <CodeTransformPlugin editorID={'code-editor'}/>
-          {/*<div className={"max-h-48 overflow-scroll"}><TreeViewPlugin/></div>*/}
-
-        </div>
-      </LexicalComposer>
-    </EditorProvider>
+    <CodeMirror
+    className='code-editor-content '
+      value={DIJKSTRA_CODE}
+      height="100%"
+      width='500px'
+      extensions={[python()]}
+      onChange={onChange}
+      theme={sproutTheme}
+    />
   );
 }
-
-const Placeholder = () => {
-  return (
-    <div className="absolute top-0 m-2 select-none">Enter some text...</div>
-  );
-}
-
 export default CodeEditor;
+
+// const extensions = [python()];
+// const code = "console.log('hello world!');\n\n\n";
+// export default function CodeEditor() {
+//   const editor = useRef();
+//   const { setContainer } = useCodeMirror({
+//     container: editor.current,
+//     extensions,
+//     value: code,
+//   });
+
+//   useEffect(() => {
+//     if (editor.current) {
+//       setContainer(editor.current);
+//     }
+//   }, [editor.current]);
+
+//   return <div ref={editor} />;
+// }
