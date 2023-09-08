@@ -4,7 +4,8 @@ import TextBlock from "@/components/TextBlock";
 import ClientLog from "../ModelViewer/log";
 
 import { planner } from "@/server/openai/agents/planner";
-
+import chain from "@/mocks/chain";
+import { node } from "@/mocks/nodes";
 // const getResults = async () => await runLLM();
 
 export const TextView = async () => {
@@ -18,26 +19,34 @@ export const TextView = async () => {
         Document
       </div>
       <div className="overflow-auto pr-2">
-        {args ? (
-          <>
-            {args.prevSteps.map((item: any, id: number) => (
-              <TextBlock
-                key={id}
-              >{`${item.step}: ${item.stepType} ${item.text}`}</TextBlock>
-            ))}
-            {/* <TextBlock>{`${args.nextStep.step}: ${args.nextStep.stepType} ${args.nextStep.text}`}</TextBlock> */}
-          </>
-        ) : (
-          <>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-            <TextBlock>{"Step X"}</TextBlock>
-          </>
-        )}
+        {
+          // args ? (
+          //   <>
+          //     {args.prevSteps.map((item: any, id: number) => (
+          //       <TextBlock
+          //         key={id}
+          //       >{`${item.step}: ${item.stepType} ${item.text}`}</TextBlock>
+          //     ))}
+          //     {/* <TextBlock>{`${args.nextStep.step}: ${args.nextStep.stepType} ${args.nextStep.text}`}</TextBlock> */}
+          //   </>
+          // ) : (
+          //   <>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //     <TextBlock>{"Step X"}</TextBlock>
+          //   </>
+          // )
+          chain.map((item: node, id: number) => (
+            // <TextBlock key={id}>{`${item.content[item.contentID]}`}</TextBlock>
+            <TextBlock key={id}>{`${
+              item.content[item.contentID].content
+            }`}</TextBlock>
+          ))
+        }
       </div>
       <ClientLog content={result} />
     </div>

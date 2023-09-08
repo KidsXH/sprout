@@ -25,3 +25,11 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+@layer components {
+  .cm-line-highlight {
+    background-color: #ccd7da50 !important;
+  }
+
+  /* ... */
+}

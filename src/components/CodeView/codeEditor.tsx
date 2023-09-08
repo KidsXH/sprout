@@ -1,21 +1,20 @@
-"use client"; 
-import React from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { useEffect, useMemo, useRef } from 'react';
-import { useCodeMirror } from '@uiw/react-codemirror';
-import { python } from '@codemirror/lang-python';
-import { quietlight } from '@uiw/codemirror-theme-quietlight';
-import sproutTheme from './theme';
+"use client";
+import React from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { useEffect, useMemo, useRef } from "react";
+import { useCodeMirror } from "@uiw/react-codemirror";
+import { python } from "@codemirror/lang-python";
+import { quietlight } from "@uiw/codemirror-theme-quietlight";
+import sproutTheme from "./theme";
 
 function CodeEditor() {
-  const onChange = React.useCallback((value:any, viewUpdate:any) => {
-    console.log('value:', value);
+  const onChange = React.useCallback((value: any, viewUpdate: any) => {
+    console.log("value:", value);
   }, []);
 
   const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
       distances = {node: 32767 for node in graph}
       distances[start] = 0
-
       nodes = [node for node in graph]
 
       while nodes:
@@ -38,10 +37,10 @@ function CodeEditor() {
 `;
   return (
     <CodeMirror
-    className='code-editor-content '
+      className="code-editor-content "
       value={DIJKSTRA_CODE}
       height="100%"
-      width='500px'
+      width="500px"
       extensions={[python()]}
       onChange={onChange}
       theme={sproutTheme}

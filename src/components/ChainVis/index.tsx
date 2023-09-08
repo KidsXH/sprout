@@ -3,6 +3,7 @@
 import * as d3 from "d3";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import ClientLog from "../ModelViewer/log";
+import chain from "@/mocks/chain";
 
 const ChainVis = () => {
   const data = [
@@ -20,6 +21,31 @@ const ChainVis = () => {
   // (null);
 
   // useEffect(() => {setLastSelectNode(selectedNode)}, [selectedNode]);
+  useEffect(() => {
+    const codeLines = document.getElementsByClassName("cm-line");
+    const gutterElements = document.getElementsByClassName("cm-gutterElement");
+    const codeRange = chain[selectedNode].range;
+    if (codeLines.length !== 0) {
+      for (let index = codeRange[0]; index < codeRange[1] + 1; index++) {
+        const element = codeLines[index - 1];
+        element.classList.add("cm-line-highlight");
+        // element.classList.remove("cm-activeLine");
+        // gutterElements[index].classList.remove("cm-activeLineGutter");
+      }
+    }
+
+    return () => {
+      if (codeLines.length === 0) return;
+      for (let index = codeRange[0]; index < codeRange[1] + 1; index++) {
+        const element = codeLines[index - 1];
+        element.classList.remove("cm-line-highlight");
+      }
+    };
+  }, [selectedNode]);
+
+  //
+  useEffect(() => {}, [selectedNode]);
+
   useEffect(() => {
     const svg = d3.select("#chain-svg");
     svg.selectAll("*").remove();
@@ -170,12 +196,21 @@ const ChainVis = () => {
       };
     });
 
+    const codeLines = document.getElementsByClassName("cm-line");
+    const codeRange = chain[selectedNode].range;
+    const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
+    const codeSnippetY =
+      codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
+    console.log(codeSnippetY);
+    const codeSnippetHeight =
+      (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
+
     const connectors = [
       {
         x: -width / 2,
-        y: 50,
+        y: codeSnippetY,
         width: 4,
-        height: 40,
+        height: codeSnippetHeight,
         color: rectData[selectedNode].color,
         side: "left",
       },
@@ -268,7 +303,7 @@ const ChainVis = () => {
       .join("rect")
       .attr("class", "chain-connector")
       .attr("x", (d) => (d.side == "left" ? d.x : d.x - d.width))
-      .attr("y", (d) => d.y - d.height / 2)
+      .attr("y", (d) => d.y)
       .attr("width", (d) => 0)
       .attr("height", (d) => d.height)
       .attr("fill", (d) => d.color)
