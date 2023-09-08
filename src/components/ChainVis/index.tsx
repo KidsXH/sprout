@@ -7,7 +7,7 @@ import ClientLog from "../ModelViewer/log";
 const ChainVis = () => {
   const data = [
     { step: 1, text: "S1", color: "#f5f5f5" },
-    { step: 2, text: "S2", color: "#CCFFDD" },
+    { step: 2, text: "S2", color: "#CCD1FF" },
     { step: 3, text: "S3", color: "#FFF1CC" },
     { step: 4, text: "S4", color: "#CCF0FF" },
     { step: 5, text: "S5", color: "#FFCCCC" },
@@ -37,7 +37,7 @@ const ChainVis = () => {
     const bigRectWidth = 120;
     const bigRectHeight = 54;
 
-    const index = d3.local();
+    // const index = d3.local();
 
     const rectData = d3.map(data, (d, i) => {
       const w = i === selectedNode ? bigRectWidth : rectWidth;
@@ -170,6 +170,25 @@ const ChainVis = () => {
       };
     });
 
+    const connectors = [
+      {
+        x: -width / 2,
+        y: 50,
+        width: 4,
+        height: 40,
+        color: rectData[selectedNode].color,
+        side: "left",
+      },
+      {
+        x: width / 2,
+        y: 300,
+        width: 4,
+        height: 64,
+        color: rectData[selectedNode].color,
+        side: "right",
+      },
+    ];
+
     let defs = svg.append("defs");
 
     let gradient = defs
@@ -240,10 +259,27 @@ const ChainVis = () => {
           .ease(d3.easeLinear)
           .attr("stroke-dashoffset", 0);
       });
+
+    //connectors
+    svg
+      .append("g")
+      .selectAll("rect")
+      .data(connectors)
+      .join("rect")
+      .attr("class", "chain-connector")
+      .attr("x", (d) => (d.side == "left" ? d.x : d.x - d.width))
+      .attr("y", (d) => d.y - d.height / 2)
+      .attr("width", (d) => 0)
+      .attr("height", (d) => d.height)
+      .attr("fill", (d) => d.color)
+      .transition()
+      .duration(200)
+      .delay(1300)
+      .attr("width", (d) => d.width);
   }, [svgRef, data, selectedNode]);
 
   return (
-    <div className="flex w-[20rem] m-1 items-center justify-center pt-12">
+    <div className="flex w-[20rem] items-center justify-center pt-12 mr-px ml-px">
       <svg id="chain-svg" className="w-full h-full" ref={svgRef} />
     </div>
   );
