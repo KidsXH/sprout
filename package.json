@@ -16,6 +16,7 @@
     "@types/react": "18.2.15",
     "@types/react-codemirror": "^1.0.8",
     "@types/react-dom": "18.2.7",
+    "@uiw/codemirror-extensions-zebra-stripes": "^4.21.13",
     "@uiw/codemirror-theme-material": "^4.21.13",
     "@uiw/codemirror-theme-quietlight": "^4.21.13",
     "@uiw/react-codemirror": "^4.21.13",

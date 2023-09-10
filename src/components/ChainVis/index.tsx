@@ -13,6 +13,9 @@ const ChainVis = () => {
     { step: 4, text: "S4", color: "#CCF0FF" },
     { step: 5, text: "S5", color: "#FFCCCC" },
     { step: 6, text: "S6", color: "#f5f5f5" },
+    { step: 7, text: "S7", color: "#f5f5f5" },
+    { step: 8, text: "S8", color: "#f5f5f5" },
+    { step: 9, text: "S9", color: "#f5f5f5" },
   ];
   const svgRef: MutableRefObject<SVGSVGElement | null> = useRef(null);
 
@@ -72,7 +75,8 @@ const ChainVis = () => {
     const height = svgRef.current?.clientHeight || 0;
     const margin = { top: 20, right: 20, bottom: 20, left: 20 };
     const innerHeight = height - margin.top - margin.bottom;
-
+    const interval =
+      data.length < 7 ? innerHeight / data.length : innerHeight / 7;
     svg.attr("viewBox", [-width / 2, -margin.top, width, height]);
 
     const rectWidth = 48;
@@ -87,10 +91,7 @@ const ChainVis = () => {
       const w = i === selectedNode ? bigRectWidth : rectWidth;
       const h = i === selectedNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
-      const y =
-        i === selectedNode
-          ? i * (innerHeight / data.length) - 10
-          : i * (innerHeight / data.length);
+      const y = i === selectedNode ? i * interval - 10 : i * interval;
       return {
         x: x,
         y: y,
@@ -120,7 +121,7 @@ const ChainVis = () => {
       .join("rect")
       .attr("class", "chain-node-shadow")
       .attr("x", () => -rectWidth / 2)
-      .attr("y", (d, i) => i * (innerHeight / data.length))
+      .attr("y", (d, i) => i * interval)
       .attr("width", rectWidth)
       .attr("height", rectHeight)
       .attr("fill", (d) => d.color)
@@ -141,7 +142,7 @@ const ChainVis = () => {
       .join("rect")
       .attr("class", "chain-node")
       .attr("x", () => -rectWidth / 2)
-      .attr("y", (d, i) => i * (innerHeight / data.length))
+      .attr("y", (d, i) => i * interval)
       .attr("width", rectWidth)
       .attr("height", rectHeight - 5)
       .attr("fill", "#f5f5f5")
@@ -165,7 +166,7 @@ const ChainVis = () => {
       .join("text")
       .attr("class", "chain-node-text select-none")
       .attr("x", 0)
-      .attr("y", (d, i) => i * (innerHeight / data.length) + 20)
+      .attr("y", (d, i) => i * interval + 20)
       .attr("text-anchor", "middle")
       .attr("fill", "#000")
       .attr("font-size", "14px")
@@ -201,14 +202,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + (innerHeight / data.length) * selectedNode,
+        y2: rectHeight / 2 + interval * selectedNode,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + (innerHeight / data.length) * selectedNode,
+        y1: rectHeight / 2 + interval * selectedNode,
         x2: width / 2,
         y2: blockHeight / 2 + rightY,
         dx: 40,
@@ -503,7 +504,7 @@ const ChainVis = () => {
   // }, [selectedNode, data]);
 
   return (
-    <div className=" overflow-auto w-[20rem]  pt-12 mr-px ml-px ">
+    <div className=" overflow-scroll w-[20rem] pt-12 mr-px ml-px ">
       <svg id="chain-svg" className="w-full h-full" ref={svgRef} />
     </div>
   );

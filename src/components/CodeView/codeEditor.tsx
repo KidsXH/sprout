@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { quietlight } from "@uiw/codemirror-theme-quietlight";
+import { zebraStripes } from "@uiw/codemirror-extensions-zebra-stripes";
 import sproutTheme from "./theme";
 
 function CodeEditor() {
@@ -35,13 +36,17 @@ function CodeEditor() {
       
       return distances[end]
 `;
+  const highlightCode = [3, 6];
   return (
     <CodeMirror
       className="code-editor-content "
       value={DIJKSTRA_CODE}
       height="100%"
       width="500px"
-      extensions={[python()]}
+      extensions={[
+        python(),
+        zebraStripes({ lineNumber: [highlightCode], lightColor: "#ccd7da50" }),
+      ]}
       onChange={onChange}
       theme={sproutTheme}
     />

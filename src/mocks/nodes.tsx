@@ -53,7 +53,7 @@ const nodes: node[] = [
   {
     id: 2,
     parent: 1,
-    children: [3],
+    children: [3, 8, 9],
     range: [4, 4],
     codeType: "c",
     content: [
@@ -79,6 +79,20 @@ const nodes: node[] = [
         summary: "run algorithm",
         content:
           "We run the algorithm until all nodes have been processed or until we have reached the end node. In each iteration of the algorithm, we select the node with the smallest distance from the starting node from the list of nodes. We do this by sorting the nodes list by the distance of each node from the starting node.",
+        type: "c",
+      },
+      {
+        node: 3,
+        summary: "run algorithm",
+        content:
+          "We run the algorithm until all nodes have been processed or until we have reached the end node. ",
+        type: "c",
+      },
+      {
+        node: 3,
+        summary: "run algorithm",
+        content:
+          "In each iteration of the algorithm, we select the node with the smallest distance from the starting node from the list of nodes. ",
         type: "c",
       },
     ],
@@ -145,6 +159,40 @@ const nodes: node[] = [
       {
         node: 7,
         summary: "return distance",
+        content:
+          "Finally, we return the distance stored in the distances dictionary for the end node.",
+        type: "c",
+      },
+    ],
+    contentID: 0,
+  },
+  {
+    id: 8,
+    parent: 2,
+    children: [],
+    range: [7, 9],
+    codeType: "c",
+    content: [
+      {
+        node: 8,
+        summary: "sorting node",
+        content:
+          "Finally, we return the distance stored in the distances dictionary for the end node.",
+        type: "c",
+      },
+    ],
+    contentID: 0,
+  },
+  {
+    id: 9,
+    parent: 2,
+    children: [],
+    range: [7, 12],
+    codeType: "c",
+    content: [
+      {
+        node: 9,
+        summary: "sorting node",
         content:
           "Finally, we return the distance stored in the distances dictionary for the end node.",
         type: "c",
