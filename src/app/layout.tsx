@@ -1,6 +1,7 @@
 import './globals.css'
-import type { Metadata } from 'next'
-import { inter } from './fonts'
+import type {Metadata} from 'next'
+import {inter} from './fonts'
+import {Providers} from "@/providers/redux";
 
 export const metadata: Metadata = {
   title: 'SPROUT',
@@ -8,13 +9,15 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({
-  children,
-}: {
+                                     children,
+                                   }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <Providers>
+      <html lang="en">
       <body className={inter.className}>{children}</body>
-    </html>
+      </html>
+    </Providers>
   )
 }
