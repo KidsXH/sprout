@@ -1,8 +1,5 @@
 "use client";
 
-import { llmResults } from "@/server/mock";
-import { useEffect, useState, useRef, MutableRefObject } from "react";
-import nodes from "@/mocks/nodes";
 import { BranchView } from "@/components/BranchView";
 import { SpaceView } from "@/components/SpaceView";
 
@@ -16,7 +13,7 @@ export const VisView = () => {
     <>
       <div className="flex bg-white w-full h-full m-1 shadow-sm p-1">
         <div className="flex flex-col">
-          <div className="flex text-xl font-bold p-1 h-12 text-neutral-600 items-center select-none text-green-900">
+          <div className="flex text-xl font-bold p-1 h-12 items-center select-none text-green-900">
             Outline
           </div>
           <OutlineView />

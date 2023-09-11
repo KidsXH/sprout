@@ -8,23 +8,36 @@ const OutlineView = () => {
 
   // @ts-ignore
   const measuredRef = (node: any) => {
-      if (node !== null) {
-        setWidth(node.getBoundingClientRect().width);
-        setHeight(node.getBoundingClientRect().height);
-      }
+    if (node !== null) {
+      setWidth(node.getBoundingClientRect().width);
+      setHeight(node.getBoundingClientRect().height);
     }
+  }
 
   useEffect(() => {
-    // const width = ref.current?.clientWidth || 0;
-    // const height = 300;
+    const offsetX = width / 2;
+    const offsetY = 60;
+    const dx = 70
+    const dy = 60
 
-    const nodeData = data;
+    const nodeData = d3.map(data, (d) => {
+      return {
+        id: d.id,
+        text: d.text,
+        x: d.x * dx + offsetX,
+        y: d.y * dy + offsetY,
+      }
+    })
 
     const linkData = [
       {source: '1', target: '2'},
       {source: '1', target: '2-3'},
       {source: '1', target: '2-4'},
       {source: '2-3', target: '4'},
+      {source: '2', target: '3-4'},
+      {source: '2', target: '4b'},
+      {source: '2-4', target: '6-20'},
+      {source: '2-4', target: '6-22'},
     ]
 
     const drawNodeSd = (selection: any) => {
@@ -49,6 +62,15 @@ const OutlineView = () => {
         .attr('y', (d: any) => d.y)
     };
 
+    const renderNodeText = (selection: any) => {
+      selection
+        .attr("class", "select-none text-sm text-black")
+        .attr("x", (d: any) => d.x)
+        .attr("y", (d: any) => d.y + 19)
+        .attr("text-anchor", "middle")
+        .text((d: any) => d.text)
+    }
+
     const color = d3.scaleOrdinal(d3.schemeCategory10);
 
     const svg = d3
@@ -59,12 +81,12 @@ const OutlineView = () => {
 
     const updateTreeLinks = (linkData: any) =>
       linkData.map((d: any) => {
-        return d3.linkVertical()({
+        return d3.link(d3.curveLinear)({
           source: [
             // @ts-ignore
             nodeData.find((n) => n.id === d.source).x,
             // @ts-ignore
-            nodeData.find((n) => n.id === d.source).y,
+            nodeData.find((n) => n.id === d.source).y+17,
           ],
           target: [
             // @ts-ignore
@@ -90,42 +112,6 @@ const OutlineView = () => {
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.5);
 
-
-    // treeLinks.push(
-    //   d3.linkVertical()({
-    //     source: [0, 0],
-    //     target: [100, 100],
-    //   })
-    // );
-
-    // const g = svg
-    //   .selectAll('.tree-link-group')
-    //   .selectAll('path')
-    //   .data(treeLinks);
-    //
-    // g.enter()
-    //   .append('path')
-    //   .attr('class', 'tree-link')
-    //   .attr('d', (d: any) => d)
-    //   .attr('stroke-dasharray', function () {
-    //     return `${this.getTotalLength()} ${this.getTotalLength()}`;
-    //   })
-    //   .attr('stroke-dashoffset', function () {
-    //     return this.getTotalLength();
-    //   })
-    //   .attr('fill', 'none')
-    //   .attr('stroke-width', 2)
-    //   .attr('stroke-opacity', 0.5)
-    //   .attr('stroke', '#999')
-    //   .transition()
-    //   .duration(1000)
-    //   .ease(d3.easeLinear)
-    //   .attr('stroke-dashoffset', 0);
-
-    // treeLink.transition().duration(1000).ease(d3.easeLinear).call(draw);
-    //
-    // treeLink.exit().transition().duration(1000).remove();
-
     const node = svg
       .append('g')
       .attr('class', 'tree-node-sd-group')
@@ -146,7 +132,12 @@ const OutlineView = () => {
       .join('rect')
       .call(drawNodeBg)
 
-    node.append("title").text((d: any) => d.text);
+    svg
+      .append('g')
+      .selectAll('text')
+      .data(nodeData)
+      .join('text')
+      .call(renderNodeText);
     // Add a drag behavior.
     node.call(
       d3
@@ -262,8 +253,8 @@ const drawLegend = (svg: any, svgWidth: number) => {
     .attr("ry", 8);
 
   node1.append('text')
-    .attr('class', 'text-sm')
-    .attr('x', 5 + 44)
+    .attr('class', 'text-xs')
+    .attr('x', 49)
     .attr('y', 18)
     .text('current chain')
 
@@ -274,14 +265,14 @@ const drawLegend = (svg: any, svgWidth: number) => {
     .attr("width", 36)
     .attr("height", 24)
     .attr('fill', '#f5f5f5')
-    .attr('x', svgWidth / 3 + 10)
+    .attr('x', 150)
     .attr('y', 0)
     .attr("rx", 10)
     .attr("ry", 10);
 
   node2.append('text')
-    .attr('class', 'text-sm')
-    .attr('x', svgWidth / 3 + 10 + 44)
+    .attr('class', 'text-xs')
+    .attr('x', 150 + 44)
     .attr('y', 18)
     .text('selected node')
 
@@ -291,7 +282,7 @@ const drawLegend = (svg: any, svgWidth: number) => {
     .attr("width", 36)
     .attr("height", 24)
     .attr('fill', '#f5f5f5')
-    .attr('x', svgWidth / 3 * 2)
+    .attr('x', 295)
     .attr('y', 0)
     .attr("rx", 10)
     .attr("ry", 10)
@@ -299,8 +290,8 @@ const drawLegend = (svg: any, svgWidth: number) => {
     .attr('stroke-width', 1.5);
 
   node3.append('text')
-    .attr('class', 'text-sm')
-    .attr('x', svgWidth / 3 * 2 + 44)
+    .attr('class', 'text-xs')
+    .attr('x', 295 + 44)
     .attr('y', 18)
     .text('highlighted node')
 }
