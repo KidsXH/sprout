@@ -1,11 +1,11 @@
 "use client";
 
-import { llmResults } from "@/server/mock";
-import { useEffect, useState } from "react";
-import nodes from "@/mocks/nodes";
+import {llmResults} from '@/server/mock';
+import {MutableRefObject, useEffect, useRef, useState} from 'react';
 
-import * as d3 from "d3";
-import { link } from "fs";
+import * as d3 from 'd3';
+
+import data from '@/mocks/treeNodeData'
 
 export const VisView = () => {
   const llmStates = JSON.parse(llmResults);
@@ -13,48 +13,79 @@ export const VisView = () => {
   const [focusBranchNode, setFocusBranchNode] = useState(3);
   const [parentNode, setParentNode] = useState(2);
 
+  const svgRef: MutableRefObject<SVGSVGElement | null> = useRef(null);
   const handleClick = () => {
     setStage((stage + 1) % 10);
   };
 
   //graph rendering
   useEffect(() => {
-    const width = 640;
-    const height = 300;
+    const width = svgRef.current?.clientWidth || 0;
+    const height = svgRef.current?.clientHeight || 0;
     const curStates = llmStates.slice(0, stage + 1);
 
-    const nodeData: Array<{ id: string; x: number; y: number; text: string }> =
-      [
-        { id: "[1, 1]", x: 0, y: 0, text: "Start" },
-        { id: "[2, 3]", x: 0, y: 50, text: "Statements - Initialization" },
-        { id: "[4, 11]", x: -50, y: 100, text: "Statements - While" },
-        { id: "[4, 4]", x: 50, y: 100, text: "Loop Start" },
-        { id: "[5, 11]", x: 25, y: 150, text: "Statements - Loop Steps" },
-        { id: "[5, 5]", x: 75, y: 125, text: "Statements - Assignment" },
-        { id: "[6, 7]", x: 75, y: 150, text: "Statements - Check" },
-        { id: "[8, 11]", x: 75, y: 175, text: "Statements - Adjust" },
-        { id: "[11, 11]", x: 75, y: 200, text: "L-End" },
-      ];
-    const linkData: Array<{
-      source: string;
-      target: string;
-    }> = [
-      { source: "[1, 1]", target: "[2, 3]" },
-      { source: "[2, 3]", target: "[4, 11]" },
-      { source: "[2, 3]", target: "[4, 4]" },
-      { source: "[4, 4]", target: "[5, 11]" },
-      { source: "[4, 4]", target: "[5, 5]" },
-      { source: "[5, 5]", target: "[6, 7]" },
-      { source: "[6, 7]", target: "[8, 11]" },
-      { source: "[8, 11]", target: "[11, 11]" },
-    ];
+    // const nodeData: Array<{ id: string; x: number; y: number; text: string }> = [
+    //   {id: '[1, 1]', x: 0, y: 0, text: 'Start'},
+    //   {id: '[2, 3]', x: 0, y: 50, text: 'Statements - Initialization'},
+    //   {id: '[4, 11]', x: -50, y: 100, text: 'Statements - While'},
+    //   {id: '[4, 4]', x: 50, y: 100, text: 'Loop Start'},
+    //   {id: '[5, 11]', x: 25, y: 150, text: 'Statements - Loop Steps'},
+    //   {id: '[5, 5]', x: 75, y: 125, text: 'Statements - Assignment'},
+    //   {id: '[6, 7]', x: 75, y: 150, text: 'Statements - Check'},
+    //   {id: '[8, 11]', x: 75, y: 175, text: 'Statements - Adjust'},
+    //   {id: '[11, 11]', x: 75, y: 200, text: 'L-End'},
+    // ];
+
+    const nodeData = data;
+
+    // const linkData: Array<{
+    //   source: string;
+    //   target: string;
+    // }> = [
+    //   {source: '[1, 1]', target: '[2, 3]'},
+    //   {source: '[2, 3]', target: '[4, 11]'},
+    //   {source: '[2, 3]', target: '[4, 4]'},
+    //   {source: '[4, 4]', target: '[5, 11]'},
+    //   {source: '[4, 4]', target: '[5, 5]'},
+    //   {source: '[5, 5]', target: '[6, 7]'},
+    //   {source: '[6, 7]', target: '[8, 11]'},
+    //   {source: '[8, 11]', target: '[11, 11]'},
+    // ];
+
+    const linkData = [
+      {source: '1', target: '2'},
+      {source: '1', target: '2-3'},
+      {source: '1', target: '2-4'},
+      {source: '2-3', target: '4'},
+    ]
+
+    const drawNodeSd = (selection: any) => {
+      selection
+        .attr("width", 48)
+        .attr("height", 34)
+        .attr("fill", '#CCFFDD')
+        .attr("rx", 16)
+        .attr("ry", 16)
+        .attr('x', (d: any) => d.x - 24)
+        .attr('y', (d: any) => d.y);
+    };
+
+    const drawNodeBg = (selection: any) => {
+      selection
+        .attr("width", 48)
+        .attr("height", 29)
+        .attr("fill", "#f5f5f5")
+        .attr("rx", 14)
+        .attr("ry", 14)
+        .attr('x', (d: any) => d.x - 24)
+        .attr('y', (d: any) => d.y)
+    };
 
     const color = d3.scaleOrdinal(d3.schemeCategory10);
 
     const svg = d3
-      .select("#ToT-graph")
-      .attr("preserveAspectRatio", "xMinYMin meet")
-      .attr("viewBox", `${-100} -10 ${width / 2} ${height + 10}`);
+      .select('#ToT-graph')
+      .attr('viewBox', `${-100} -10 ${width} ${height}`);
 
     svg.selectAll("*").remove();
 
@@ -91,61 +122,67 @@ export const VisView = () => {
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.5);
 
-    const draw = (selection: any) => {
-      selection
-        .attr("fill", "none")
-        .attr("stroke-width", 1.5)
-        .attr("stroke-opacity", 0.2)
-        .attr("stroke-dashoffset", 0);
-    };
 
-    treeLinks.push(
-      d3.linkVertical()({
-        source: [0, 0],
-        target: [100, 100],
-      })
-    );
 
-    const g = svg
-      .selectAll(".tree-link-group")
-      .selectAll("path")
-      .data(treeLinks);
+    // treeLinks.push(
+    //   d3.linkVertical()({
+    //     source: [0, 0],
+    //     target: [100, 100],
+    //   })
+    // );
 
-    g.enter()
-      .append("path")
-      .attr("class", "tree-link")
-      .attr("d", (d: any) => d)
-      .attr("stroke-dasharray", function () {
-        return `${this.getTotalLength()} ${this.getTotalLength()}`;
-      })
-      .attr("stroke-dashoffset", function () {
-        return this.getTotalLength();
-      })
-      .attr("fill", "none")
-      .attr("stroke-width", 2)
-      .attr("stroke-opacity", 0.5)
-      .attr("stroke", "#999")
-      .transition()
-      .duration(1000)
-      .ease(d3.easeLinear)
-      .attr("stroke-dashoffset", 0);
+    // const g = svg
+    //   .selectAll('.tree-link-group')
+    //   .selectAll('path')
+    //   .data(treeLinks);
+    //
+    // g.enter()
+    //   .append('path')
+    //   .attr('class', 'tree-link')
+    //   .attr('d', (d: any) => d)
+    //   .attr('stroke-dasharray', function () {
+    //     return `${this.getTotalLength()} ${this.getTotalLength()}`;
+    //   })
+    //   .attr('stroke-dashoffset', function () {
+    //     return this.getTotalLength();
+    //   })
+    //   .attr('fill', 'none')
+    //   .attr('stroke-width', 2)
+    //   .attr('stroke-opacity', 0.5)
+    //   .attr('stroke', '#999')
+    //   .transition()
+    //   .duration(1000)
+    //   .ease(d3.easeLinear)
+    //   .attr('stroke-dashoffset', 0);
 
-    treeLink.transition().duration(1000).ease(d3.easeLinear).call(draw);
-
-    treeLink.exit().transition().duration(1000).remove();
+    // treeLink.transition().duration(1000).ease(d3.easeLinear).call(draw);
+    //
+    // treeLink.exit().transition().duration(1000).remove();
 
     const node = svg
-      .append("g")
-      .attr("class", "tree-node-group")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-      .selectAll("circle")
+      .append('g')
+      .attr('class', 'tree-node-sd-group')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1.5)
+      .selectAll('circle')
       .data(nodeData)
-      .join("circle")
-      .attr("r", 5)
-      .attr("fill", (d: any) => color(d.text.slice(0, 5)))
-      .attr("cx", (d: any) => d.x)
-      .attr("cy", (d: any) => d.y);
+      // .join('circle')
+      // .attr('r', 5)
+      // .attr('fill', (d: any) => color(d.text.slice(0, 5)))
+      // .attr('cx', (d: any) => d.x)
+      // .attr('cy', (d: any) => d.y);
+      .join('rect')
+      .call(drawNodeSd);
+
+    svg
+      .append('g')
+      .attr('class', 'tree-node-bg-group')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1.5)
+      .selectAll('circle')
+      .data(nodeData)
+      .join('rect')
+      .call(drawNodeBg)
 
     node.append("title").text((d: any) => d.text);
     // Add a drag behavior.
@@ -437,8 +474,9 @@ export const VisView = () => {
             Outline
           </div>
           <svg
-            className="w-[32rem] h-full"
-            id="ToT-graph"
+            className='w-[32rem] h-full'
+            id='ToT-graph'
+            ref={svgRef}
             onClick={() => {
               handleClick();
             }}
@@ -478,69 +516,3 @@ export const VisView = () => {
 };
 
 export default VisView;
-
-const creatGraph = (data: dataType[]) => {
-  let nodeMap = new Map();
-  Array.from(data).forEach((d: any) => {
-    const key = JSON.stringify(d.lineno);
-    if (!nodeMap.has(key)) {
-      nodeMap.set(key, {
-        id: d.lineno,
-        index: nodeMap.size,
-        text: d.explanation,
-        step: d.step,
-      });
-    }
-  });
-  let nodes: any = [];
-
-  nodeMap.forEach((value: any) => {
-    let group = 1;
-    if (value.text.startsWith("Start")) group = 2;
-    if (value.text.startsWith("End")) group = 3;
-    let lineno = value.id[0];
-    nodes.push({
-      id: JSON.stringify(value.id),
-      group: group,
-      step: lineno,
-    });
-  });
-
-  let links: any = [];
-
-  data.forEach((d1: any) => {
-    data.forEach((d2: any) => {
-      if (d2.prev === null) return;
-      const key1 = JSON.stringify(d1.lineno);
-      const key2 = JSON.stringify(d2.lineno);
-      const key2p = JSON.stringify(d2.prev);
-      if (key1 !== key2) {
-        if (key2p === key1) {
-          links.push({
-            source: key1,
-            target: key2,
-            value: 5,
-            strength: 0.5,
-          });
-        }
-        if (d1.lineno[0] <= d2.lineno[0] && d1.lineno[1] >= d2.lineno[1]) {
-          links.push({
-            source: key1,
-            target: key2,
-            value: 1,
-            strength: 1,
-          });
-        }
-      }
-    });
-  });
-  return { links, nodes };
-};
-
-interface dataType {
-  step: number;
-  explanation: string;
-  prev: number;
-  code: string;
-  lineno: number;
-}
