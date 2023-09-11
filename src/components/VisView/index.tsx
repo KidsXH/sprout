@@ -1,7 +1,7 @@
 "use client";
 
 import { llmResults } from "@/server/mock";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, MutableRefObject } from "react";
 import nodes from "@/mocks/nodes";
 import { BranchView } from "@/components/BranchView";
 import { SpaceView } from "@/components/SpaceView";
