@@ -2,22 +2,18 @@
 
 import { BranchView } from "@/components/BranchView";
 import { SpaceView } from "@/components/SpaceView";
-
-import * as d3 from 'd3';
-
-import data from '@/mocks/treeNodeData'
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { selectCount } from "@/store/counterSlice";
 import OutlineView from "@/components/VisView/outline";
-import {useAppDispatch, useAppSelector} from "@/hooks/redux";
-import {selectCount} from "@/store/counterSlice";
 
 export const VisView = () => {
   const count = useAppSelector(selectCount);
   const dispatch = useAppDispatch();
   return (
     <>
-      <div className="flex bg-white w-full h-full m-1 shadow-sm p-1">
+      <div className="m-1 flex h-full w-full bg-white p-1 shadow-sm">
         <div className="flex flex-col">
-          <div className="flex text-xl font-bold p-1 h-12 items-center select-none text-green-900">
+          <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-green-900">
             Outline {count}
           </div>
           <OutlineView />
