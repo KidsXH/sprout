@@ -8,7 +8,7 @@ import Core from "../components/core";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex h-screen w-full flex-col overflow-auto p-4 2xl:items-center">
+    <main className="flex h-screen w-max flex-col p-4 2xl:w-full 2xl:items-center">
       <div className="flex w-[96rem] items-center justify-end 2xl:mt-16">
         <Core />
       </div>

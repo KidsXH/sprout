@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import {selectModelName, setApiKey, setModelName} from "@/store/modelSlice";
+import { selectModelName, setApiKey, setModelName } from "@/store/modelSlice";
 
 const LLMSettings = () => {
   const modelName = useAppSelector(selectModelName);
@@ -30,7 +30,7 @@ const LLMSettings = () => {
       </div>
       <div
         className={
-          "absolute left-0 top-0 z-10 h-full w-full bg-white opacity-0" +
+          "absolute left-0 top-0 z-10 h-full w-[1568px] bg-white opacity-0 2xl:w-screen" +
           (isOpen ? "" : " invisible opacity-0")
         }
         onClick={() => {
@@ -51,7 +51,7 @@ const LLMSettings = () => {
             <span className="w-[10rem] px-2">Model</span>
             <select
               className="w-[15rem] rounded-md border-2 px-2 py-1.5"
-              name={'modelName'}
+              name={"modelName"}
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
             >
