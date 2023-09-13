@@ -8,7 +8,7 @@ import ClientLog from "../ModelViewer/log";
 import chain from "@/mocks/chain";
 import { node } from "@/mocks/nodes";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { updateTextScrollTop } from "@/store/highlightSlice";
 
 // const getResults = async () => await runLLM();
@@ -16,6 +16,7 @@ import { updateTextScrollTop } from "@/store/highlightSlice";
 export const TextView = () => {
   // const result = await planner.solve("", true);
   // const argsString = result?.data.choices[0].message?.function_call?.arguments;
+  const textRef = useRef<HTMLDivElement | null>(null);
   const argsString = undefined;
   const args = argsString ? JSON.parse(argsString) : undefined;
   const [textScrollTop, setTextScrollTop] = useState<number>(0);
@@ -26,6 +27,19 @@ export const TextView = () => {
     const scrollTop: number = textElement?.scrollTop || 0;
     setTextScrollTop(scrollTop);
   };
+
+  useEffect(() => {
+    const textElement = textRef.current;
+
+    if (textElement) {
+      textElement.addEventListener("scrollend", handleWheelEvent);
+    }
+    return () => {
+      if (textElement) {
+        textElement.removeEventListener("scrollend", handleWheelEvent);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(updateTextScrollTop(textScrollTop));
@@ -40,6 +54,7 @@ export const TextView = () => {
         className="h-[28rem] overflow-auto pr-2"
         onWheel={handleWheelEvent}
         id="text-editor"
+        ref={textRef}
       >
         {chain.map((item: node, id: number) => (
           // <TextBlock key={id}>{`${item.content[item.contentID]}`}</TextBlock>

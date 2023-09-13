@@ -46,10 +46,30 @@ const ChainVis = () => {
       : innerHeight / 7;
 
   const handleWheelEvent = (event: any) => {
-    // const codeEditor = CodeRef.current?.editor;
-    const codeElement = document.getElementById("chainVis");
-    const scrollTop: number = codeElement?.scrollTop || 0;
-    setChainScrollTop(scrollTop);
+    let deltaScale = event.deltaY;
+    const svg = d3.select("#chain-svg");
+    const originalY = svg.attr("viewBox").split(",")[1];
+    // console.log(svg.attr("viewBox"));
+
+    if (deltaScale > 0) {
+      const newScrollTop = chainScrollTop + 3;
+      svg.attr("viewBox", [
+        -width / 2,
+        -margin.top + newScrollTop,
+        width,
+        height,
+      ]);
+      setChainScrollTop(chainScrollTop + 3);
+    } else {
+      const newScrollTop = chainScrollTop - 3 > 0 ? chainScrollTop - 3 : 0;
+      svg.attr("viewBox", [
+        -width / 2,
+        -margin.top + newScrollTop,
+        width,
+        height,
+      ]);
+      setChainScrollTop(newScrollTop);
+    }
   };
   useEffect(() => {
     if (selectedNode !== null) {
@@ -101,7 +121,12 @@ const ChainVis = () => {
 
     const svg = d3.select("#chain-svg");
     svg.selectAll("*").remove();
-    svg.attr("viewBox", [-width / 2, -margin.top, width, height]);
+    svg.attr("viewBox", [
+      -width / 2,
+      -margin.top + chainScrollTop,
+      width,
+      height,
+    ]);
     // const index = d3.local();
 
     svg
@@ -202,7 +227,7 @@ const ChainVis = () => {
     const links = [
       {
         x1: -width / 2,
-        y1: codeSnippetHeight / 2 + leftY,
+        y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
         y2: rectHeight / 2 + interval * selectedNode,
         dx: 40,
@@ -213,7 +238,7 @@ const ChainVis = () => {
         x1: bigRectWidth / 2,
         y1: rectHeight / 2 + interval * selectedNode,
         x2: width / 2,
-        y2: blockHeight / 2 + rightY,
+        y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
         dy: 5,
         side: "right",
@@ -345,8 +370,6 @@ const ChainVis = () => {
       .duration(200)
       .delay(1300)
       .attr("width", (d) => d.width);
-    const cnct = document.getElementsByClassName("chain-connector");
-    console.log("cnct bounding cilent", cnct[0].getBoundingClientRect().y);
   }, [selectedNode]);
 
   //update left and right y position
@@ -413,7 +436,7 @@ const ChainVis = () => {
     const connectors = [
       {
         x: -width / 2,
-        y: leftY,
+        y: leftY + chainScrollTop,
         width: 4,
         height: codeSnippetHeight,
         color: rectData[selectedNode].color,
@@ -421,7 +444,7 @@ const ChainVis = () => {
       },
       {
         x: width / 2,
-        y: rightY,
+        y: rightY + chainScrollTop,
         width: 4,
         height: blockHeight,
         color: rectData[selectedNode].color,
@@ -433,7 +456,7 @@ const ChainVis = () => {
       .selectAll("rect.chain-connector")
       .data(connectors)
       .attr("y", (d) => d.y);
-  }, [leftY, rightY]);
+  }, [leftY, rightY, chainScrollTop]);
 
   //update links
   useEffect(() => {
@@ -465,7 +488,7 @@ const ChainVis = () => {
     const links = [
       {
         x1: -width / 2,
-        y1: codeSnippetHeight / 2 + leftY,
+        y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
         y2: rectHeight / 2 + interval * selectedNode,
         dx: 40,
@@ -476,7 +499,7 @@ const ChainVis = () => {
         x1: bigRectWidth / 2,
         y1: rectHeight / 2 + interval * selectedNode,
         x2: width / 2,
-        y2: blockHeight / 2 + rightY,
+        y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
         dy: 0,
         side: "right",
@@ -506,7 +529,7 @@ const ChainVis = () => {
       .data(pathData)
       .attr("d", (d) => d.d)
       .attr("stroke-dasharray", "none");
-  }, [codeScrollTop, textScrollTop]);
+  }, [codeScrollTop, textScrollTop, chainScrollTop]);
 
   return (
     <div
