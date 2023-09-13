@@ -2,8 +2,6 @@
 
 import { BranchView } from "@/components/BranchView";
 import { SpaceView } from "@/components/SpaceView";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { selectCount } from "@/store/counterSlice";
 import OutlineView from "@/components/VisView/outline";
 
 export const VisView = () => {

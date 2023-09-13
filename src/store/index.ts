@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import counterReducer from "@/store/counterSlice";
+import modelReducer from "@/store/modelSlice";
 import selectionReducer from "@/store/selectionSlice";
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    model: modelReducer,
     selection: selectionReducer,
   },
 });
