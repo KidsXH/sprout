@@ -62,6 +62,13 @@ const data: Array<{ id: number; x: number; y: number; text: string; parent: numb
     y: 2,
     parent: 4
   },
+  {
+    id: 9,
+    text: "6-20",
+    x: -3,
+    y: 3,
+    parent: 5
+  },
 ];
 
 export default data;

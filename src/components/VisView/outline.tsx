@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { pickChain, selectChainNodes } from "@/store/selectionSlice";
 import chain from "@/mocks/chain";
 import { createLinearGradient } from "@/components/VisView/gradient";
+import { node } from "prop-types";
 
 const OutlineView = () => {
   const [width, setWidth] = useState(0);
@@ -64,6 +65,7 @@ const createSVG = () => {
   svg.append("g").attr("class", "tree-node-shadow-group");
   svg.append("g").attr("class", "tree-node-bg-group");
   svg.append("g").attr("class", "tree-node-text-group");
+  svg.append("g").attr("class", "tree-node-highlight-group");
   createLinearGradient(svg, "linkGradient", "#C6EBD4");
   renderLegend(svg);
 };
@@ -96,6 +98,26 @@ const updateSVG = (
     };
   });
 
+  const focusNode =
+    chainNodes.length === 0
+      ? null
+      : data.find((n: any) => n.id === chainNodes[0]);
+
+  let highlightNodeData = focusNode
+    ? d3.map(
+        data.filter((d: any) => d.text === focusNode.text),
+        (d: any) => {
+          return {
+            id: d.id,
+            text: d.text,
+            x: d.x * dx + offsetX,
+            y: d.y * dy + offsetY,
+            highlight: d.id === focusNode.id ? "#8BBD9E" : "#EECD9C",
+          };
+        },
+      )
+    : [];
+
   const linkData = [
     { source: 0, target: 3 },
     { source: 0, target: 1 },
@@ -105,28 +127,21 @@ const updateSVG = (
     { source: 3, target: 6 },
     { source: 4, target: 7 },
     { source: 4, target: 8 },
+    { source: 9, target: 5 },
   ];
 
   const renderNodeSd = (selection: any) => {
     selection
-      .attr("class", "node-shadow")
+      .attr("class", (d: any) =>
+        d.id === focusNode?.id
+          ? "drop-shadow-sm cursor-pointer"
+          : "hover:drop-shadow-sm cursor-pointer",
+      )
       .attr("width", 48)
       .attr("height", 34)
       .attr("fill", (d: any) => d.highlight)
       .attr("rx", 16)
       .attr("ry", 16)
-      .attr("x", (d: any) => d.x - 24)
-      .attr("y", (d: any) => d.y);
-  };
-
-  const renderNodeBg = (selection: any) => {
-    selection
-      .attr("class", "node-bg cursor-pointer")
-      .attr("width", 48)
-      .attr("height", 29)
-      .attr("fill", "#f5f5f5")
-      .attr("rx", 14)
-      .attr("ry", 14)
       .attr("x", (d: any) => d.x - 24)
       .attr("y", (d: any) => d.y)
       .on("click", (event: any, d: any) => {
@@ -134,9 +149,21 @@ const updateSVG = (
       });
   };
 
+  const renderNodeBg = (selection: any) => {
+    selection
+      .attr("class", "node-bg cursor-pointer pointer-events-none")
+      .attr("width", 48)
+      .attr("height", 29)
+      .attr("fill", "#f5f5f5")
+      .attr("rx", 14)
+      .attr("ry", 14)
+      .attr("x", (d: any) => d.x - 24)
+      .attr("y", (d: any) => d.y);
+  };
+
   const renderNodeText = (selection: any) => {
     selection
-      .attr("class", "select-none text-sm text-black cursor-pointer")
+      .attr("class", "select-none text-sm text-black pointer-events-none")
       .attr("x", (d: any) => d.x)
       .attr("y", (d: any) => d.y + 20)
       .attr("text-anchor", "middle")
@@ -144,6 +171,19 @@ const updateSVG = (
       .on("click", (event: any, d: any) => {
         nodeClickFn(d.id);
       });
+  };
+
+  const renderNodeHighlight = (selection: any) => {
+    selection
+      .attr("width", 48)
+      .attr("height", 34)
+      .attr("fill", "none")
+      .attr("rx", 16)
+      .attr("ry", 16)
+      .attr("x", (d: any) => d.x - 24)
+      .attr("y", (d: any) => d.y)
+      .attr("stroke", (d: any) => d.highlight)
+      .attr("stroke-width", 2);
   };
 
   const updateTreeLinks = (linkData: any) =>
@@ -226,6 +266,13 @@ const updateSVG = (
     .data(nodeData)
     .join("text")
     .call(renderNodeText);
+
+  svg
+    .selectAll(".tree-node-highlight-group")
+    .selectAll("rect")
+    .data(highlightNodeData)
+    .join("rect")
+    .call(renderNodeHighlight);
 };
 
 const renderLegend = (svg: any) => {
@@ -264,14 +311,16 @@ const renderLegend = (svg: any) => {
   const node2 = g.append("g");
   node2
     .append("rect")
-    .attr("class", "drop-shadow-md")
+    .attr("class", "drop-shadow-sm")
     .attr("width", 36)
     .attr("height", 24)
     .attr("fill", "#f5f5f5")
     .attr("x", 150)
     .attr("y", 5)
     .attr("rx", 10)
-    .attr("ry", 10);
+    .attr("ry", 10)
+    .attr("stroke", "#8BBD9E")
+    .attr("stroke-width", 1.5);
 
   node2
     .append("text")
@@ -291,7 +340,7 @@ const renderLegend = (svg: any) => {
     .attr("y", 5)
     .attr("rx", 10)
     .attr("ry", 10)
-    .attr("stroke", "#8BBD9E")
+    .attr("stroke", "#EECD9C")
     .attr("stroke-width", 1.5);
 
   node3
