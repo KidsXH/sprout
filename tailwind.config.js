@@ -16,7 +16,7 @@ module.exports = {
         'sm': [
           '0 4px 4px rgb(0 0 0 / 0.25)',
         ]
-      }
+      },
     },
     container: {
       center: true,
