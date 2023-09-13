@@ -23,11 +23,8 @@ const Core = () => {
 
   return (
     <>
-      <div className="flex w-[96rem] select-none items-center justify-end pr-10 font-mono">
-        <div className="flex px-2">
-          <LLMSettings />
-        </div>
-
+      <div className="flex select-none pr-10 font-mono">
+        <LLMSettings />
       </div>
     </>
   );
