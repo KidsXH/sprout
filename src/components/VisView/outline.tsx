@@ -4,6 +4,7 @@ import * as d3 from "d3";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { pickChain, selectChainNodes } from "@/store/selectionSlice";
 import chain from "@/mocks/chain";
+import { createLinearGradient } from "@/components/VisView/gradient";
 
 const OutlineView = () => {
   const [width, setWidth] = useState(0);
@@ -19,25 +20,36 @@ const OutlineView = () => {
     }
   };
 
+  const clickNodeFn = useCallback(
+    (nodeID: number) => {
+      let newChainNodes: number[] = [];
+      let index = data.findIndex((d) => d.id === nodeID);
+
+      if (index > -1) {
+        let currentNode = nodeID;
+        for (let i = index; i >= 0; i--) {
+          if (data[i].id === currentNode) {
+            newChainNodes.push(currentNode);
+            currentNode = data[currentNode].parent;
+          }
+        }
+      }
+      dispatch(pickChain(newChainNodes));
+    },
+    [dispatch],
+  );
+
   useEffect(() => {
     createSVG();
   }, []);
 
   useEffect(() => {
-    updateSVG(width, height, data, chainNodes);
-  }, [width, height, chainNodes]);
+    updateSVG(width, height, data, chainNodes, clickNodeFn);
+  }, [width, height, chainNodes, clickNodeFn]);
 
   return (
     <>
-      <svg
-        className="h-[20rem] w-[32rem]"
-        id="outline-svg"
-        ref={measuredRef}
-        onClick={() => {
-          dispatch(pickChain([0, 1, 2]));
-          console.log("click");
-        }}
-      />
+      <svg className="h-[20rem] w-[32rem]" id="outline-svg" ref={measuredRef} />
     </>
   );
 };
@@ -52,6 +64,7 @@ const createSVG = () => {
   svg.append("g").attr("class", "tree-node-shadow-group");
   svg.append("g").attr("class", "tree-node-bg-group");
   svg.append("g").attr("class", "tree-node-text-group");
+  createLinearGradient(svg, "linkGradient", "#C6EBD4");
   renderLegend(svg);
 };
 
@@ -60,6 +73,7 @@ const updateSVG = (
   height: number,
   data: any,
   chainNodes: number[],
+  nodeClickFn: (nodeID: number) => void,
 ) => {
   const svg = d3.selectAll("#outline-svg");
   svg.attr("viewBox", `0 0 ${width} ${height}`);
@@ -77,7 +91,7 @@ const updateSVG = (
       y: d.y * dy + offsetY,
       highlight:
         chainNodes.find((n: any) => n === d.id) !== undefined
-          ? "#ccffdd"
+          ? "#C6EBD4"
           : "#f5f5f5",
     };
   });
@@ -99,8 +113,6 @@ const updateSVG = (
       .attr("width", 48)
       .attr("height", 34)
       .attr("fill", (d: any) => d.highlight)
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
       .attr("rx", 16)
       .attr("ry", 16)
       .attr("x", (d: any) => d.x - 24)
@@ -109,56 +121,90 @@ const updateSVG = (
 
   const renderNodeBg = (selection: any) => {
     selection
-      .attr("class", "node-bg")
+      .attr("class", "node-bg cursor-pointer")
       .attr("width", 48)
       .attr("height", 29)
       .attr("fill", "#f5f5f5")
       .attr("rx", 14)
       .attr("ry", 14)
       .attr("x", (d: any) => d.x - 24)
-      .attr("y", (d: any) => d.y);
+      .attr("y", (d: any) => d.y)
+      .on("click", (event: any, d: any) => {
+        nodeClickFn(d.id);
+      });
   };
 
   const renderNodeText = (selection: any) => {
     selection
-      .attr("class", "select-none text-sm text-black")
+      .attr("class", "select-none text-sm text-black cursor-pointer")
       .attr("x", (d: any) => d.x)
       .attr("y", (d: any) => d.y + 20)
       .attr("text-anchor", "middle")
-      .text((d: any) => d.text);
+      .text((d: any) => d.text)
+      .on("click", (event: any, d: any) => {
+        nodeClickFn(d.id);
+      });
   };
 
   const updateTreeLinks = (linkData: any) =>
     linkData.map((d: any) => {
-      return d3.link(d3.curveLinear)({
-        source: [
-          // @ts-ignore
-          nodeData.find((n) => n.id === d.source).x,
-          // @ts-ignore
-          nodeData.find((n) => n.id === d.source).y + 17,
-        ],
-        target: [
-          // @ts-ignore
-          nodeData.find((n) => n.id === d.target).x,
-          // @ts-ignore
-          nodeData.find((n) => n.id === d.target).y,
-        ],
-      });
+      const highlighted =
+        chainNodes.find((n: any) => n === d.source) !== undefined &&
+        chainNodes.find((n: any) => n === d.target) !== undefined;
+
+      const source = nodeData.find((n) => n.id === d.source);
+      const target = nodeData.find((n) => n.id === d.target);
+      if (!source || !target) {
+        return;
+      }
+      const type =
+        source.x === target.x || source.y === target.y ? "fill" : "stroke";
+      const lineColor = highlighted ? "url(#linkGradient)" : "#eaeaea";
+      const lineWidth = highlighted ? 4 : 2;
+      return {
+        data:
+          type === "stroke"
+            ? d3.line()([
+                [source.x, source.y + 17],
+                [target.x, target.y + 17],
+              ])
+            : source.x === target.x
+            ? d3.line()([
+                [source.x - lineWidth / 2, source.y + 17],
+                [target.x - lineWidth / 2, target.y + 17],
+                [target.x + lineWidth / 2, target.y + 17],
+                [source.x + lineWidth / 2, source.y + 17],
+              ])
+            : d3.line()([
+                [source.x, source.y + 17 - lineWidth / 2],
+                [target.x, target.y + 17 - lineWidth / 2],
+                [target.x, target.y + 17 + lineWidth / 2],
+                [source.x, source.y + 17 + lineWidth / 2],
+              ]),
+        // if the source and target nodes is in the chain, then the link is highlighted
+        color: lineColor,
+        fill: type === "fill" ? lineColor : "none",
+        stokeWidth: type === "fill" ? 0 : lineWidth,
+        colorType: type,
+      };
     });
 
   let treeLinks = updateTreeLinks(linkData);
+
+  const renderLink = (selection: any) => {
+    selection
+      .attr("d", (d: any) => d.data)
+      .attr("fill", (d: any) => d.fill)
+      .attr("stroke", (d: any) => d.color)
+      .attr("stroke-width", (d: any) => d.stokeWidth);
+  };
 
   svg
     .selectAll(".tree-link-group")
     .selectAll("path")
     .data(treeLinks)
     .join("path")
-    .attr("class", "tree-link")
-    .attr("d", (d: any) => d)
-    .attr("fill", "none")
-    .attr("stroke-width", 2)
-    .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.5);
+    .call(renderLink);
 
   svg
     .selectAll(".tree-node-shadow-group")
