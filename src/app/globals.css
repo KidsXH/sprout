@@ -35,3 +35,7 @@ body {
   }
   /* ... */
 }
+
+.text-security-disc {
+  -webkit-text-security: disc;
+}
