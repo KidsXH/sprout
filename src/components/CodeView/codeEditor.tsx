@@ -1,16 +1,30 @@
 "use client";
-import React from "react";
-import CodeMirror from "@uiw/react-codemirror";
+import React, { MutableRefObject } from "react";
+import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { useEffect, useMemo, useRef } from "react";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { quietlight } from "@uiw/codemirror-theme-quietlight";
 import { zebraStripes } from "@uiw/codemirror-extensions-zebra-stripes";
 import sproutTheme from "./theme";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { selectChainNodes } from "@/store/selectionSlice";
+import {
+  selectHighlightNode,
+  updateCodeScrollTop,
+} from "@/store/highlightSlice";
+import nodes from "@/mocks/nodes";
 
 function CodeEditor() {
+  const CodeRef: MutableRefObject<ReactCodeMirrorRef | null> = useRef(null);
+  const chainNodes = useAppSelector(selectChainNodes);
+  const highlightNodeId = useAppSelector(selectHighlightNode);
+
+  const dispatch = useAppDispatch();
+  const [codeScrollTop, setCodeScrollTop] = React.useState<number>(0);
+  const [highlightCodeRange, setHighlightCodeRange] = React.useState<any>([]);
   const onChange = React.useCallback((value: any, viewUpdate: any) => {
-    console.log("value:", value);
+    //console.log("value:", value);
   }, []);
 
   const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
@@ -35,8 +49,28 @@ function CodeEditor() {
           nodes.remove(current_node)
       
       return distances[end]
+
+
+
 `;
-  const highlightCode = [3, 6];
+
+  const handleWheelEvent = (event: any) => {
+    // const codeEditor = CodeRef.current?.editor;
+    const codeElement = document.getElementById("code-editor");
+    const scrollTop: number = codeElement?.scrollTop || 0;
+    setCodeScrollTop(scrollTop);
+  };
+
+  useEffect(() => {
+    dispatch(updateCodeScrollTop(codeScrollTop));
+  }, [codeScrollTop]);
+
+  useEffect(() => {
+    setHighlightCodeRange(
+      highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
+    );
+  }, [highlightNodeId]);
+
   return (
     <CodeMirror
       className="code-editor-content "
@@ -45,10 +79,15 @@ function CodeEditor() {
       width="500px"
       extensions={[
         python(),
-        zebraStripes({ lineNumber: [highlightCode], lightColor: "#ccd7da50" }),
+        zebraStripes({
+          lineNumber: [highlightCodeRange],
+          lightColor: "#ccd7da50",
+        }),
       ]}
       onChange={onChange}
       theme={sproutTheme}
+      onWheel={handleWheelEvent}
+      ref={CodeRef}
     />
   );
 }

@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import modelReducer from "@/store/modelSlice";
 import selectionReducer from "@/store/selectionSlice";
+import highlightReducer from "@/store/highlightSlice";
 
 export const store = configureStore({
   reducer: {
     model: modelReducer,
     selection: selectionReducer,
+    highlight: highlightReducer,
   },
 });
 
