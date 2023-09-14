@@ -26,7 +26,7 @@ const initialState: modelState = {
   runningState: "stopped",
   command: "none",
   modelName: "GPT-3.5-turbo",
-  apiKey: "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",
+  apiKey: "",
 };
 
 export const modelSlice = createSlice({
