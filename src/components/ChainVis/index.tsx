@@ -88,7 +88,9 @@ const ChainVis = () => {
     if (highlightNode === null) return;
     const textBlocks = document.getElementsByClassName("text-block");
     if (textBlocks.length !== 0) {
-      textBlocks[highlightNode].classList.add("text-block-highlight");
+      setTimeout(() => {
+        textBlocks[highlightNode].classList.add("text-block-highlight");
+      }, 1400);
     }
 
     return () => {

@@ -36,6 +36,12 @@ body {
   /* ... */
 }
 
+[contenteditable]:focus {
+  outline: 0px solid transparent;
+  /* outline-style */
+  /* caret-color: #c8f4d1; */
+}
+
 .text-security-disc {
   -webkit-text-security: disc;
 }

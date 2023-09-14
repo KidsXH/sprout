@@ -66,9 +66,14 @@ function CodeEditor() {
   }, [codeScrollTop]);
 
   useEffect(() => {
-    setHighlightCodeRange(
-      highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
-    );
+    setTimeout(() => {
+      setHighlightCodeRange(
+        highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
+      );
+    }, 1400);
+    return () => {
+      setHighlightCodeRange([]);
+    };
   }, [highlightNodeId]);
 
   return (
