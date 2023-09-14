@@ -26,7 +26,7 @@ const initialState: modelState = {
   runningState: "stopped",
   command: "none",
   modelName: "GPT-3.5-turbo",
-  apiKey: "",
+  apiKey: "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",
 };
 
 export const modelSlice = createSlice({
@@ -35,6 +35,12 @@ export const modelSlice = createSlice({
   reducers: {
     setSourceCode: (state, action: PayloadAction<string>) => {
       state.sourceCode = action.payload;
+    },
+    setRunningState: (
+      state,
+      action: PayloadAction<modelState["runningState"]>,
+    ) => {
+      state.runningState = action.payload;
     },
     continueGeneration: (state) => {
       if (state.runningState === "running") {
@@ -49,11 +55,12 @@ export const modelSlice = createSlice({
     },
     setApiKey: (state, action: PayloadAction<string>) => {
       state.apiKey = action.payload;
-    }
+    },
   },
 });
 
-export const { setSourceCode, setCommand, setModelName, setApiKey } = modelSlice.actions;
+export const { setSourceCode, setRunningState, setCommand, setModelName, setApiKey } =
+  modelSlice.actions;
 
 export const selectSourceCode = (state: RootState) => state.model.sourceCode;
 export const selectRunningState = (state: RootState) =>
