@@ -17,6 +17,9 @@ export const BranchView = () => {
 
     const bigRectWidth = 150;
     const bigRectHeight = 72;
+    const reasonBoxHeight = 80;
+    const reasonBoxWidth = 150;
+    const childBranchNodeY = 220;
     const interval = 15;
 
     const links = [
@@ -25,29 +28,33 @@ export const BranchView = () => {
         y1: bigRectHeight / 2,
         x2: -bigRectWidth - interval,
         y2: (bigRectHeight / 2) * 3,
+        text: "start from first ...",
       },
       {
         x1: 0,
         y1: bigRectHeight / 2,
         x2: 0,
         y2: (bigRectHeight / 2) * 3,
+        text: "Explain the role ...",
       },
       {
         x1: 0,
         y1: bigRectHeight / 2,
         x2: bigRectWidth + interval,
         y2: (bigRectHeight / 2) * 3,
+        text: "start from first l...",
       },
     ];
     //get sibling nodes
     // const parentNode = nodes[focusBranchNode].parent;
     const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
 
+    //branch node data
     const rectData = d3.map(siblingNodes, (d, i) => {
       const w = bigRectWidth;
       const h = bigRectHeight;
       const x = (-w / 2) * 3 - interval + i * (w + interval);
-      const y = 170;
+      const y = childBranchNodeY;
       return {
         x: x,
         y: y,
@@ -73,7 +80,8 @@ export const BranchView = () => {
       type: "parent",
     });
 
-    const pathData = d3.map(links, (d) => {
+    //branch node link data
+    var pathData = d3.map(links, (d) => {
       const path = d3.path();
       path.moveTo(d.x1, d.y1);
       path.lineTo(d.x2, d.y2);
@@ -83,7 +91,25 @@ export const BranchView = () => {
         color: "#eaeaea",
       };
     });
+    pathData = pathData.concat(
+      d3.map(links, (d, i) => {
+        const path = d3.path();
 
+        path.moveTo(d.x2, d.y2 + reasonBoxHeight);
+        path.lineTo(d.x2, childBranchNodeY);
+        path.closePath();
+        return { d: path.toString(), color: "#eaeaea" };
+      }),
+    );
+
+    //reasoning box data
+    const reasonBoxData = d3.map(links, (d, i) => {
+      return {
+        x: d.x2 - reasonBoxWidth / 2,
+        y: d.y2,
+        text: d.text,
+      };
+    });
     const svg = d3
       .select("#ToT-branch")
       .attr("preserveAspectRatio", "xMinYMin meet")
@@ -91,6 +117,7 @@ export const BranchView = () => {
 
     svg.selectAll("*").remove();
 
+    //render branch link
     svg
       .append("g")
       .selectAll("path")
@@ -113,6 +140,8 @@ export const BranchView = () => {
           .ease(d3.easeLinear)
           .attr("stroke-dashoffset", 0);
       });
+
+    //render branch node
     svg
       .append("g")
       .selectAll("rect")
@@ -159,6 +188,7 @@ export const BranchView = () => {
         // console.log(d.id);
       });
 
+    //render branch node text
     svg
       .append("g")
       .selectAll("text")
@@ -177,6 +207,7 @@ export const BranchView = () => {
       .ease(d3.easeLinear)
       .attr("opacity", 100);
 
+    //render code range
     svg
       .append("g")
       .selectAll("text")
@@ -196,6 +227,26 @@ export const BranchView = () => {
       .duration(500)
       .ease(d3.easeLinear)
       .attr("opacity", 100);
+
+    //render reasoning text
+    svg
+      .append("g")
+      .selectAll("text")
+      .data(reasonBoxData)
+      .join("text")
+      .attr("class", "branch-node-text select-none")
+      .attr("x", (d) => d.x + 15)
+      .attr("y", (d, i) => d.y + 25)
+      .attr("width", reasonBoxWidth)
+      .attr("fill", "#000")
+      .attr("font-size", "14px")
+      .attr("text-anchor", "start")
+      .text((d) => d.text)
+      .attr("opacity", 0)
+      .transition()
+      .duration(500)
+      .ease(d3.easeLinear)
+      .attr("opacity", 100);
   }, [parentNode]);
 
   useEffect(() => {
@@ -207,7 +258,11 @@ export const BranchView = () => {
         if (d.id == previewNode) {
           setParentNode(d.id);
         } else {
-          if (d.type !== "parent") setPreviewNode(d.id);
+          if (d.type !== "parent") {
+            setPreviewNode(d.id);
+          } else {
+            d.id == 0 ? 0 : setParentNode(nodes[d.id].parent);
+          }
         }
       })
       .each(function (d: any) {

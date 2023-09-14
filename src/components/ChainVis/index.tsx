@@ -143,7 +143,7 @@ const ChainVis = () => {
       .attr("x1", 0)
       .attr("y1", 0)
       .attr("x2", 0)
-      .attr("y2", innerHeight - rectHeight / 2)
+      .attr("y2", (chainNodesIndex.length - 1) * interval)
       .attr("stroke", "#D9D9D9")
       .attr("stroke-width", 4);
 
