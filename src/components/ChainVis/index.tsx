@@ -65,7 +65,6 @@ const ChainVis = () => {
         height,
       ]);
       setChainScrollTop(newScrollTop);
-      console.log("new", newScrollTop);
     } else {
       const newScrollTop = chainScrollTop - 3 > 0 ? chainScrollTop - 3 : 0;
       svg.attr("viewBox", [
@@ -85,7 +84,7 @@ const ChainVis = () => {
 
   //block highlight
   useEffect(() => {
-    if (highlightNode === null) return;
+    if (highlightNode === -1) return;
     const textBlocks = document.getElementsByClassName("text-block");
     if (textBlocks.length !== 0) {
       setTimeout(() => {
@@ -94,7 +93,7 @@ const ChainVis = () => {
     }
 
     return () => {
-      if (highlightNode === null) return;
+      if (highlightNode === -1) return;
       if (textBlocks.length !== 0) {
         textBlocks[highlightNode].classList.remove("text-block-highlight");
       }
@@ -209,7 +208,7 @@ const ChainVis = () => {
         setSelectedNode(d.id);
       });
 
-    if (highlightNode === null) return;
+    if (highlightNode === -1) return;
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
 
@@ -382,7 +381,7 @@ const ChainVis = () => {
 
   //update left and right y position
   useEffect(() => {
-    if (highlightNode === null || highlightNode === -1) return;
+    if (highlightNode === -1) return;
     const svg = d3.select("#chain-svg");
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
@@ -413,7 +412,7 @@ const ChainVis = () => {
 
   // update connector
   useEffect(() => {
-    if (highlightNode === null) return;
+    if (highlightNode === -1) return;
     const svg = d3.select("#chain-svg");
 
     const nodeData = chainNodesIndex.map((d, i) => {

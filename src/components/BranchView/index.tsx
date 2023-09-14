@@ -7,7 +7,9 @@ import nodes from "@/mocks/nodes";
 import * as d3 from "d3";
 
 export const BranchView = () => {
-  const parentNode = 2;
+  // const parentNode = 2;
+  const [parentNode, setParentNode] = useState(2);
+  const [previewNode, setPreviewNode] = useState(4);
 
   useEffect(() => {
     const width = 512;
@@ -39,7 +41,7 @@ export const BranchView = () => {
     ];
     //get sibling nodes
     // const parentNode = nodes[focusBranchNode].parent;
-    const siblingNodes = parentNode ? nodes[parentNode].children : [];
+    const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
 
     const rectData = d3.map(siblingNodes, (d, i) => {
       const w = bigRectWidth;
@@ -55,6 +57,7 @@ export const BranchView = () => {
         range: nodes[d].range,
         text: nodes[d].content[nodes[d].contentID].summary,
         id: d,
+        type: "child",
       };
     });
 
@@ -67,6 +70,7 @@ export const BranchView = () => {
       range: nodes[parentNode].range,
       text: nodes[parentNode].content[nodes[parentNode].contentID].summary,
       id: parentNode,
+      type: "parent",
     });
 
     const pathData = d3.map(links, (d) => {
@@ -122,7 +126,7 @@ export const BranchView = () => {
       .attr("fill", (d) => d.color)
       .attr("rx", 16)
       .attr("ry", 16)
-      .on("click", (evenrt, d) => {
+      .on("click", (event, d) => {
         // setFocusBranchNode(d.id);
         // console.log(d.id);
         // setParentNode(d.id);
@@ -142,6 +146,15 @@ export const BranchView = () => {
       .attr("rx", 14)
       .attr("ry", 14)
       .on("click", (event, d) => {
+        if (d.type === "parent") {
+          d.id == 0 ? 0 : setParentNode(nodes[d.id].parent);
+        } else {
+          if (d.id !== previewNode) {
+            setPreviewNode(d.id);
+          } else {
+            setParentNode(d.id);
+          }
+        }
         // setParentNode(d.id);
         // console.log(d.id);
       });
@@ -176,7 +189,7 @@ export const BranchView = () => {
       .attr("font-size", "14px")
       .attr("text-anchor", "start")
       .text(
-        (d) => d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1])
+        (d) => d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
       )
       .attr("opacity", 0)
       .transition()
@@ -185,13 +198,35 @@ export const BranchView = () => {
       .attr("opacity", 100);
   }, [parentNode]);
 
+  useEffect(() => {
+    const svg = d3.select("#ToT-branch");
+
+    svg
+      .selectAll(".branch-node")
+      .on("click", (event, d: any) => {
+        if (d.id == previewNode) {
+          setParentNode(d.id);
+        } else {
+          if (d.type !== "parent") setPreviewNode(d.id);
+        }
+      })
+      .each(function (d: any) {
+        const rect = this as SVGRectElement;
+        // console.log("set style");
+        if (d.id !== previewNode) {
+          d3.select(rect).attr("class", "branch-node");
+        } else {
+          d3.select(rect).attr("class", "branch-node preview-branch-node");
+        }
+      });
+  }, [previewNode]);
   return (
-    <div className="flex flex-col w-[32rem]">
-      <div className="flex text-xl font-bold p-1 h-12 text-neutral-600 items-center select-none">
+    <div className="flex w-[32rem] flex-col">
+      <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-neutral-600">
         Branches
       </div>
       <svg
-        className="w-[32rem] h-full"
+        className="h-full w-[32rem]"
         id="ToT-branch"
         onClick={() => {
           // handleBranchClick();
