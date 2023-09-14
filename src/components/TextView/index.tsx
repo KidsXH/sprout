@@ -58,7 +58,7 @@ export const TextView = () => {
       >
         {chain.map((item: node, id: number) => (
           // <TextBlock key={id}>{`${item.content[item.contentID]}`}</TextBlock>
-          <TextBlock key={id}>{`${
+          <TextBlock index={id}>{`${
             item.content[item.contentID].content
           }`}</TextBlock>
         ))}

@@ -27,6 +27,9 @@ const ChainVis = () => {
   const [codeSnippetHeight, setCodeSnippetHeight] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
   const chainNodesIndex = useAppSelector(selectChainNodes);
+  const highlightNode = useAppSelector(
+    (state) => state.highlight.highlightNode,
+  );
 
   // const width = svgRef.current?.clientWidth || 0;
   //   const height = svgRef.current?.clientHeight || 0;
@@ -44,6 +47,7 @@ const ChainVis = () => {
     chainNodesIndex.length < 7
       ? innerHeight / chainNodesIndex.length
       : innerHeight / 7;
+  const upperHeight = (chainNodesIndex.length + 1) * interval - height;
 
   const handleWheelEvent = (event: any) => {
     let deltaScale = event.deltaY;
@@ -52,14 +56,16 @@ const ChainVis = () => {
     // console.log(svg.attr("viewBox"));
 
     if (deltaScale > 0) {
-      const newScrollTop = chainScrollTop + 3;
+      const newScrollTop =
+        chainScrollTop + 3 <= upperHeight ? chainScrollTop + 3 : upperHeight;
       svg.attr("viewBox", [
         -width / 2,
         -margin.top + newScrollTop,
         width,
         height,
       ]);
-      setChainScrollTop(chainScrollTop + 3);
+      setChainScrollTop(newScrollTop);
+      console.log("new", newScrollTop);
     } else {
       const newScrollTop = chainScrollTop - 3 > 0 ? chainScrollTop - 3 : 0;
       svg.attr("viewBox", [
@@ -79,19 +85,19 @@ const ChainVis = () => {
 
   //block highlight
   useEffect(() => {
-    if (selectedNode === null) return;
+    if (highlightNode === null) return;
     const textBlocks = document.getElementsByClassName("text-block");
     if (textBlocks.length !== 0) {
-      textBlocks[selectedNode].classList.add("text-block-highlight");
+      textBlocks[highlightNode].classList.add("text-block-highlight");
     }
 
     return () => {
-      if (selectedNode === null) return;
+      if (highlightNode === null) return;
       if (textBlocks.length !== 0) {
-        textBlocks[selectedNode].classList.remove("text-block-highlight");
+        textBlocks[highlightNode].classList.remove("text-block-highlight");
       }
     };
-  }, [selectedNode]);
+  }, [highlightNode]);
 
   useEffect(() => {
     const nodeData = chainNodesIndex.map((d, i) => {
@@ -104,10 +110,10 @@ const ChainVis = () => {
     });
 
     const rectData = d3.map(nodeData, (d, i) => {
-      const w = i === selectedNode ? bigRectWidth : rectWidth;
-      const h = i === selectedNode ? bigRectHeight : rectHeight;
+      const w = i === highlightNode ? bigRectWidth : rectWidth;
+      const h = i === highlightNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
-      const y = i === selectedNode ? i * interval - 10 : i * interval;
+      const y = i === highlightNode ? i * interval - 10 : i * interval;
       return {
         x: x,
         y: y,
@@ -201,13 +207,13 @@ const ChainVis = () => {
         setSelectedNode(d.id);
       });
 
-    if (selectedNode === null) return;
+    if (highlightNode === null) return;
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
 
     // get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[selectedNode].range;
+    const codeRange = chain[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
@@ -218,9 +224,9 @@ const ChainVis = () => {
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    const blockY = hightlightBlocks[selectedNode]?.getBoundingClientRect().top;
+    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
     const blockHeight =
-      hightlightBlocks[selectedNode]?.getBoundingClientRect().height;
+      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
 
     const rightY = blockY - svgMarginTop - margin.top;
 
@@ -229,14 +235,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + interval * selectedNode,
+        y2: rectHeight / 2 + interval * highlightNode,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + interval * selectedNode,
+        y1: rectHeight / 2 + interval * highlightNode,
         x2: width / 2,
         y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
@@ -270,7 +276,7 @@ const ChainVis = () => {
         y: leftY,
         width: 4,
         height: codeSnippetHeight,
-        color: rectData[selectedNode].color,
+        color: rectData[highlightNode].color,
         side: "left",
       },
       {
@@ -278,7 +284,7 @@ const ChainVis = () => {
         y: rightY,
         width: 4,
         height: blockHeight,
-        color: rectData[selectedNode].color,
+        color: rectData[highlightNode].color,
         side: "right",
       },
     ];
@@ -297,7 +303,7 @@ const ChainVis = () => {
       .append("stop")
       .attr("class", "start")
       .attr("offset", "0%")
-      .attr("stop-color", rectData[selectedNode].color)
+      .attr("stop-color", rectData[highlightNode].color)
       .attr("stop-opacity", 1);
 
     gradient
@@ -326,7 +332,7 @@ const ChainVis = () => {
       .append("stop")
       .attr("class", "end")
       .attr("offset", "100%")
-      .attr("stop-color", rectData[selectedNode].color)
+      .attr("stop-color", rectData[highlightNode].color)
       .attr("stop-opacity", 1);
 
     //new path
@@ -370,17 +376,17 @@ const ChainVis = () => {
       .duration(200)
       .delay(1300)
       .attr("width", (d) => d.width);
-  }, [selectedNode]);
+  }, [highlightNode]);
 
   //update left and right y position
   useEffect(() => {
-    if (selectedNode === null) return;
+    if (highlightNode === null || highlightNode === -1) return;
     const svg = d3.select("#chain-svg");
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
     //get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[selectedNode].range;
+    const codeRange = chain[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
     const codeSnippetY =
       codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
@@ -391,9 +397,9 @@ const ChainVis = () => {
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    const blockY = hightlightBlocks[selectedNode]?.getBoundingClientRect().top;
+    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
     const blockHeight =
-      hightlightBlocks[selectedNode]?.getBoundingClientRect().height;
+      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
 
     const rightY = blockY - svgMarginTop - margin.top;
 
@@ -401,11 +407,11 @@ const ChainVis = () => {
     setRightY(rightY);
     setCodeSnippetHeight(codeSnippetHeight);
     setBlockHeight(blockHeight);
-  }, [codeScrollTop, textScrollTop, selectedNode]);
+  }, [codeScrollTop, textScrollTop, highlightNode]);
 
   // update connector
   useEffect(() => {
-    if (selectedNode === null) return;
+    if (highlightNode === null) return;
     const svg = d3.select("#chain-svg");
 
     const nodeData = chainNodesIndex.map((d, i) => {
@@ -417,10 +423,10 @@ const ChainVis = () => {
       };
     });
     const rectData = d3.map(nodeData, (d, i) => {
-      const w = i === selectedNode ? bigRectWidth : rectWidth;
-      const h = i === selectedNode ? bigRectHeight : rectHeight;
+      const w = i === highlightNode ? bigRectWidth : rectWidth;
+      const h = i === highlightNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
-      const y = i === selectedNode ? i * interval - 10 : i * interval;
+      const y = i === highlightNode ? i * interval - 10 : i * interval;
       return {
         x: x,
         y: y,
@@ -431,7 +437,7 @@ const ChainVis = () => {
         id: i,
       };
     });
-    if (selectedNode === null) return;
+    if (highlightNode === -1) return;
 
     const connectors = [
       {
@@ -439,7 +445,7 @@ const ChainVis = () => {
         y: leftY + chainScrollTop,
         width: 4,
         height: codeSnippetHeight,
-        color: rectData[selectedNode].color,
+        color: rectData[highlightNode].color,
         side: "left",
       },
       {
@@ -447,7 +453,7 @@ const ChainVis = () => {
         y: rightY + chainScrollTop,
         width: 4,
         height: blockHeight,
-        color: rectData[selectedNode].color,
+        color: rectData[highlightNode].color,
         side: "right",
       },
     ];
@@ -460,29 +466,29 @@ const ChainVis = () => {
 
   //update links
   useEffect(() => {
-    if (selectedNode === null) return;
+    if (highlightNode === -1) return;
     const svg = d3.select("#chain-svg");
 
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
     //get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[selectedNode].range;
+    const codeRange = chain[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
       codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
-    const codeOffsetY = codeLines[selectedNode]?.scrollTop;
+    const codeOffsetY = codeLines[highlightNode]?.scrollTop;
     const codeSnippetHeight =
       (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
     const leftY = codeSnippetY - svgMarginTop - margin.top;
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    const blockY = hightlightBlocks[selectedNode]?.getBoundingClientRect().top;
-    const blockOffsetY = hightlightBlocks[selectedNode]?.scrollTop;
+    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
+    const blockOffsetY = hightlightBlocks[highlightNode]?.scrollTop;
     const blockHeight =
-      hightlightBlocks[selectedNode]?.getBoundingClientRect().height;
+      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
 
     const rightY = blockY - svgMarginTop - margin.top;
     const links = [
@@ -490,14 +496,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + interval * selectedNode,
+        y2: rectHeight / 2 + interval * highlightNode,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + interval * selectedNode,
+        y1: rectHeight / 2 + interval * highlightNode,
         x2: width / 2,
         y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
