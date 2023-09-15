@@ -1,7 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store/index";
-import exp from "constants";
+import 'dotenv/config';
+
+const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
 
 interface modelState {
   sourceCode: string;
@@ -25,8 +27,8 @@ const initialState: modelState = {
   sourceCode: "",
   runningState: "stopped",
   command: "none",
-  modelName: "GPT-3.5-turbo",
-  apiKey: "",
+  modelName: "gpt-3.5-turbo",
+  apiKey: DEFAULT_API_KEY,
 };
 
 export const modelSlice = createSlice({
