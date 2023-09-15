@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store/index";
-import 'dotenv/config';
+import "dotenv/config";
+import { DIJKSTRA_CODE } from "@/components/CodeView/codeEditor";
 
-const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
+const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
 interface modelState {
   sourceCode: string;
@@ -24,7 +25,7 @@ interface modelState {
 }
 
 const initialState: modelState = {
-  sourceCode: "",
+  sourceCode: DIJKSTRA_CODE,
   runningState: "stopped",
   command: "none",
   modelName: "gpt-3.5-turbo",
@@ -61,8 +62,13 @@ export const modelSlice = createSlice({
   },
 });
 
-export const { setSourceCode, setRunningState, setCommand, setModelName, setApiKey } =
-  modelSlice.actions;
+export const {
+  setSourceCode,
+  setRunningState,
+  setCommand,
+  setModelName,
+  setApiKey,
+} = modelSlice.actions;
 
 export const selectSourceCode = (state: RootState) => state.model.sourceCode;
 export const selectRunningState = (state: RootState) =>
