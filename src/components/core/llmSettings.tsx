@@ -1,18 +1,34 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { selectModelName, setApiKey, setModelName } from "@/store/modelSlice";
+import {
+  selectApiKey,
+  selectModelName,
+  setApiKey,
+  setModelName,
+} from "@/store/modelSlice";
 
 const LLMSettings = () => {
-  const modelName = useAppSelector(selectModelName);
   const dispatch = useAppDispatch();
+  const modelName = useAppSelector(selectModelName);
+  const modelApiKey = useAppSelector(selectApiKey);
+
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("GPT-3.5-turbo");
-  const [openaiAPIKey, setOpenaiAPIKey] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [userAPIKey, setUserAPIKey] = useState("");
+
+  useEffect(() => {
+    setUserAPIKey(modelApiKey);
+  }, [modelApiKey]);
+
+  useEffect(() => {
+    setSelectedModel(modelName);
+  }, [modelName]);
+
   const applyModelSettings = useCallback(() => {
     setIsOpen(false);
     dispatch(setModelName(selectedModel));
-    dispatch(setApiKey(openaiAPIKey));
-  }, [selectedModel, openaiAPIKey, dispatch]);
+    dispatch(setApiKey(userAPIKey));
+  }, [selectedModel, userAPIKey, dispatch]);
 
   return (
     <>
@@ -55,8 +71,8 @@ const LLMSettings = () => {
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
             >
-              <option value="GPT-3.5-turbo">GPT-3.5-turbo</option>
-              <option value="GPT-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">GPT-3.5-turbo</option>
+              <option value="gpt-4">GPT-4</option>
             </select>
           </div>
           <div className="mt-2 flex items-center">
@@ -65,8 +81,8 @@ const LLMSettings = () => {
               className="text-security-disc w-[15rem] rounded-md border-2 px-2  py-1"
               type="text"
               autoComplete="off"
-              value={openaiAPIKey}
-              onChange={(e) => setOpenaiAPIKey(e.target.value)}
+              value={userAPIKey}
+              onChange={(e) => setUserAPIKey(e.target.value)}
             />
           </div>
           <div className="mt-2 flex items-center justify-end">
