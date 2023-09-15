@@ -14,6 +14,7 @@ import {
   updateCodeScrollTop,
 } from "@/store/highlightSlice";
 import nodes from "@/mocks/nodes";
+import { setSourceCode } from "@/store/modelSlice";
 
 function CodeEditor() {
   const CodeRef: MutableRefObject<ReactCodeMirrorRef | null> = useRef(null);
@@ -23,8 +24,10 @@ function CodeEditor() {
   const dispatch = useAppDispatch();
   const [codeScrollTop, setCodeScrollTop] = React.useState<number>(0);
   const [highlightCodeRange, setHighlightCodeRange] = React.useState<any>([]);
+  const [code, setCode] = React.useState<string>("");
   const onChange = React.useCallback((value: any, viewUpdate: any) => {
     //console.log("value:", value);
+    setCode(value);
   }, []);
 
   const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
@@ -54,6 +57,9 @@ function CodeEditor() {
 
 `;
 
+  const handleBlurEvent = (event: any) => {
+    dispatch(setSourceCode(code));
+  };
   const handleWheelEvent = (event: any) => {
     // const codeEditor = CodeRef.current?.editor;
     const codeElement = document.getElementById("code-editor");
@@ -79,7 +85,7 @@ function CodeEditor() {
   return (
     <CodeMirror
       className="code-editor-content "
-      value={DIJKSTRA_CODE}
+      // value={DIJKSTRA_CODE}
       height="100%"
       width="500px"
       extensions={[
@@ -93,6 +99,7 @@ function CodeEditor() {
       theme={sproutTheme}
       onWheel={handleWheelEvent}
       ref={CodeRef}
+      onBlur={handleBlurEvent}
     />
   );
 }
