@@ -95,7 +95,7 @@ export default CodeEditor;
 //   return <div ref={editor} />;
 // }
 
-const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
+export const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
       distances = {node: 32767 for node in graph}
       distances[start] = 0
       nodes = [node for node in graph]
