@@ -5,6 +5,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { FastForward, Pause, RefreshRounded } from "@mui/icons-material";
 import Button from "@mui/material-next/Button";
 import { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const LLMController = () => {
   const runningState = useAppSelector(selectRunningState);
@@ -12,30 +13,16 @@ const LLMController = () => {
 
   const [toggle, setToggle] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const handlePlay = () => {
+  const handleStart = () => {
+    setTimeout(() => {
+      setToggle(!toggle);
+    }, 200);
     dispatch(setCommand("run"));
   };
   return (
     <>
       <div className="ml-2 flex items-center">
-        {toggle ? (
-          <StartButton
-            onClick={() => {
-              setTimeout(() => {
-                setToggle(!toggle);
-              }, 200);
-            }}
-          />
-        ) : (
-          <RestartButton
-            onClick={() => {
-              setTimeout(() => {
-                setIsPaused(false);
-                setToggle(!toggle);
-              }, 200);
-            }}
-          />
-        )}
+        {toggle ? <StartButton onClick={handleStart} /> : <GeneratingButton />}
 
         {toggle ? (
           <PauseButton disabled={true} />
@@ -73,7 +60,30 @@ export const StartButton = (props: { onClick?: any }) => {
           className="mr-2 w-28 rounded-md border-2 border-gray-200 py-1 pr-8 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
           onClick={props.onClick}
         >
-          Start
+          Generate
+        </Button>
+      </Tooltip>
+    </>
+  );
+};
+
+export const GeneratingButton = (props: { onClick?: any }) => {
+  return (
+    <>
+      <Tooltip title="Generating" enterDelay={1000}>
+        <Button
+          variant="outlined"
+          startIcon={
+            <CircularProgress
+              className="p-1 text-green-500"
+              color="inherit"
+              size={20}
+            />
+          }
+          className="mr-2 w-28 rounded-md border-2 border-green-100 bg-green-50 py-1 pr-8 text-gray-500 transition-all duration-500 ease-in-out hover:border-green-200 hover:bg-green-200"
+          onClick={props.onClick}
+        >
+          Generate
         </Button>
       </Tooltip>
     </>
