@@ -8,20 +8,28 @@ import * as d3 from "d3";
 
 export const BranchView = () => {
   // const parentNode = 2;
+  const width = 512;
+  const height = 300;
+
+  const bigRectWidth = 150;
+  const bigRectHeight = 72;
+  const reasonBoxHeight = 80;
+  const reasonBoxWidth = 150;
+  const childBranchNodeY = 220;
+  const interval = 15;
+  const codeRangeOffsetX = 15;
+  const codeRangeOffsetY = 25;
+  const phase1 = 500;
+  const phase2 = 500;
+  const phase3 = 1500;
+  const textOffsetY = (bigRectHeight / 4) * 3;
   const [parentNode, setParentNode] = useState(2);
   const [previewNode, setPreviewNode] = useState(4);
+  const [oldIndex, setOldIndex] = useState(-1);
+  const [direction, setDirection] = useState(0); //0 for down,1 for up
 
+  //TODO: set preview node after parent node change
   useEffect(() => {
-    const width = 512;
-    const height = 300;
-
-    const bigRectWidth = 150;
-    const bigRectHeight = 72;
-    const reasonBoxHeight = 80;
-    const reasonBoxWidth = 150;
-    const childBranchNodeY = 220;
-    const interval = 15;
-
     const links = [
       {
         x1: 0,
@@ -64,6 +72,7 @@ export const BranchView = () => {
         range: nodes[d].range,
         text: nodes[d].content[nodes[d].contentID].summary,
         id: d,
+        indexInList: i,
         type: "child",
       };
     });
@@ -77,6 +86,7 @@ export const BranchView = () => {
       range: nodes[parentNode].range,
       text: nodes[parentNode].content[nodes[parentNode].contentID].summary,
       id: parentNode,
+      indexInList: rectData.length,
       type: "parent",
     });
 
@@ -110,143 +120,166 @@ export const BranchView = () => {
         text: d.text,
       };
     });
+
     const svg = d3
       .select("#ToT-branch")
       .attr("preserveAspectRatio", "xMinYMin meet")
       .attr("viewBox", `${-width / 2} -10 ${width} ${height + 10}`);
 
-    svg.selectAll("*").remove();
+    setTimeout(
+      () => {
+        svg.selectAll("*").remove();
+        //render branch link
+        svg
+          .append("g")
+          .selectAll("path")
+          .data(pathData)
+          .join("path")
+          .attr("class", "branch-node-link")
+          .attr("d", (d) => d.d)
+          .attr("fill", "none")
+          .attr("stroke", (d) => d.color)
+          .attr("stroke-width", 4)
+          .each(function (d) {
+            var path = this;
+            var pathLength = (path as SVGPathElement).getTotalLength();
 
-    //render branch link
-    svg
-      .append("g")
-      .selectAll("path")
-      .data(pathData)
-      .join("path")
-      .attr("class", "branch-node-link")
-      .attr("d", (d) => d.d)
-      .attr("fill", "none")
-      .attr("stroke", (d) => d.color)
-      .attr("stroke-width", 4)
-      .each(function (d) {
-        var path = this;
-        var pathLength = (path as SVGPathElement).getTotalLength();
+            d3.select(path)
+              .attr("stroke-dasharray", pathLength + " " + pathLength)
+              .attr("stroke-dashoffset", pathLength)
+              .transition()
+              .delay(500)
+              .duration(500)
+              .ease(d3.easeLinear)
+              .attr("stroke-dashoffset", 0);
+          });
 
-        d3.select(path)
-          .attr("stroke-dasharray", pathLength + " " + pathLength)
-          .attr("stroke-dashoffset", pathLength)
+        //render branch node
+        svg
+          .append("g")
+          .selectAll("rect")
+          .data(rectData)
+          .join("rect")
+          .attr("class", "branch-node-shadow")
+          .attr("x", (d) => d.x)
+          .attr("y", (d, i) => d.y)
+          .attr("width", (d) => d.width)
+          .attr("height", (d) => d.height)
+          .attr("fill", (d) => d.color)
+          .attr("rx", 16)
+          .attr("ry", 16)
+          .style("opacity", (d, i) =>
+            i === 3 || (direction === 1 && i === 1) ? 1 : 0,
+          )
+          .on("click", (event, d) => {})
           .transition()
-          .duration(500)
+          .duration(phase3)
           .ease(d3.easeLinear)
-          .attr("stroke-dashoffset", 0);
-      });
+          .style("opacity", 1);
 
-    //render branch node
-    svg
-      .append("g")
-      .selectAll("rect")
-      .data(rectData)
-      .join("rect")
-      .attr("class", "branch-node-shadow")
-      .attr("x", (d) => d.x)
-      .attr("y", (d, i) => d.y)
-      .attr("width", (d) => d.width)
-      .attr("height", (d) => d.height)
-      .attr("fill", (d) => d.color)
-      .attr("rx", 16)
-      .attr("ry", 16)
-      .on("click", (event, d) => {
-        // setFocusBranchNode(d.id);
-        // console.log(d.id);
-        // setParentNode(d.id);
-      });
+        svg
+          .append("g")
+          .selectAll("rect")
+          .data(rectData)
+          .join("rect")
+          .attr("class", "branch-node")
+          .attr("x", (d) => d.x)
+          .attr("y", (d) => d.y)
+          .attr("width", (d) => d.width)
+          .attr("height", (d) => d.height - 5)
+          .attr("fill", "#f5f5f5")
+          .attr("rx", 14)
+          .attr("ry", 14)
+          .style("opacity", (d, i) =>
+            i === 3 || (direction === 1 && i === 1) ? 1 : 0,
+          )
+          .on("click", (event, d) => {
+            if (d.type === "parent") {
+              if (d.id !== 0) {
+                preserveParent(d.indexInList);
+                setDirection(1);
+                setParentNode(nodes[d.id].parent);
+              }
+            } else {
+              if (d.id !== previewNode) {
+                setPreviewNode(d.id);
+              } else {
+                removeElements(d.indexInList);
+                setDirection(0);
+                setParentNode(d.id);
+              }
+            }
+          })
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
+          .style("opacity", 1);
 
-    svg
-      .append("g")
-      .selectAll("rect")
-      .data(rectData)
-      .join("rect")
-      .attr("class", "branch-node")
-      .attr("x", (d) => d.x)
-      .attr("y", (d, i) => d.y)
-      .attr("width", (d) => d.width)
-      .attr("height", (d) => d.height - 5)
-      .attr("fill", "#f5f5f5")
-      .attr("rx", 14)
-      .attr("ry", 14)
-      .on("click", (event, d) => {
-        if (d.type === "parent") {
-          d.id == 0 ? 0 : setParentNode(nodes[d.id].parent);
-        } else {
-          if (d.id !== previewNode) {
-            setPreviewNode(d.id);
-          } else {
-            setParentNode(d.id);
-          }
-        }
-        // setParentNode(d.id);
-        // console.log(d.id);
-      });
+        //render branch node text
+        svg
+          .append("g")
+          .selectAll("text")
+          .data(rectData)
+          .join("text")
+          .attr("class", "branch-node-text select-none")
+          .attr("x", (d) => d.x + 15)
+          .attr("y", (d, i) => d.y + textOffsetY)
+          .attr("text-anchor", "start")
+          .attr("fill", "#000")
+          .attr("font-size", "14px")
+          .text((d) => d.text)
+          .style("opacity", (d, i) => (i === 3 ? 1 : 0))
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
+          .style("opacity", 1);
 
-    //render branch node text
-    svg
-      .append("g")
-      .selectAll("text")
-      .data(rectData)
-      .join("text")
-      .attr("class", "branch-node-text select-none")
-      .attr("x", (d) => d.x + 15)
-      .attr("y", (d, i) => d.y + (d.height / 4) * 3)
-      .attr("text-anchor", "start")
-      .attr("fill", "#000")
-      .attr("font-size", "14px")
-      .text((d) => d.text)
-      .attr("opacity", 0)
-      .transition()
-      .duration(500)
-      .ease(d3.easeLinear)
-      .attr("opacity", 100);
+        //render code range
+        svg
+          .append("g")
+          .selectAll("text")
+          .data(rectData)
+          .join("text")
+          .attr("class", "code-range-text select-none")
+          .attr("x", (d) => d.x + codeRangeOffsetX)
+          .attr("y", (d, i) => d.y + codeRangeOffsetY)
+          .attr("fill", "#000")
+          .attr("font-size", "14px")
+          .attr("text-anchor", "start")
+          .text(
+            (d) =>
+              d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
+          )
+          .style("opacity", (d, i) => (i === 3 ? 1 : 0))
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
+          .style("opacity", 1);
 
-    //render code range
-    svg
-      .append("g")
-      .selectAll("text")
-      .data(rectData)
-      .join("text")
-      .attr("class", "branch-node-text select-none")
-      .attr("x", (d) => d.x + 15)
-      .attr("y", (d, i) => d.y + 25)
-      .attr("fill", "#000")
-      .attr("font-size", "14px")
-      .attr("text-anchor", "start")
-      .text(
-        (d) => d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
-      )
-      .attr("opacity", 0)
-      .transition()
-      .duration(500)
-      .ease(d3.easeLinear)
-      .attr("opacity", 100);
+        //render reasoning text
+        svg
+          .append("g")
+          .selectAll("text")
+          .data(reasonBoxData)
+          .join("text")
+          .attr("class", "reason-text select-none")
+          .attr("x", (d) => d.x + 15)
+          .attr("y", (d, i) => d.y + 25)
+          .attr("width", reasonBoxWidth)
+          .attr("fill", "#000")
+          .attr("font-size", "14px")
+          .attr("text-anchor", "start")
+          .text((d) => d.text)
+          .style("opacity", 0)
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
+          .style("opacity", 1);
+      },
+      phase1 + 2 * phase2,
+    );
 
-    //render reasoning text
-    svg
-      .append("g")
-      .selectAll("text")
-      .data(reasonBoxData)
-      .join("text")
-      .attr("class", "branch-node-text select-none")
-      .attr("x", (d) => d.x + 15)
-      .attr("y", (d, i) => d.y + 25)
-      .attr("width", reasonBoxWidth)
-      .attr("fill", "#000")
-      .attr("font-size", "14px")
-      .attr("text-anchor", "start")
-      .text((d) => d.text)
-      .attr("opacity", 0)
-      .transition()
-      .duration(500)
-      .ease(d3.easeLinear)
-      .attr("opacity", 100);
+    return () => {};
   }, [parentNode]);
 
   useEffect(() => {
@@ -256,12 +289,16 @@ export const BranchView = () => {
       .selectAll(".branch-node")
       .on("click", (event, d: any) => {
         if (d.id == previewNode) {
+          removeElements(d.indexInList);
+          setDirection(0);
           setParentNode(d.id);
         } else {
           if (d.type !== "parent") {
             setPreviewNode(d.id);
           } else {
-            d.id == 0 ? 0 : setParentNode(nodes[d.id].parent);
+            preserveParent(d.indexInList);
+            setDirection(1);
+            setParentNode(nodes[d.id].parent);
           }
         }
       })
@@ -275,6 +312,164 @@ export const BranchView = () => {
         }
       });
   }, [previewNode]);
+
+  const removeElements = (index: number) => {
+    //remove elements
+    const svg = d3.select("#ToT-branch");
+
+    console.log("remove func");
+    svg.selectAll(".branch-node").each(function (d, i) {
+      if (i === index || i === 3) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+    svg.selectAll(".branch-node-shadow").each(function (d, i) {
+      if (i === index || i === 3) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+
+    svg.selectAll(".branch-node-link").each(function (d, i) {
+      if (i % 3 === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+
+    svg.selectAll(".reason-text").each(function (d, i) {
+      if (i % 3 === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+
+    svg.selectAll(".branch-node-text").each(function (d, i) {
+      if (i === index || i === 3) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+
+    svg.selectAll(".code-range-text").each(function (d, i) {
+      if (i === index || i === 3) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+    });
+
+    setTimeout(() => {
+      svg
+        .selectAll(".branch-node-link,.reason-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeBackIn)
+        .style("opacity", 0);
+      svg
+        .selectAll(".branch-node,.branch-node-shadow")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.indexInList == index ? 0 : 0 - bigRectHeight * 2,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2);
+
+      svg
+        .selectAll(".branch-node-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight + textOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.indexInList == index
+            ? 0 + textOffsetY
+            : d.y - bigRectHeight * 2 + textOffsetY,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
+      svg
+        .selectAll(".code-range-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight + codeRangeOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.indexInList === index
+            ? 0 + codeRangeOffsetY
+            : d.y - bigRectHeight * 2 + codeRangeOffsetY,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
+    }, phase1);
+
+    // svg.selectAll("text").remove();
+  };
+
+  const preserveParent = (index: number) => {
+    const svg = d3.select("#ToT-branch");
+    svg
+      .selectAll(".reason-text,.branch-node-link")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeBackIn)
+      .style("opacity", 0);
+
+    svg
+      .selectAll(".branch-node,.branch-node-shadow")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeBackIn)
+      .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
+    svg
+      .selectAll(".branch-node-text,.code-range-text")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeBackIn)
+      .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
+
+    setTimeout(() => {
+      svg
+        .selectAll(".branch-node,.branch-node-shadow")
+        .transition()
+        .duration(phase2 * 2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY);
+      svg
+        .selectAll(".branch-node-text")
+        .transition()
+        .duration(phase2 * 2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY + textOffsetY);
+      svg
+        .selectAll(".code-range-text")
+        .transition()
+        .duration(phase2 * 2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY + codeRangeOffsetY);
+    }, phase1);
+  };
   return (
     <div className="flex w-[32rem] flex-col">
       <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-neutral-600">

@@ -4,12 +4,14 @@ import type { RootState } from "@/store/index";
 
 interface HighlightState {
   highlightNode: number; //the id of highlight node in chain
+  previewNode: number;
   codeScrollTop: number;
   textScrollTop: number;
 }
 
 const initialState: HighlightState = {
   highlightNode: -1,
+  previewNode: -1,
   codeScrollTop: 0,
   textScrollTop: 0,
 };
