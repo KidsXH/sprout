@@ -24,13 +24,78 @@ function CodeEditor() {
   const dispatch = useAppDispatch();
   const [codeScrollTop, setCodeScrollTop] = React.useState<number>(0);
   const [highlightCodeRange, setHighlightCodeRange] = React.useState<any>([]);
-  const [code, setCode] = React.useState<string>("");
-  const onChange = React.useCallback((value: any, viewUpdate: any) => {
-    //console.log("value:", value);
-    setCode(value);
-  }, []);
+  const [code, setCode] = React.useState<string>(DIJKSTRA_CODE);
 
-  const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
+  const handleWheelEvent = (event: any) => {
+    // const codeEditor = CodeRef.current?.editor;
+    const codeElement = document.getElementById("code-editor");
+    const scrollTop: number = codeElement?.scrollTop || 0;
+    setCodeScrollTop(scrollTop);
+  };
+
+  useEffect(() => {
+    dispatch(updateCodeScrollTop(codeScrollTop));
+  }, [dispatch, codeScrollTop]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setHighlightCodeRange(
+        highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
+      );
+    }, 1400);
+    return () => {
+      setHighlightCodeRange([]);
+    };
+  }, [highlightNodeId]);
+
+  return (
+    <CodeMirror
+      className="code-editor-content"
+      theme={sproutTheme}
+      ref={CodeRef}
+      height="100%"
+      width="500px"
+      extensions={[
+        python(),
+        zebraStripes({
+          lineNumber: [highlightCodeRange],
+          lightColor: "#ccd7da50",
+        }),
+      ]}
+      value={code}
+      onChange={(value) => {
+        setCode(value);
+      }}
+      onBlur={() => {
+        dispatch(setSourceCode(code));
+      }}
+      onWheel={handleWheelEvent}
+    />
+  );
+}
+
+export default CodeEditor;
+
+// const extensions = [python()];
+// const code = "console.log('hello world!');\n\n\n";
+// export default function CodeEditor() {
+//   const editor = useRef();
+//   const { setContainer } = useCodeMirror({
+//     container: editor.current,
+//     extensions,
+//     value: code,
+//   });
+
+//   useEffect(() => {
+//     if (editor.current) {
+//       setContainer(editor.current);
+//     }
+//   }, [editor.current]);
+
+//   return <div ref={editor} />;
+// }
+
+const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
       distances = {node: 32767 for node in graph}
       distances[start] = 0
       nodes = [node for node in graph]
@@ -52,74 +117,4 @@ function CodeEditor() {
           nodes.remove(current_node)
       
       return distances[end]
-
-
-
 `;
-
-  const handleBlurEvent = (event: any) => {
-    dispatch(setSourceCode(code));
-  };
-  const handleWheelEvent = (event: any) => {
-    // const codeEditor = CodeRef.current?.editor;
-    const codeElement = document.getElementById("code-editor");
-    const scrollTop: number = codeElement?.scrollTop || 0;
-    setCodeScrollTop(scrollTop);
-  };
-
-  useEffect(() => {
-    dispatch(updateCodeScrollTop(codeScrollTop));
-  }, [codeScrollTop]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setHighlightCodeRange(
-        highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
-      );
-    }, 1400);
-    return () => {
-      setHighlightCodeRange([]);
-    };
-  }, [highlightNodeId]);
-
-  return (
-    <CodeMirror
-      className="code-editor-content "
-      // value={DIJKSTRA_CODE}
-      height="100%"
-      width="500px"
-      extensions={[
-        python(),
-        zebraStripes({
-          lineNumber: [highlightCodeRange],
-          lightColor: "#ccd7da50",
-        }),
-      ]}
-      onChange={onChange}
-      theme={sproutTheme}
-      onWheel={handleWheelEvent}
-      ref={CodeRef}
-      onBlur={handleBlurEvent}
-    />
-  );
-}
-export default CodeEditor;
-
-// const extensions = [python()];
-// const code = "console.log('hello world!');\n\n\n";
-// export default function CodeEditor() {
-//   const editor = useRef();
-//   const { setContainer } = useCodeMirror({
-//     container: editor.current,
-//     extensions,
-//     value: code,
-//   });
-
-//   useEffect(() => {
-//     if (editor.current) {
-//       setContainer(editor.current);
-//     }
-//   }, [editor.current]);
-
-//   return <div ref={editor} />;
-// }
