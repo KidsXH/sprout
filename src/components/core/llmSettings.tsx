@@ -6,6 +6,7 @@ import {
   setApiKey,
   setModelName,
 } from "@/store/modelSlice";
+import Tooltip from "@mui/material/Tooltip";
 
 const LLMSettings = () => {
   const dispatch = useAppDispatch();
@@ -36,14 +37,19 @@ const LLMSettings = () => {
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
         <span className="relative inline-flex h-3 w-3 rounded-full bg-sky-500"></span>
       </span>
-      <div
-        className="h-9 w-44 cursor-pointer rounded-md border-2 py-1 pl-9 pr-4 text-center transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
-        onClick={() => {
-          setIsOpen(true);
-        }}
-      >
-        {modelName}
-      </div>
+      <Tooltip title={"LLM Settings"} placement={"top-end"} enterDelay={1000}>
+        <div
+          className={
+            "h-9 w-44 cursor-pointer rounded-md border-2 py-1 pl-9 pr-4 text-center transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50 " +
+            (isOpen ? "border-gray-50 bg-gray-50" : "")
+          }
+          onClick={() => {
+            setIsOpen(true);
+          }}
+        >
+          {modelName}
+        </div>
+      </Tooltip>
       <div
         className={
           "absolute left-0 top-0 z-10 h-full w-[1568px] bg-white opacity-0 2xl:w-screen" +

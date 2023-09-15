@@ -42,7 +42,6 @@ const Core = () => {
     <>
       <div className="flex select-none pr-10 font-mono">
         <LLMSettings />
-        <LLMController />
       </div>
     </>
   );
