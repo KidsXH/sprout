@@ -7,7 +7,7 @@ export class BaseModel {
   chatMessages: ChatCompletionRequestMessage[] = [];
   functions?: Array<ChatCompletionFunctions>;
   temperature = 0.7;
-  stop = ["\n1. Observation"];
+  stop = ["\n1.Observation"];
 
   constructor(apiKey: string) {
     const configuration = new Configuration({
