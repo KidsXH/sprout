@@ -26,12 +26,38 @@ export const BranchView = () => {
   const [parentNode, setParentNode] = useState(2);
   const [previewNode, setPreviewNode] = useState(4);
   const [childIndex, setChildIndex] = useState(-1); //0 for left,1 for middle,2 for right
-  //const [oldIndex, setOldIndex] = useState(-1);
   const [direction, setDirection] = useState(0); //0 for down,1 for up
+  const xPosition = [
+    {
+      rectX: (-bigRectWidth / 2) * 3 - interval,
+      linkX: -bigRectWidth - interval,
+    },
+    {
+      rectX: -bigRectWidth / 2,
+      linkX: 0,
+    },
+    {
+      rectX: bigRectWidth / 2 + interval,
+      linkX: bigRectWidth + interval,
+    },
+  ];
 
   //TODO: set preview node after parent node change
   useEffect(() => {
-    const links = [
+    const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
+    let xPositionListIndex = [0, 1, 2];
+    switch (siblingNodes.length) {
+      case 1:
+        xPositionListIndex = [1];
+        break;
+      case 2:
+        xPositionListIndex = [0, 2];
+        break;
+      default:
+        break;
+    }
+
+    let links = [
       {
         x1: 0,
         y1: bigRectHeight / 2,
@@ -54,9 +80,17 @@ export const BranchView = () => {
         text: "start from first l...",
       },
     ];
+    links = siblingNodes.map((d, i) => {
+      return {
+        x1: 0,
+        y1: bigRectHeight / 2,
+        x2: xPosition[xPositionListIndex[i]].linkX,
+        y2: (bigRectHeight / 2) * 3,
+        text: "This is the reason" + i.toString(),
+      };
+    });
     //get sibling nodes
     // const parentNode = nodes[focusBranchNode].parent;
-    const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
 
     //branch node data
     const rectData = d3.map(siblingNodes, (d, i) => {
@@ -65,7 +99,7 @@ export const BranchView = () => {
       const x = (-w / 2) * 3 - interval + i * (w + interval);
       const y = childBranchNodeY;
       return {
-        x: x,
+        x: xPosition[xPositionListIndex[i]].rectX,
         y: y,
         width: w,
         height: h,
@@ -73,7 +107,7 @@ export const BranchView = () => {
         range: nodes[d].range,
         text: nodes[d].content[nodes[d].contentID].summary,
         id: d,
-        indexInList: i,
+        positonIndex: xPositionListIndex[i],
         type: "child",
       };
     });
@@ -87,7 +121,7 @@ export const BranchView = () => {
       range: nodes[parentNode].range,
       text: nodes[parentNode].content[nodes[parentNode].contentID].summary,
       id: parentNode,
-      indexInList: rectData.length,
+      positonIndex: 3,
       type: "parent",
     });
 
@@ -171,7 +205,7 @@ export const BranchView = () => {
           .attr("ry", 16)
           .style("opacity", (d, i) =>
             (d.type === "parent" && direction) ||
-            (!direction && i === childIndex)
+            (!direction && d.positonIndex === childIndex)
               ? 1
               : 0,
           )
@@ -196,23 +230,24 @@ export const BranchView = () => {
           .attr("ry", 14)
           .style("opacity", (d, i) =>
             (d.type === "parent" && direction === 1) ||
-            (!direction && i === childIndex)
+            (!direction && d.positonIndex === childIndex)
               ? 1
               : 0,
           )
           .on("click", (event, d) => {
             if (d.type === "parent") {
               if (d.id !== 0) {
-                downAnimation(0);
+                const newChildIndex = getIndexInChildren(d.id);
+                downAnimation(newChildIndex);
+                setChildIndex(newChildIndex);
                 setDirection(0);
-                setChildIndex(0);
                 setParentNode(nodes[d.id].parent);
               }
             } else {
               if (d.id !== previewNode) {
                 setPreviewNode(d.id);
               } else {
-                upAnimation(d.indexInList);
+                upAnimation(d.positonIndex);
                 setDirection(1);
                 setParentNode(d.id);
               }
@@ -307,15 +342,16 @@ export const BranchView = () => {
       .selectAll(".branch-node")
       .on("click", (event, d: any) => {
         if (d.id == previewNode) {
-          upAnimation(d.indexInList);
+          upAnimation(d.positonIndex);
           setDirection(1);
           setParentNode(d.id);
         } else {
           if (d.type !== "parent") {
             setPreviewNode(d.id);
           } else {
-            downAnimation(1);
-            setChildIndex(1);
+            const newChildIndex = getIndexInChildren(d.id);
+            downAnimation(newChildIndex);
+            setChildIndex(newChildIndex);
             setDirection(0);
             setParentNode(nodes[d.id].parent);
           }
@@ -337,7 +373,7 @@ export const BranchView = () => {
     const svg = d3.select("#ToT-branch");
 
     svg.selectAll(".branch-node").each(function (d: any, i) {
-      if (i === index) return;
+      if (d.positonIndex === index) return;
       d3.select(this)
         .transition()
         .duration(phase1)
@@ -345,7 +381,7 @@ export const BranchView = () => {
         .style("opacity", 0);
     });
     svg.selectAll(".branch-node-shadow").each(function (d: any, i) {
-      if (i === index) return;
+      if (d.positonIndex === index) return;
       d3.select(this)
         .transition()
         .duration(phase1)
@@ -372,7 +408,7 @@ export const BranchView = () => {
     });
 
     svg.selectAll(".branch-node-text").each(function (d: any, i) {
-      if (i === index) return;
+      if (d.positonIndex === index) return;
       d3.select(this)
         .transition()
         .duration(phase1)
@@ -381,7 +417,7 @@ export const BranchView = () => {
     });
 
     svg.selectAll(".code-range-text").each(function (d: any, i) {
-      if (i === index) return;
+      if (d.positonIndex === index) return;
       d3.select(this)
         .transition()
         .duration(phase1)
@@ -406,7 +442,7 @@ export const BranchView = () => {
         .duration(phase2)
         .ease(d3.easeLinear)
         .attr("y", (d: any) =>
-          d.indexInList == index ? 0 : 0 - bigRectHeight * 2,
+          d.positonIndex == index ? 0 : 0 - bigRectHeight * 2,
         )
         .attr("x", (d: any) => 0 - bigRectWidth / 2);
 
@@ -420,7 +456,7 @@ export const BranchView = () => {
         .duration(phase2)
         .ease(d3.easeLinear)
         .attr("y", (d: any) =>
-          d.indexInList == index
+          d.positonIndex == index
             ? 0 + textOffsetY
             : d.y - bigRectHeight * 2 + textOffsetY,
         )
@@ -435,7 +471,7 @@ export const BranchView = () => {
         .duration(phase2)
         .ease(d3.easeLinear)
         .attr("y", (d: any) =>
-          d.indexInList === index
+          d.positonIndex === index
             ? 0 + codeRangeOffsetY
             : d.y - bigRectHeight * 2 + codeRangeOffsetY,
         )
@@ -524,6 +560,23 @@ export const BranchView = () => {
         .ease(d3.easeLinear)
         .attr("y", childBranchNodeY + codeRangeOffsetY);
     }, phase1);
+  };
+
+  const getIndexInChildren = (originalParent: number) => {
+    const newParent = nodes[originalParent].parent;
+    const siblingNodes = newParent >= 0 ? nodes[newParent].children : [];
+    let index = siblingNodes.indexOf(originalParent);
+    switch (siblingNodes.length) {
+      case 1:
+        index = 1;
+        break;
+      case 2:
+        index = index === 0 ? 0 : 2;
+        break;
+      default:
+        break;
+    }
+    return index;
   };
   return (
     <div className="flex w-[32rem] flex-col">
