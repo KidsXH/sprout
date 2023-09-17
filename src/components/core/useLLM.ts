@@ -2,6 +2,7 @@ import { useAppSelector } from "@/hooks/redux";
 import { useEffect, useState } from "react";
 import { BaseModel } from "@/models/api";
 import { Planner } from "@/models/agents/planner";
+import {ChatCompletionRequestMessage} from "openai";
 
 export const useLLM = () => {
   const apiKey = useAppSelector((state) => state.model.apiKey);
@@ -17,10 +18,14 @@ export const useLLM = () => {
 
   useEffect(() => {
     if (model) {
-      const newPlanner = new Planner(model);
+      const newPlanner = new Planner(model, reportFn);
       setPlanner(newPlanner);
     }
   }, [model]);
 
   return planner;
 };
+
+const reportFn = (message: any) => {
+  console.log("[Report]", message);
+}

@@ -31,7 +31,6 @@ const Core = () => {
     if (command === "run") {
       dispatch(setRunningState("running"));
       runLLM().then((res) => {
-        console.log("LLM Res:", res);
         dispatch(setRunningState("stopped"));
       });
     }

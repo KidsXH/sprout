@@ -15,16 +15,19 @@ const LLMController = () => {
   const [isPaused, setIsPaused] = useState(false);
   const handleStart = () => {
     setTimeout(() => {
-      setToggle(!toggle);
+      dispatch(setCommand("run"));
     }, 200);
-    dispatch(setCommand("run"));
   };
   return (
     <>
       <div className="ml-2 flex items-center">
-        {toggle ? <StartButton onClick={handleStart} /> : <GeneratingButton />}
+        {runningState === "stopped" ? (
+          <StartButton onClick={handleStart} />
+        ) : (
+          <GeneratingButton />
+        )}
 
-        {toggle ? (
+        {runningState === "stopped" ? (
           <PauseButton disabled={true} />
         ) : isPaused ? (
           <ContinueButton

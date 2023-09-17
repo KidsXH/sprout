@@ -8,7 +8,7 @@ const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
 interface modelState {
   sourceCode: string;
-  runningState: "running" | "stopped" | "error";
+  runningState: "running" | "stopped" | "paused" | "error";
   command:
     | "start"
     | "stop"

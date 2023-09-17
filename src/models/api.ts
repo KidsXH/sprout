@@ -1,4 +1,9 @@
-import {ChatCompletionFunctions, ChatCompletionRequestMessage, Configuration, OpenAIApi,} from 'openai';
+import {
+  ChatCompletionFunctions,
+  ChatCompletionRequestMessage,
+  Configuration,
+  OpenAIApi,
+} from "openai";
 
 export class BaseModel {
   openai: OpenAIApi;
@@ -12,15 +17,22 @@ export class BaseModel {
   constructor(apiKey: string) {
     const configuration = new Configuration({
       apiKey: apiKey,
-    })
+    });
     this.openai = new OpenAIApi(configuration);
-    this.model = 'gpt-3.5-turbo-16k';
+    this.model = "gpt-3.5-turbo-16k";
   }
 
   async chatComplete(messages: ChatCompletionRequestMessage[]) {
     const fullMessages = this.systemMessage
       ? [this.systemMessage, ...messages]
       : messages;
+    console.log("[Request]", {
+      model: this.model,
+      messages: fullMessages,
+      functions: this.functions,
+      temperature: this.temperature,
+      stop: this.stop,
+    });
     return await this.openai.createChatCompletion({
       model: this.model,
       messages: fullMessages,
@@ -35,5 +47,3 @@ export class BaseModel {
     return chatCompletion.data.choices[0].message;
   }
 }
-
-

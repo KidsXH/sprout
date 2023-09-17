@@ -1,27 +1,31 @@
 import { ChatCompletionRequestMessage } from "openai";
-import { TeacherAgent } from "@/models/agents/teacher";
 import { BaseModel } from "@/models/api";
-import plannerPrompt from "@/models/prompts/planner.txt";
+import { Writer } from "@/models/agents/writer";
+import plannerPrompt from "@/models/prompts/planner-v2.txt";
 import functions from "@/models/functions";
 
-const MAX_ROUND = 6;
+const MAX_ROUND = 8;
 
 export class Planner {
   llm: BaseModel;
-  teacher: TeacherAgent;
+  writer: Writer;
+  reportFn?: (message: any) => void;
   nrRound = 0;
 
-  constructor(model: BaseModel) {
+  constructor(model: BaseModel, reportFn?: (message: any) => void) {
     this.llm = model;
+    this.reportFn = reportFn;
 
     this.llm.systemMessage = {
       role: "system",
       content: plannerPrompt,
     };
 
+    this.llm.stop = ["\n1. Observation", "\n1.Observation"];
+
     this.llm.functions = functions;
 
-    this.teacher = new TeacherAgent();
+    this.writer = new Writer();
   }
 
   async solve(sourceCode: string, offline?: boolean) {
@@ -41,38 +45,43 @@ export class Planner {
 
   async run(): Promise<ChatCompletionRequestMessage> {
     const responseMessage = await this.llm.call();
+    this.nrRound += 1;
+
+    if (this.reportFn) {
+      this.reportFn(responseMessage);
+    }
 
     if (!responseMessage) {
       throw new Error("No response from LLM");
     }
-    console.log(`[Response${this.nrRound++}]`, responseMessage);
 
     if (
-      responseMessage.content?.includes("Finish.") ||
+      responseMessage.content?.includes("3.Action: Finish.") ||
       this.nrRound > MAX_ROUND
     ) {
+      console.log("[Action Finish]", responseMessage);
       return responseMessage;
     }
+
+    this.llm.chatMessages.push(responseMessage);
 
     if (responseMessage.function_call) {
       const functionName = responseMessage.function_call.name || "";
       const functionArgs = JSON.parse(
         responseMessage.function_call.arguments || "{}",
       );
-      const functionResult = await this.teacher.callFunction(
+      const functionResult = await this.writer.callFunction(
         functionName,
         functionArgs,
       );
 
-      this.llm.chatMessages.push(responseMessage);
       this.llm.chatMessages.push({
         role: "function",
         name: functionName,
         content: functionResult,
       });
-      return await this.run();
     }
 
-    return responseMessage;
+    return await this.run();
   }
 }
