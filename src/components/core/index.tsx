@@ -1,42 +1,16 @@
 "use client";
-import { useEffect, memo, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import {
-  selectCommand,
-  selectRunningState,
-  selectSourceCode,
-  setCommand,
-  setRunningState,
-} from "@/store/modelSlice";
+import { memo } from "react";
 import LLMSettings from "@/components/core/llmSettings";
-import { useLLM } from "@/components/core/useLLM";
-import LLMController from "@/components/core/llmController";
+import { usePlanner } from "@/components/core/usePlanner";
+import usePlannerCommands from "@/components/core/usePlannerCommands";
+import { useAppSelector } from "@/hooks/redux";
+import { selectApiKey, selectModelName } from "@/store/modelSlice";
 
 const Core = () => {
-  const dispatch = useAppDispatch();
-  const sourceCode = useAppSelector(selectSourceCode);
-  const runningState = useAppSelector(selectRunningState);
-  const command = useAppSelector(selectCommand);
-  const llm = useLLM();
-
-  const runLLM = useCallback(async () => {
-    return llm?.solve(sourceCode);
-  }, [llm, sourceCode]);
-
-  useEffect(() => {
-    console.log("Command:", command, "RunningState:", runningState);
-    if (command === "none" || runningState === "running") {
-      return;
-    }
-    if (command === "run") {
-      dispatch(setRunningState("running"));
-      runLLM().then((res) => {
-        dispatch(setRunningState("stopped"));
-      });
-    }
-    dispatch(setCommand("none"));
-  }, [dispatch, command, runningState, runLLM]);
-
+  const apiKey = useAppSelector(selectApiKey);
+  const modelName = useAppSelector(selectModelName);
+  const planner = usePlanner(apiKey, modelName);
+  usePlannerCommands(planner);
   return (
     <>
       <div className="flex select-none pr-10 font-mono">

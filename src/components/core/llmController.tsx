@@ -1,23 +1,38 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { selectRunningState, setCommand } from "@/store/modelSlice";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import Tooltip from "@mui/material/Tooltip";
+import {
+  selectCommand,
+  selectRunningState,
+  setCommand,
+} from "@/store/modelSlice";
 import { FastForward, Pause, RefreshRounded } from "@mui/icons-material";
-import Button from "@mui/material-next/Button";
-import { useState } from "react";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import CircularProgress from "@mui/material/CircularProgress";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material-next/Button";
 
 const LLMController = () => {
   const runningState = useAppSelector(selectRunningState);
+  const currentCommand = useAppSelector(selectCommand);
   const dispatch = useAppDispatch();
 
-  const [toggle, setToggle] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
   const handleStart = () => {
     setTimeout(() => {
-      dispatch(setCommand("run"));
+      dispatch(setCommand("start"));
     }, 200);
   };
+
+  const handlePause = () => {
+    setTimeout(() => {
+      dispatch(setCommand("pause"));
+    }, 200);
+  };
+
+  const handleContinue = () => {
+    setTimeout(() => {
+      dispatch(setCommand("continue"));
+    }, 200);
+  };
+
   return (
     <>
       <div className="ml-2 flex items-center">
@@ -29,22 +44,13 @@ const LLMController = () => {
 
         {runningState === "stopped" ? (
           <PauseButton disabled={true} />
-        ) : isPaused ? (
+        ) : runningState === "paused" ? (
           <ContinueButton
-            onClick={() => {
-              setTimeout(() => {
-                setIsPaused(false);
-              }, 200);
-            }}
+            onClick={handleContinue}
+            disabled={currentCommand !== "none"}
           />
         ) : (
-          <PauseButton
-            onClick={() => {
-              setTimeout(() => {
-                setIsPaused(true);
-              }, 200);
-            }}
-          />
+          <PauseButton onClick={handlePause} />
         )}
       </div>
     </>
@@ -110,15 +116,19 @@ export const RestartButton = (props: { onClick?: any }) => {
   );
 };
 
-export const ContinueButton = (props: { onClick?: any }) => {
+export const ContinueButton = (props: { onClick?: any; disabled: boolean }) => {
   return (
     <>
       <Tooltip title="Continue Generation" enterDelay={1000}>
         <Button
           variant="outlined"
-          startIcon={<FastForward className="fill-sky-500" />}
+          startIcon={
+            <FastForward
+              className={props.disabled ? "fill-gray-400" : "fill-sky-500"}
+            />
+          }
           className="w-32 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
-          onClick={props.onClick}
+          onClick={props.disabled ? undefined : props.onClick}
         >
           Continue
         </Button>

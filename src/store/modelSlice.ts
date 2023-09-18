@@ -8,7 +8,7 @@ const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
 interface modelState {
   sourceCode: string;
-  runningState: "running" | "stopped" | "paused" | "error";
+  runningState: "running" | "stopped" | "paused" | "waited" | "error";
   command:
     | "start"
     | "stop"
@@ -17,6 +17,7 @@ interface modelState {
     | "run"
     | "pause"
     | "continue"
+    | "continue-next"
     | "next"
     | "finish"
     | "none";
@@ -43,6 +44,9 @@ export const modelSlice = createSlice({
       state,
       action: PayloadAction<modelState["runningState"]>,
     ) => {
+      if (action.payload === "waited" && state.runningState !== "running") {
+        return;
+      }
       state.runningState = action.payload;
     },
     continueGeneration: (state) => {

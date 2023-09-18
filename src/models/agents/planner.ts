@@ -28,10 +28,8 @@ export class Planner {
     this.writer = new Writer();
   }
 
-  async solve(sourceCode: string, offline?: boolean) {
-    if (offline) {
-      return null;
-    }
+  setup(sourceCode: string) {
+    console.log("[Planner] setup");
     const userPrompt = `Code snippet:\n${sourceCode}\n`;
     this.llm.chatMessages = [
       {
@@ -40,7 +38,11 @@ export class Planner {
       },
     ];
     this.nrRound = 0;
-    return await this.run();
+  }
+
+  async next() {
+    console.log("[Planner] next");
+    return true;
   }
 
   async run(): Promise<ChatCompletionRequestMessage> {
