@@ -13,7 +13,7 @@ import { updateTextScrollTop } from "@/store/highlightSlice";
 import LLMController from "@/components/core/llmController";
 import { usePlannerContext } from "@/providers/Planner";
 import { TutorialContentType } from "@/models/agents/writer";
-import {useProgressRender} from "@/components/TextView/useProgressRender";
+import { useProgressRender } from "@/components/TextView/useProgressRender";
 
 // const getResults = async () => await runLLM();
 
@@ -68,7 +68,11 @@ export const TextView = () => {
       >
         {renderedContent.length > 0 ? (
           renderedContent.map((item, index) => (
-            <TextBlock index={index} key={index}>{`${item.content}`}</TextBlock>
+            <TextBlock
+              index={index}
+              key={index}
+              role={item.type}
+            >{`${item.content}`}</TextBlock>
           ))
         ) : (
           <TextBlock index={0} role="placeholder">
