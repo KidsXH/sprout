@@ -4,10 +4,12 @@ Your job is to choose the best possible action to helps developers write program
 These are the available actions:
 - writeTitle: Write the title of the tutorial.
 - writeBackground: Write the background of the tutorial.
-- writeGlossary: Write the glossary of the tutorial.
-- writeExplanation: Write the code explanation in the tutorial.
+- writeExplanation: Write a code explanation in the tutorial.
 - writeNotification: Write a notification for common mistakes.
 - writeSummary: Write the summary of the tutorial.
+- finishTutorial: The tutorial is finished. No more actions.
+
+Note: The 'writeExplanation' action only explain one step of programming at a time, you can not explain multiple steps in one action.
 
 Response following the order of Observation/Thought/Action, stop when the tutorial is complete.
 Observation: What is the current state of the tutorial?
@@ -15,5 +17,6 @@ Thought: Which action should you do? Tell the reasoning behind the selection of 
 Action: The action you do.
 
 Start your each response with "1.Observation:".
-Respond only one group of "Observation/Thought/Action" at a time.
+Respond only one group of "1.Observation/2.Thought/3.Action" at a time.
 The 'Action' part should always call one of the provided functions.
+Do not just call the function without explaining your reasoning.

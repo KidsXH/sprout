@@ -28,20 +28,6 @@ export const writeBackground: ChatCompletionFunctions = {
   },
 };
 
-export const writeGlossary: ChatCompletionFunctions = {
-  name: "writeGlossary",
-  description: "Write a glossary for the tutorial.",
-  parameters: {
-    type: "object",
-    properties: {
-      glossary: {
-        type: "string",
-        description: "The glossary of the tutorial.",
-      },
-    },
-  },
-};
-
 export const writeExplanation: ChatCompletionFunctions = {
   name: "writeExplanation",
   description: "Write a text description for a part of code in the tutorial.",
@@ -95,5 +81,23 @@ export const writeSummary: ChatCompletionFunctions = {
         description: "The summary of the tutorial.",
       },
     },
+  },
+};
+
+export const writeNothing: ChatCompletionFunctions = {
+  name: "writeNothing",
+  description: "Write nothing.",
+  parameters: {
+    type: "object",
+    properties: {},
+  },
+};
+
+export const finishTutorial: ChatCompletionFunctions = {
+  name: "finishTutorial",
+  description: "The tutorial is finished. No more actions.",
+  parameters: {
+    type: "object",
+    properties: {},
   },
 };
