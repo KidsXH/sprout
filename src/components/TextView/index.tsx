@@ -11,6 +11,9 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useState, useEffect, useRef, use } from "react";
 import { updateTextScrollTop } from "@/store/highlightSlice";
 import LLMController from "@/components/core/llmController";
+import { usePlannerContext } from "@/providers/Planner";
+import { TutorialContentType } from "@/models/agents/writer";
+import {useProgressRender} from "@/components/TextView/useProgressRender";
 
 // const getResults = async () => await runLLM();
 
@@ -22,6 +25,9 @@ export const TextView = () => {
   const args = argsString ? JSON.parse(argsString) : undefined;
   const [textScrollTop, setTextScrollTop] = useState<number>(0);
   const dispatch = useAppDispatch();
+
+  const renderedContent = useProgressRender();
+
   const handleWheelEvent = (event: any) => {
     // const codeEditor = CodeRef.current?.editor;
     const textElement = document.getElementById("text-editor");
@@ -50,7 +56,7 @@ export const TextView = () => {
     <div className="m-0.5 ml-0 mt-0 flex  w-3/5 flex-col bg-white p-1 pt-0">
       <div className="flex h-12 select-none items-center p-1 pt-0 text-xl font-bold text-green-900">
         <div>Document</div>
-        <div className='ml-auto mr-4'>
+        <div className="ml-auto mr-4">
           <LLMController />
         </div>
       </div>
@@ -60,15 +66,16 @@ export const TextView = () => {
         id="text-editor"
         ref={textRef}
       >
-        {chain.map((item: node, id: number) => (
-          // <TextBlock key={id}>{`${item.content[item.contentID]}`}</TextBlock>
-          <TextBlock index={id} key={id}>{`${
-            item.content[item.contentID].content
-          }`}</TextBlock>
-        ))}
+        {renderedContent.length > 0 ? (
+          renderedContent.map((item, index) => (
+            <TextBlock index={index} key={index}>{`${item.content}`}</TextBlock>
+          ))
+        ) : (
+          <TextBlock index={0} role="placeholder">
+            Click `Generate` to start.
+          </TextBlock>
+        )}
       </div>
-      {/* <ClientLog content={result} /> */}
-      {/* <TextEditor /> */}
     </div>
   );
 };
