@@ -1,17 +1,13 @@
+export type TutorialContentType = {
+  type: "title" | "background" | "explanation" | "notification" | "summary";
+  content: string;
+  targetCode: string;
+};
+
 export class Writer {
   sourceCode?: string;
   tutorial?: string;
-  tutorialContent: {
-    type:
-      | "title"
-      | "background"
-      | "glossary"
-      | "explanation"
-      | "notification"
-      | "summary";
-    content: string;
-    targetCode: string;
-  }[] = [];
+  tutorialContent: TutorialContentType[] = [];
 
   constructor() {
     this.tutorial = "";
@@ -23,8 +19,8 @@ export class Writer {
       content: title,
       targetCode: "",
     });
-    this.tutorial += `Title: ${title}\n`;
-    return `The title has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
+    this.tutorial += `[Title] ${title}\n`;
+    return `The title has been added to the tutorial.`;
   }
 
   writeBackground({ background }: { background: string }) {
@@ -33,18 +29,8 @@ export class Writer {
       content: background,
       targetCode: "",
     });
-    this.tutorial += `Background: ${background}\n`;
-    return `The background has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
-  }
-
-  writeGlossary({ glossary }: { glossary: string }) {
-    this.tutorialContent.push({
-      type: "glossary",
-      content: glossary,
-      targetCode: "",
-    });
-    this.tutorial += `Glossary: ${glossary}\n`;
-    return `The glossary has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
+    this.tutorial += `[Background] ${background}\n`;
+    return `The background has been added to the tutorial.`;
   }
 
   writeExplanation({
@@ -61,8 +47,8 @@ export class Writer {
       content: explanation,
       targetCode: code,
     });
-    this.tutorial += `${stepNum} ${explanation}\n`;
-    return `The explanation has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
+    this.tutorial += `[STEP ${stepNum}] ${explanation}\n`;
+    return `The explanation has been added to the tutorial.`;
   }
 
   writeNotification({
@@ -77,8 +63,8 @@ export class Writer {
       content: notification,
       targetCode: code,
     });
-    this.tutorial += `NOTE: ${notification}\n`;
-    return `The notification has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
+    this.tutorial += `[NOTE] ${notification}\n`;
+    return `The notification has been added to the tutorial.`;
   }
 
   writeSummary({ summary }: { summary: string }) {
@@ -87,8 +73,16 @@ export class Writer {
       content: summary,
       targetCode: "",
     });
-    this.tutorial += `Summary: ${summary}\n`;
-    return `The summary has been added to the tutorial.\n[Current Tutorial]\n${this.tutorial}`;
+    this.tutorial += `[Summary] ${summary}\n`;
+    return `The summary has been added to the tutorial.`;
+  }
+
+  writeNothing() {
+    return `The tutorial is not changed.`;
+  }
+
+  finishTutorial() {
+    return `The tutorial is finished.`;
   }
 
   generateTutorial() {
@@ -107,13 +101,24 @@ export class Writer {
       .join("\n");
   }
 
+  exportChainNodes() {
+    return this.tutorialContent.map((item, index) => {
+      return {
+        index: index,
+        type: item.type,
+        content: item.content,
+      }
+    })
+  }
+
   async callFunction(functionName: string, functionArgs: any) {
     const functionToCall = (this as { [key: string]: any })[functionName];
 
     if (!functionToCall) {
-      throw new Error(`Function ${functionName} not found`);
+      throw new Error(`[Writer] Function ${functionName} not found`);
     }
     console.log("[Function Call]", functionName, functionArgs);
     return (this as { [key: string]: any })[functionName](functionArgs);
   }
 }
+

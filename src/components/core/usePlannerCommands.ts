@@ -6,22 +6,16 @@ import {
   setCommand,
   setRunningState,
 } from "@/store/modelSlice";
-import { useCallback, useEffect } from "react";
-import { Planner } from "@/models/agents/planner";
+import { useEffect } from "react";
+import { usePlannerContext } from "@/providers/Planner";
 
-const usePlannerCommands = (planner: Planner) => {
+const usePlannerCommands = () => {
   const dispatch = useAppDispatch();
   const sourceCode = useAppSelector(selectSourceCode);
   const runningState = useAppSelector(selectRunningState);
   const command = useAppSelector(selectCommand);
 
-  const start = useCallback(() => {
-    planner.setup(sourceCode);
-  }, [planner, sourceCode]);
-
-  const next = useCallback(async () => {
-    return planner.next();
-  }, [planner]);
+  const [planner] = usePlannerContext();
 
   useEffect(() => {
     console.log("Command:", command, "RunningState:", runningState);
@@ -35,14 +29,18 @@ const usePlannerCommands = (planner: Planner) => {
 
     if (command === "start") {
       if (runningState === "stopped") {
-        start();
+        planner.initialize(sourceCode);
         dispatch(setRunningState("running"));
-        next().then((res) => {
-          setTimeout(() => {
+        planner
+          .next()
+          .then((res) => {
             dispatch(setRunningState("waited"));
-            if (res) dispatch(setCommand("continue-next"));
-          }, 5000);
-        });
+            if (res.hasNext) dispatch(setCommand("continue-next"));
+          })
+          .catch((err) => {
+            console.log("[Error]", err);
+            dispatch(setRunningState("stopped"));
+          });
         dispatch(setCommand("none"));
       }
     }
@@ -50,16 +48,20 @@ const usePlannerCommands = (planner: Planner) => {
     if (command === "continue") {
       if (runningState === "paused") {
         dispatch(setRunningState("running"));
-        next().then((res) => {
-          setTimeout(() => {
-            if (res) {
+        planner
+          .next()
+          .then((res) => {
+            if (res.hasNext) {
               dispatch(setRunningState("waited"));
               dispatch(setCommand("continue-next"));
             } else {
               dispatch(setRunningState("stopped"));
             }
-          }, 5000);
-        });
+          })
+          .catch((err) => {
+            console.log("[Error]", err);
+            dispatch(setRunningState("stopped"));
+          });
         dispatch(setCommand("none"));
       }
     }
@@ -67,16 +69,20 @@ const usePlannerCommands = (planner: Planner) => {
     if (command === "continue-next") {
       if (runningState === "waited") {
         dispatch(setRunningState("running"));
-        next().then((res) => {
-          setTimeout(() => {
-            if (res) {
+        planner
+          .next()
+          .then((res) => {
+            if (res.hasNext) {
               dispatch(setRunningState("waited"));
               dispatch(setCommand("continue-next"));
             } else {
               dispatch(setRunningState("stopped"));
             }
-          }, 5000);
-        });
+          })
+          .catch((err) => {
+            console.log("[Error]", err);
+            dispatch(setRunningState("stopped"));
+          });
         dispatch(setCommand("none"));
       }
       if (runningState === "paused") {
@@ -86,12 +92,18 @@ const usePlannerCommands = (planner: Planner) => {
 
     if (command === "next") {
       dispatch(setRunningState("running"));
-      next().then((res) => {
-        dispatch(setRunningState("paused"));
-      });
+      planner
+        .next()
+        .then((res) => {
+          dispatch(setRunningState("paused"));
+        })
+        .catch((err) => {
+          console.log("[Error]", err);
+          dispatch(setRunningState("stopped"));
+        });
       dispatch(setCommand("none"));
     }
-  }, [dispatch, command, runningState, start, next]);
+  }, [dispatch, command, runningState, planner, sourceCode]);
 };
 
 export default usePlannerCommands;

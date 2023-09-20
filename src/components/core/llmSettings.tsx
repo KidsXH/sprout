@@ -7,6 +7,7 @@ import {
   setModelName,
 } from "@/store/modelSlice";
 import Tooltip from "@mui/material/Tooltip";
+import { usePlannerContext } from "@/providers/Planner";
 
 const LLMSettings = () => {
   const dispatch = useAppDispatch();
@@ -16,6 +17,8 @@ const LLMSettings = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
   const [userAPIKey, setUserAPIKey] = useState("");
+
+  const [planner, context] = usePlannerContext();
 
   useEffect(() => {
     setUserAPIKey(modelApiKey);
@@ -30,6 +33,10 @@ const LLMSettings = () => {
     dispatch(setModelName(selectedModel));
     dispatch(setApiKey(userAPIKey));
   }, [selectedModel, userAPIKey, dispatch]);
+
+  useEffect(() => {
+    context.setupBaseModel(modelApiKey, modelName);
+  }, [context, modelApiKey, modelName]);
 
   return (
     <>
@@ -77,8 +84,10 @@ const LLMSettings = () => {
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
             >
-              <option value="gpt-3.5-turbo">GPT-3.5-turbo</option>
-              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+              <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
+              <option value="gpt-4">gpt-4</option>
+              <option value="gpt-4-0613">gpt-4-0613</option>
             </select>
           </div>
           <div className="mt-2 flex items-center">

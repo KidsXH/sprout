@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { inter } from "./fonts";
 import { Providers } from "@/providers/redux";
+import { PlannerProvider } from "@/providers/Planner";
 
 export const metadata: Metadata = {
   title: "SPROUT",
@@ -15,9 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <Providers>
-      <html lang="en">
-        <body className={inter.className}>{children}</body>
-      </html>
+      <PlannerProvider>
+        <html lang="en">
+          <body className={inter.className}>{children}</body>
+        </html>
+      </PlannerProvider>
     </Providers>
   );
 }

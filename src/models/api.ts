@@ -11,15 +11,15 @@ export class BaseModel {
   systemMessage?: ChatCompletionRequestMessage;
   chatMessages: ChatCompletionRequestMessage[] = [];
   functions?: Array<ChatCompletionFunctions>;
-  temperature = 0.7;
+  temperature = 1.0;
   stop = ["\n1.Observation"];
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, modelName: string) {
     const configuration = new Configuration({
       apiKey: apiKey,
     });
     this.openai = new OpenAIApi(configuration);
-    this.model = "gpt-3.5-turbo-16k";
+    this.model = modelName;
   }
 
   async chatComplete(messages: ChatCompletionRequestMessage[]) {
@@ -30,6 +30,7 @@ export class BaseModel {
       model: this.model,
       messages: fullMessages,
       functions: this.functions,
+      function_call: "auto",
       temperature: this.temperature,
       stop: this.stop,
     });
@@ -37,6 +38,7 @@ export class BaseModel {
       model: this.model,
       messages: fullMessages,
       functions: this.functions,
+      function_call: "auto",
       temperature: this.temperature,
       stop: this.stop,
     });

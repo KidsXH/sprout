@@ -2,23 +2,25 @@ import { ChatCompletionRequestMessage } from "openai";
 import { BaseModel } from "@/models/api";
 import { Writer } from "@/models/agents/writer";
 import plannerPrompt from "@/models/prompts/planner-v2.txt";
+import plannerPromptGpt4 from "@/models/prompts/planner-gpt4.txt";
 import functions from "@/models/functions";
-
-const MAX_ROUND = 8;
 
 export class Planner {
   llm: BaseModel;
   writer: Writer;
   reportFn?: (message: any) => void;
-  nrRound = 0;
 
-  constructor(model: BaseModel, reportFn?: (message: any) => void) {
-    this.llm = model;
+  constructor(
+    apiKey: string,
+    modelName: string,
+    reportFn?: (message: any) => void,
+  ) {
+    this.llm = new BaseModel(apiKey, modelName);
     this.reportFn = reportFn;
 
     this.llm.systemMessage = {
       role: "system",
-      content: plannerPrompt,
+      content: modelName.includes("gpt-4") ? plannerPromptGpt4 : plannerPrompt,
     };
 
     this.llm.stop = ["\n1. Observation", "\n1.Observation"];
@@ -28,7 +30,17 @@ export class Planner {
     this.writer = new Writer();
   }
 
-  setup(sourceCode: string) {
+  setup(apiKey: string, modelName: string) {
+    this.llm = new BaseModel(apiKey, modelName);
+    this.llm.systemMessage = {
+      role: "system",
+      content: modelName.includes("gpt-4") ? plannerPromptGpt4 : plannerPrompt,
+    };
+    this.llm.stop = ["\n1. Observation", "\n1.Observation"];
+    this.llm.functions = functions;
+  }
+
+  initialize(sourceCode: string) {
     console.log("[Planner] setup");
     const userPrompt = `Code snippet:\n${sourceCode}\n`;
     this.llm.chatMessages = [
@@ -37,34 +49,28 @@ export class Planner {
         content: userPrompt,
       },
     ];
-    this.nrRound = 0;
   }
 
   async next() {
     console.log("[Planner] next");
-    return true;
-  }
 
-  async run(): Promise<ChatCompletionRequestMessage> {
-    const responseMessage = await this.llm.call();
-    this.nrRound += 1;
+    let responseMessage = await this.llm.call();
 
-    if (this.reportFn) {
-      this.reportFn(responseMessage);
+    if (!responseMessage || !parseMessage(responseMessage)) {
+      console.log("[Planner] Bad response:", responseMessage);
+      console.log("[Planner] retry");
+      this.llm.chatMessages.push({
+        role: "user",
+        content: 'Continue with explicit "Observation/Thought/Action"',
+      });
+      responseMessage = await this.llm.call();
+      if (!responseMessage || !parseMessage(responseMessage)) {
+        console.log("[Planner] Bad response:", responseMessage);
+        throw new Error("Bad response from LLM");
+      }
     }
 
-    if (!responseMessage) {
-      throw new Error("No response from LLM");
-    }
-
-    if (
-      responseMessage.content?.includes("3.Action: Finish.") ||
-      this.nrRound > MAX_ROUND
-    ) {
-      console.log("[Action Finish]", responseMessage);
-      return responseMessage;
-    }
-
+    if (this.reportFn) this.reportFn(responseMessage);
     this.llm.chatMessages.push(responseMessage);
 
     if (responseMessage.function_call) {
@@ -77,13 +83,40 @@ export class Planner {
         functionArgs,
       );
 
-      this.llm.chatMessages.push({
+      const functionResponse: ChatCompletionRequestMessage = {
         role: "function",
         name: functionName,
         content: functionResult,
-      });
+      };
+
+      this.llm.chatMessages.push(functionResponse);
+
+      if (functionName === "finishTutorial") {
+        console.log("[Planner] finish");
+        return { hasNext: false };
+      }
     }
 
-    return await this.run();
+    return { hasNext: true };
   }
 }
+
+export const parseMessage = (message: ChatCompletionRequestMessage) => {
+  if (!message.content) {
+    return;
+  }
+
+  const matchObservation = message.content.match(/Observation: (.*)\n/);
+  const matchThought = message.content.match(/Thought: (.*)\n/);
+  const matchAction = message.content.match(/Action: (.*)/);
+
+  if (!matchObservation || !matchThought || !matchAction) {
+    return;
+  }
+
+  const observation = matchObservation[1];
+  const thought = matchThought[1];
+  const action = matchAction[1];
+
+  return { observation, thought, action };
+};
