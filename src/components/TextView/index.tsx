@@ -1,35 +1,21 @@
 "use client";
 import TextBlock from "@/components/TextBlock";
 
-// import runLLM from '@/server/openai/chain';
-import ClientLog from "../ModelViewer/log";
-
-// import { planner } from "@/server/openai/agents/planner";
-import chain from "@/mocks/chain";
-import { node } from "@/mocks/nodes";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { useState, useEffect, useRef, use } from "react";
+import { useAppDispatch } from "@/hooks/redux";
+import { useState, useEffect, useRef } from "react";
 import { updateTextScrollTop } from "@/store/highlightSlice";
+import { useProgressRender } from "@/hooks/useProgressRender";
 import LLMController from "@/components/core/llmController";
-import { usePlannerContext } from "@/providers/Planner";
-import { TutorialContentType } from "@/models/agents/writer";
-import { useProgressRender } from "@/components/TextView/useProgressRender";
 
-// const getResults = async () => await runLLM();
 
 export const TextView = () => {
-  // const result = await planner.solve("", true);
-  // const argsString = result?.data.choices[0].message?.function_call?.arguments;
   const textRef = useRef<HTMLDivElement | null>(null);
-  const argsString = undefined;
-  const args = argsString ? JSON.parse(argsString) : undefined;
   const [textScrollTop, setTextScrollTop] = useState<number>(0);
   const dispatch = useAppDispatch();
 
   const renderedContent = useProgressRender();
 
   const handleWheelEvent = (event: any) => {
-    // const codeEditor = CodeRef.current?.editor;
     const textElement = document.getElementById("text-editor");
     const scrollTop: number = textElement?.scrollTop || 0;
     setTextScrollTop(scrollTop);

@@ -28,7 +28,7 @@ export const TextBlock = (props: {
         <SummaryBlock>{props.children}</SummaryBlock>
       ) : (
         <div
-          className="text-block mb-2 flex w-full rounded-sm bg-neutral-100 bg-opacity-100 p-2"
+          className="text-block mb-2 flex w-full rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-2 text-justify hover:border-neutral-200 hover:shadow"
           contentEditable="true"
           onClick={handleClick}
           suppressContentEditableWarning={true}
@@ -44,7 +44,7 @@ export default TextBlock;
 
 const PlaceholderBlock = (props: PropsWithChildren<{}>) => {
   return (
-    <div className="text-block mb-2 flex w-full justify-center rounded-sm bg-neutral-100 bg-opacity-100 p-2 text-center text-gray-400">
+    <div className="text-block mb-2 flex w-full justify-center rounded bg-neutral-100 bg-opacity-100 p-2 text-center text-gray-400">
       {props.children}
     </div>
   );
@@ -52,7 +52,7 @@ const PlaceholderBlock = (props: PropsWithChildren<{}>) => {
 
 const TitleBlock = (props: PropsWithChildren<{}>) => {
   return (
-    <div className="text-block mb-2 flex w-full rounded-sm border-b-2 bg-opacity-0 p-2 pl-1 text-xl font-bold">
+    <div className="text-block mb-2 flex w-full rounded border-2 border-white bg-neutral-100 p-2 text-xl font-bold hover:border-neutral-200 hover:shadow">
       {props.children}
     </div>
   );
@@ -60,16 +60,19 @@ const TitleBlock = (props: PropsWithChildren<{}>) => {
 
 const BackgroundBlock = (props: PropsWithChildren<{}>) => {
   return (
-    <div className="text-block mb-2 flex w-full rounded-sm p-2 italic text-gray-700">
-      {props.children}
+    <div className="text-block mb-2 w-full rounded  border-2 border-white bg-neutral-100 p-2 text-justify hover:border-neutral-200 hover:shadow">
+      <p className="">
+        <span className="font-bold">Background</span> - {props.children}
+      </p>
     </div>
   );
 };
 
 const NoteBlock = (props: PropsWithChildren<{}>) => {
   return (
-    <div className="text-block my-4 mb-2 ml-1 rounded-sm border-l-4 pl-4 pr-2 text-justify text-gray-500">
-      ℹ️ <span className='font-bold text-gray-500 text-sm'>NOTE: </span> {props.children}
+    <div className="text-block my-4 ml-2 rounded-sm border-l-4 pl-4 pr-2 text-justify text-gray-500">
+      ℹ️ <span className="text-sm font-bold text-gray-500">NOTE: </span>{" "}
+      {props.children}
     </div>
   );
 };
