@@ -2,17 +2,16 @@
 
 import * as d3 from "d3";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import ClientLog from "../ModelViewer/log";
-import chain from "@/mocks/chain";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   selectCodeScrollTop,
   selectTextScrollTop,
   updateHighlightNode,
 } from "@/store/highlightSlice";
-import { selectChainNodes } from "@/store/selectionSlice";
-import nodes from "@/mocks/nodes";
 import { palatte } from "@/themes/palatte";
+import { selectMainChannelChats } from "@/store/chatSlice";
+import { RequestWithChannelID, selectRequestPool } from "@/store/nodeSlice";
+import { parseMessage } from "@/models/agents/planner";
 
 const ChainVis = () => {
   const svgRef: MutableRefObject<SVGSVGElement | null> = useRef(null);
@@ -26,13 +25,14 @@ const ChainVis = () => {
   const [chainScrollTop, setChainScrollTop] = useState<number>(0);
   const [codeSnippetHeight, setCodeSnippetHeight] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
-  const chainNodesIndex = useAppSelector(selectChainNodes);
   const highlightNode = useAppSelector(
     (state) => state.highlight.highlightNode,
   );
 
-  // const width = svgRef.current?.clientWidth || 0;
-  //   const height = svgRef.current?.clientHeight || 0;
+  const chatIDs = useAppSelector(selectMainChannelChats);
+  const pool = useAppSelector(selectRequestPool);
+  const _chatNodes = chat2node(chatIDs, pool);
+
   const width = 258;
   const height = 484;
   const margin = { top: 20, right: 20, bottom: 20, left: 20 };
@@ -44,10 +44,8 @@ const ChainVis = () => {
 
   const innerHeight = height - margin.top - margin.bottom;
   const interval =
-    chainNodesIndex.length < 7
-      ? innerHeight / chainNodesIndex.length
-      : innerHeight / 7;
-  const upperHeight = (chainNodesIndex.length + 1) * interval - height;
+    _chatNodes.length < 7 ? innerHeight / _chatNodes.length : innerHeight / 7;
+  const upperHeight = (_chatNodes.length + 1) * interval - height;
 
   const handleWheelEvent = (event: any) => {
     let deltaScale = event.deltaY;
@@ -101,16 +99,7 @@ const ChainVis = () => {
   }, [highlightNode]);
 
   useEffect(() => {
-    const nodeData = chainNodesIndex.map((d, i) => {
-      return {
-        step: i,
-        text: "S" + i,
-        summary: nodes[d].content[nodes[d].contentID].summary,
-        color: palatte[i],
-      };
-    });
-
-    const rectData = d3.map(nodeData, (d, i) => {
+    const rectData = d3.map(_chatNodes, (d, i) => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
       const h = i === highlightNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
@@ -143,7 +132,7 @@ const ChainVis = () => {
       .attr("x1", 0)
       .attr("y1", 0)
       .attr("x2", 0)
-      .attr("y2", (chainNodesIndex.length - 1) * interval)
+      .attr("y2", (_chatNodes.length - 1) * interval)
       .attr("stroke", "#D9D9D9")
       .attr("stroke-width", 4);
 
@@ -214,7 +203,7 @@ const ChainVis = () => {
 
     // get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[highlightNode].range;
+    const codeRange = _chatNodes[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
@@ -377,7 +366,7 @@ const ChainVis = () => {
       .duration(200)
       .delay(1300)
       .attr("width", (d) => d.width);
-  }, [highlightNode]);
+  }, [highlightNode, _chatNodes]);
 
   //update left and right y position
   useEffect(() => {
@@ -387,7 +376,7 @@ const ChainVis = () => {
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
     //get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[highlightNode].range;
+    const codeRange = _chatNodes[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
     const codeSnippetY =
       codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
@@ -415,14 +404,7 @@ const ChainVis = () => {
     if (highlightNode === -1) return;
     const svg = d3.select("#chain-svg");
 
-    const nodeData = chainNodesIndex.map((d, i) => {
-      return {
-        step: i,
-        text: "S" + i,
-        summary: nodes[d].content[nodes[d].contentID].summary,
-        color: palatte[i],
-      };
-    });
+    const nodeData = _chatNodes;
     const rectData = d3.map(nodeData, (d, i) => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
       const h = i === highlightNode ? bigRectHeight : rectHeight;
@@ -474,7 +456,7 @@ const ChainVis = () => {
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
     //get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chain[highlightNode].range;
+    const codeRange = _chatNodes[highlightNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
@@ -551,3 +533,43 @@ const ChainVis = () => {
 };
 
 export default ChainVis;
+
+const chat2node = (chats: number[], pool: RequestWithChannelID[]) => {
+  let nodeList: {
+    id: number;
+    text: string;
+    color: string;
+    range: number[];
+    step: number;
+    summary: string;
+  }[] = [];
+  let index = 0;
+  while (index + 1 < chats.length) {
+    const assistant = pool[chats[index]].request;
+    const functionCall = pool[chats[index + 1]].request;
+
+    if (assistant.role !== "assistant" || functionCall.role !== "function") {
+      index++;
+      continue;
+    }
+
+    const message = parseMessage(assistant);
+    const functionName = assistant.function_call?.name || "";
+    const functionArgs = JSON.parse(assistant.function_call?.arguments || "{}");
+
+    const node = {
+      id: index,
+      text: functionName,
+      color: palatte[nodeList.length],
+      range: [1, 2],
+      step: nodeList.length,
+      summary: '$summary'
+    };
+
+    nodeList.push(node);
+
+    index += 2;
+  }
+
+  return nodeList;
+};

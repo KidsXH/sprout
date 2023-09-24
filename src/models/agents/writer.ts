@@ -107,8 +107,8 @@ export class Writer {
         index: index,
         type: item.type,
         content: item.content,
-      }
-    })
+      };
+    });
   }
 
   async callFunction(functionName: string, functionArgs: any) {
@@ -120,5 +120,8 @@ export class Writer {
     console.log("[Function Call]", functionName, functionArgs);
     return (this as { [key: string]: any })[functionName](functionArgs);
   }
-}
 
+  get lastContent() {
+    return this.tutorialContent[this.tutorialContent.length - 1];
+  }
+}

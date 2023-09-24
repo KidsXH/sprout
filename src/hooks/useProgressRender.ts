@@ -1,4 +1,4 @@
-import { useAppSelector } from "@/hooks/redux";
+import {useAppDispatch, useAppSelector} from "@/hooks/redux";
 import { usePlannerContext } from "@/providers/Planner";
 import { useEffect, useState } from "react";
 import { TutorialContentType } from "@/models/agents/writer";
@@ -14,6 +14,8 @@ export const useProgressRender = () => {
     [],
   );
   const [renderedCount, setRenderedCount] = useState<number>(0);
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const index = renderedCount;

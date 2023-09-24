@@ -8,15 +8,10 @@ import functions from "@/models/functions";
 export class Planner {
   llm: BaseModel;
   writer: Writer;
-  reportFn?: (message: any) => void;
+  channel = 0;
 
-  constructor(
-    apiKey: string,
-    modelName: string,
-    reportFn?: (message: any) => void,
-  ) {
+  constructor(apiKey: string, modelName: string) {
     this.llm = new BaseModel(apiKey, modelName);
-    this.reportFn = reportFn;
 
     this.llm.systemMessage = {
       role: "system",
@@ -40,8 +35,9 @@ export class Planner {
     this.llm.functions = functions;
   }
 
-  initialize(sourceCode: string) {
-    console.log("[Planner] setup");
+  initialize(sourceCode: string, channel: number) {
+    console.log(`[Planner] INIT channel=${channel}`);
+    this.channel = channel;
     const userPrompt = `Code snippet:\n${sourceCode}\n`;
     this.llm.chatMessages = [
       {
@@ -55,8 +51,9 @@ export class Planner {
     console.log("[Planner] next");
 
     let responseMessage = await this.llm.call();
+    let parsedMessage = parseMessage(responseMessage);
 
-    if (!responseMessage || !parseMessage(responseMessage)) {
+    if (!responseMessage || !parsedMessage) {
       console.log("[Planner] Bad response:", responseMessage);
       console.log("[Planner] retry");
       this.llm.chatMessages.push({
@@ -64,13 +61,13 @@ export class Planner {
         content: 'Continue with explicit "Observation/Thought/Action"',
       });
       responseMessage = await this.llm.call();
-      if (!responseMessage || !parseMessage(responseMessage)) {
+      parsedMessage = parseMessage(responseMessage);
+      if (!responseMessage || !parsedMessage) {
         console.log("[Planner] Bad response:", responseMessage);
         throw new Error("Bad response from LLM");
       }
     }
 
-    if (this.reportFn) this.reportFn(responseMessage);
     this.llm.chatMessages.push(responseMessage);
 
     if (responseMessage.function_call) {
@@ -97,12 +94,21 @@ export class Planner {
       }
     }
 
-    return { hasNext: true };
+    return {
+      hasNext: true,
+      chat: {
+        observation: parsedMessage.observation,
+        thought: parsedMessage.thought,
+        action: this.writer.lastContent,
+      },
+    };
   }
 }
 
-export const parseMessage = (message: ChatCompletionRequestMessage) => {
-  if (!message.content) {
+export const parseMessage = (
+  message: ChatCompletionRequestMessage | undefined,
+) => {
+  if (!message || !message.content) {
     return;
   }
 

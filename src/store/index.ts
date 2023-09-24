@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import chatReducer from "@/store/chatSlice";
 import modelReducer from "@/store/modelSlice";
+import nodeReducer from "@/store/nodeSlice";
 import selectionReducer from "@/store/selectionSlice";
 import highlightReducer from "@/store/highlightSlice";
 
@@ -8,6 +9,7 @@ export const store = configureStore({
   reducer: {
     chat: chatReducer,
     model: modelReducer,
+    node: nodeReducer,
     selection: selectionReducer,
     highlight: highlightReducer,
   },
