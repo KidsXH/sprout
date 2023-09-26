@@ -1,33 +1,30 @@
 "use client";
 import React, { MutableRefObject } from "react";
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { useEffect, useMemo, useRef } from "react";
-import { useCodeMirror } from "@uiw/react-codemirror";
+import { useEffect, useRef } from "react";
 import { python } from "@codemirror/lang-python";
-import { quietlight } from "@uiw/codemirror-theme-quietlight";
 import { zebraStripes } from "@uiw/codemirror-extensions-zebra-stripes";
 import sproutTheme from "./theme";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { selectChainNodes } from "@/store/selectionSlice";
+
 import {
   selectHighlightNode,
   updateCodeScrollTop,
 } from "@/store/highlightSlice";
-import nodes from "@/mocks/nodes";
 import { setSourceCode } from "@/store/modelSlice";
+import {selectChainNodes} from "@/store/chatSlice";
 
 function CodeEditor() {
   const CodeRef: MutableRefObject<ReactCodeMirrorRef | null> = useRef(null);
-  const chainNodes = useAppSelector(selectChainNodes);
   const highlightNodeId = useAppSelector(selectHighlightNode);
 
   const dispatch = useAppDispatch();
   const [codeScrollTop, setCodeScrollTop] = React.useState<number>(0);
   const [highlightCodeRange, setHighlightCodeRange] = React.useState<any>([]);
   const [code, setCode] = React.useState<string>(DIJKSTRA_CODE);
+  const chainNodes = useAppSelector(selectChainNodes);
 
   const handleWheelEvent = (event: any) => {
-    // const codeEditor = CodeRef.current?.editor;
     const codeElement = document.getElementById("code-editor");
     const scrollTop: number = codeElement?.scrollTop || 0;
     setCodeScrollTop(scrollTop);
@@ -40,7 +37,7 @@ function CodeEditor() {
   useEffect(() => {
     setTimeout(() => {
       setHighlightCodeRange(
-        highlightNodeId === -1 ? [] : nodes[highlightNodeId].range,
+        highlightNodeId === -1 ? [] : chainNodes[highlightNodeId].range,
       );
     }, 1400);
     return () => {
@@ -75,25 +72,6 @@ function CodeEditor() {
 }
 
 export default CodeEditor;
-
-// const extensions = [python()];
-// const code = "console.log('hello world!');\n\n\n";
-// export default function CodeEditor() {
-//   const editor = useRef();
-//   const { setContainer } = useCodeMirror({
-//     container: editor.current,
-//     extensions,
-//     value: code,
-//   });
-
-//   useEffect(() => {
-//     if (editor.current) {
-//       setContainer(editor.current);
-//     }
-//   }, [editor.current]);
-
-//   return <div ref={editor} />;
-// }
 
 export const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
       distances = {node: 32767 for node in graph}

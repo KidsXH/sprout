@@ -8,10 +8,7 @@ import {
   selectTextScrollTop,
   updateHighlightNode,
 } from "@/store/highlightSlice";
-import { palatte } from "@/themes/palatte";
-import { selectMainChannelChats } from "@/store/chatSlice";
-import { RequestWithChannelID, selectRequestPool } from "@/store/nodeSlice";
-import { parseMessage } from "@/models/agents/planner";
+import { selectChainNodes } from "@/store/chatSlice";
 
 const ChainVis = () => {
   const svgRef: MutableRefObject<SVGSVGElement | null> = useRef(null);
@@ -29,9 +26,7 @@ const ChainVis = () => {
     (state) => state.highlight.highlightNode,
   );
 
-  const chatIDs = useAppSelector(selectMainChannelChats);
-  const pool = useAppSelector(selectRequestPool);
-  const _chatNodes = chat2node(chatIDs, pool);
+  const _chatNodes = useAppSelector(selectChainNodes);
 
   const width = 258;
   const height = 484;
@@ -50,8 +45,6 @@ const ChainVis = () => {
   const handleWheelEvent = (event: any) => {
     let deltaScale = event.deltaY;
     const svg = d3.select("#chain-svg");
-    const originalY = svg.attr("viewBox").split(",")[1];
-    // console.log(svg.attr("viewBox"));
 
     if (deltaScale > 0) {
       const newScrollTop =
@@ -533,43 +526,3 @@ const ChainVis = () => {
 };
 
 export default ChainVis;
-
-const chat2node = (chats: number[], pool: RequestWithChannelID[]) => {
-  let nodeList: {
-    id: number;
-    text: string;
-    color: string;
-    range: number[];
-    step: number;
-    summary: string;
-  }[] = [];
-  let index = 0;
-  while (index + 1 < chats.length) {
-    const assistant = pool[chats[index]].request;
-    const functionCall = pool[chats[index + 1]].request;
-
-    if (assistant.role !== "assistant" || functionCall.role !== "function") {
-      index++;
-      continue;
-    }
-
-    const message = parseMessage(assistant);
-    const functionName = assistant.function_call?.name || "";
-    const functionArgs = JSON.parse(assistant.function_call?.arguments || "{}");
-
-    const node = {
-      id: index,
-      text: functionName,
-      color: palatte[nodeList.length],
-      range: [1, 2],
-      step: nodeList.length,
-      summary: '$summary'
-    };
-
-    nodeList.push(node);
-
-    index += 2;
-  }
-
-  return nodeList;
-};

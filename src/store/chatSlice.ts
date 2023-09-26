@@ -7,12 +7,22 @@ type Chat = {
   messageID: number;
 };
 
+type ChainNode = {
+  id: number;
+  text: string;
+  color: string;
+  range: number[];
+  step: number;
+  summary: string;
+};
+
 interface ChatState {
   chatChannels: { [key: number]: number[] };
   latestChat: Chat | null;
   mainChannelID: number;
   mainChannelChats: number[];
   nrOfChats: number;
+  chainNodes: ChainNode[];
 }
 
 const initialState: ChatState = {
@@ -21,6 +31,7 @@ const initialState: ChatState = {
   mainChannelID: 0,
   mainChannelChats: [],
   nrOfChats: 0,
+  chainNodes: [],
 };
 
 export const chatSlice = createSlice({
@@ -43,10 +54,13 @@ export const chatSlice = createSlice({
     updateMainChannelChats: (state) => {
       state.mainChannelChats = [...state.chatChannels[state.mainChannelID]];
     },
+    setChainNodes: (state, action: PayloadAction<ChainNode[]>) => {
+      state.chainNodes = [...action.payload];
+    },
   },
 });
 
-export const { addChat, setMainChannelID, updateMainChannelChats } =
+export const { addChat, setMainChannelID, updateMainChannelChats, setChainNodes } =
   chatSlice.actions;
 
 export const selectChatChannels = (state: RootState) => state.chat.chatChannels;
@@ -60,5 +74,7 @@ export const selectMainChannelChats = (state: RootState) =>
   state.chat.mainChannelChats;
 
 export const selectNrOfChats = (state: RootState) => state.chat.nrOfChats;
+
+export const selectChainNodes = (state: RootState) => state.chat.chainNodes;
 
 export default chatSlice.reducer;
