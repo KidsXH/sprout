@@ -49,3 +49,8 @@ body {
 .text-security-disc {
   -webkit-text-security: disc;
 }
+
+.selectedStyleButtonStyle {
+  text-decoration-color: #c8f4d1;
+  color: black;
+}
