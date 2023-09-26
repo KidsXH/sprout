@@ -20,7 +20,7 @@ export class Writer {
       targetCode: "",
     });
     this.tutorial += `[Title] ${title}\n`;
-    return `The title has been added to the tutorial.`;
+    return `The title has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
   }
 
   writeBackground({ background }: { background: string }) {
@@ -30,7 +30,7 @@ export class Writer {
       targetCode: "",
     });
     this.tutorial += `[Background] ${background}\n`;
-    return `The background has been added to the tutorial.`;
+    return `The background has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
   }
 
   writeExplanation({
@@ -48,7 +48,7 @@ export class Writer {
       targetCode: code,
     });
     this.tutorial += `[STEP ${stepNum}] ${explanation}\n`;
-    return `The explanation has been added to the tutorial.`;
+    return `The explanation has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
   }
 
   writeNotification({
@@ -64,7 +64,7 @@ export class Writer {
       targetCode: code,
     });
     this.tutorial += `[NOTE] ${notification}\n`;
-    return `The notification has been added to the tutorial.`;
+    return `The notification has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
   }
 
   writeSummary({ summary }: { summary: string }) {
@@ -74,7 +74,7 @@ export class Writer {
       targetCode: "",
     });
     this.tutorial += `[Summary] ${summary}\n`;
-    return `The summary has been added to the tutorial.`;
+    return `The summary has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
   }
 
   writeNothing() {
