@@ -1,21 +1,21 @@
-import {useAppDispatch, useAppSelector} from "@/hooks/redux";
-import { usePlannerContext } from "@/providers/Planner";
-import { useEffect, useState } from "react";
-import { TutorialContentType } from "@/models/agents/writer";
+import { useAppSelector } from "@/hooks/redux";
+import { useEffect, useMemo, useState } from "react";
+import { TutorialContent } from "@/models/agents/writer";
+import { selectMainChannelID } from "@/store/chatSlice";
+import { selectNodePool, selectRequestPool } from "@/store/nodeSlice";
 
 export const useProgressRender = () => {
-  const runningState = useAppSelector((state) => state.model.runningState);
-
-  const [planner] = usePlannerContext();
-  const [tutorialContent, setTutorialContent] = useState<TutorialContentType[]>(
-    [],
-  );
-  const [renderedContent, setRenderedContent] = useState<TutorialContentType[]>(
-    [],
-  );
+  const tutorialContent = useTutorialContent();
+  const [renderedContent, setRenderedContent] = useState<TutorialContent[]>([]);
   const [renderedCount, setRenderedCount] = useState<number>(0);
 
-  const dispatch = useAppDispatch();
+  const mainChannelID = useAppSelector(selectMainChannelID);
+
+  useEffect(() => {
+    const tutorialLength = tutorialContent.length;
+    setRenderedContent(tutorialContent.slice(0, tutorialLength - 1));
+    setRenderedCount(0);
+  }, [mainChannelID]);
 
   useEffect(() => {
     const index = renderedCount;
@@ -43,9 +43,19 @@ export const useProgressRender = () => {
     }
   }, [tutorialContent, renderedContent, renderedCount]);
 
-  useEffect(() => {
-    setTutorialContent([...planner.writer.tutorialContent]);
-  }, [planner.writer.tutorialContent, runningState]);
-
   return renderedContent;
 };
+
+const useTutorialContent = () =>{
+  const mainChannelID = useAppSelector(selectMainChannelID);
+  const requestPool = useAppSelector(selectRequestPool);
+  const nodePool = useAppSelector(selectNodePool);
+
+  return useMemo(
+    () =>
+      nodePool
+        .filter((node) => requestPool[node.id].channelID === mainChannelID)
+        .map((item) => item.action),
+    [nodePool, requestPool, mainChannelID],
+  );
+}

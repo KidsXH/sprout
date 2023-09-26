@@ -1,6 +1,8 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   addChat,
+  changeChannelStatus, ChannelStatus,
+  selectActiveChannels,
   selectMainChannelChats,
   selectNumChats,
   setChainNodes,
@@ -9,25 +11,34 @@ import {
 import { useEffect } from "react";
 import {
   addNode,
-  addRequests,
-  ChatNodeWithID,
+  addRequest,
+  ChatNodeType,
   RequestWithChannelID,
   selectNodePool,
+  selectNumHandledRequests,
+  selectNumNodes,
+  selectNumRequests,
   selectRequestPool,
+  setNumHandledRequests,
   updateCodeRange,
 } from "@/store/nodeSlice";
 import { parseMessage, Planner } from "@/models/agents/planner";
 import { selectSourceCode } from "@/store/modelSlice";
 import { palatte } from "@/themes/palatte";
 import { matchCode } from "@/utils/matchCode";
+import { TutorialContentTypes } from "@/models/agents/writer";
 
 export const useChatHistory = () => {
   const dispatch = useAppDispatch();
   const requestPool = useAppSelector(selectRequestPool);
+  const numRequests = useAppSelector(selectNumRequests);
   const mainChatIDs = useAppSelector(selectMainChannelChats);
   const numChats = useAppSelector(selectNumChats);
   const sourceCode = useAppSelector(selectSourceCode);
   const nodePool = useAppSelector(selectNodePool);
+  const numNodes = useAppSelector(selectNumNodes);
+  const numHandledRequests = useAppSelector(selectNumHandledRequests);
+  const activeChannels = useAppSelector(selectActiveChannels);
 
   useEffect(() => {
     if (requestPool.length > numChats) {
@@ -37,7 +48,7 @@ export const useChatHistory = () => {
         }
       });
     }
-  }, [requestPool, numChats, dispatch]);
+  }, [requestPool, numRequests, numChats, dispatch]);
 
   useEffect(() => {
     dispatch(updateMainChannelChats());
@@ -46,11 +57,36 @@ export const useChatHistory = () => {
   useEffect(() => {
     const chainNodes = chat2node(mainChatIDs, requestPool, sourceCode);
     dispatch(setChainNodes(chainNodes));
-  }, [mainChatIDs, requestPool, sourceCode, dispatch]);
+  }, [mainChatIDs, requestPool, numRequests, sourceCode, dispatch]);
+
+  useEffect(() => {
+    // When the number of requests is changed, add new nodes to the node pool
+    if (numHandledRequests === numRequests) return;
+    let lastNodeID = -1;
+    let channelID = -1;
+    for (let i = numHandledRequests; i < numRequests; i++) {
+      const chatNode = request2chatNode(requestPool[i]);
+      if (chatNode) {
+        lastNodeID = i;
+        channelID = requestPool[i].channelID;
+        dispatch(addNode({ id: i, ...chatNode }));
+      }
+    }
+    if (lastNodeID !== -1) {
+      const newChannelStatus: ChannelStatus = {
+        channelID: channelID,
+        isActive: true,
+        isDone: true,
+        lastChatNodeID: lastNodeID,
+      }
+      dispatch(changeChannelStatus(newChannelStatus));
+    }
+    dispatch(setNumHandledRequests(numRequests));
+  }, [requestPool, numRequests, numHandledRequests, dispatch]);
 
   useEffect(() => {
     dispatch(updateCodeRange(sourceCode));
-  }, [sourceCode, nodePool, dispatch]);
+  }, [sourceCode, nodePool, numRequests, dispatch]);
 };
 
 export const saveRequestMessages = (
@@ -58,30 +94,15 @@ export const saveRequestMessages = (
   requestPool: RequestWithChannelID[],
   dispatch: any,
 ) => {
-  console.log("Saving request messages: Channel", planner.channel, "...");
   const chatMessages = planner.llm.chatMessages;
   const channelID = planner.channel;
   const chatChannel = requestPool.filter(
     (request) => request.channelID === channelID,
   );
   const newRequests = chatMessages.slice(chatChannel.length);
-
-  const newContent = planner.writer.lastContent;
-  newRequests.forEach((request, index) => {
-    const msg = parseMessage(request);
-    if (msg && request.role === "assistant") {
-      const id = chatChannel.length + index;
-      const node: ChatNodeWithID = {
-        id,
-        observation: msg.observation,
-        thought: msg.thought,
-        action: newContent,
-      };
-      dispatch(addNode(node));
-    }
+  newRequests.forEach((request) => {
+    dispatch(addRequest([channelID, request]));
   });
-
-  dispatch(addRequests([channelID, newRequests]));
 };
 
 const chat2node = (
@@ -138,4 +159,28 @@ const chat2node = (
   }
 
   return nodeList;
+};
+
+const request2chatNode = (
+  requestWithChannelID: RequestWithChannelID,
+): ChatNodeType | undefined => {
+  const { channelID, request } = requestWithChannelID;
+  const msg = parseMessage(request);
+  if (msg && request.role === "assistant") {
+    const functionName = request.function_call?.name || "";
+    const functionArgs = JSON.parse(request.function_call?.arguments || "{}");
+    const type = functionName.replace("write", "").toLowerCase();
+    const content = functionArgs[type];
+    if (TutorialContentTypes.includes(type)) {
+      return {
+        observation: msg.observation,
+        thought: msg.thought,
+        action: {
+          type: type,
+          content: content,
+          targetCode: functionArgs.code || "",
+        },
+      } as ChatNodeType;
+    }
+  }
 };

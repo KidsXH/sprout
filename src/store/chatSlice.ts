@@ -7,6 +7,13 @@ type Chat = {
   messageID: number;
 };
 
+export type ChannelStatus = {
+  channelID: number;
+  isActive: boolean;
+  isDone: boolean;
+  lastChatNodeID: number;
+};
+
 type ChainNode = {
   id: number;
   text: string;
@@ -24,7 +31,7 @@ interface ChatState {
   numChats: number;
   numChannels: number;
   chainNodes: ChainNode[];
-  activeChannels: number[];
+  activeChannels: ChannelStatus[];
 }
 
 const initialState: ChatState = {
@@ -75,13 +82,25 @@ export const chatSlice = createSlice({
     setChainNodes: (state, action: PayloadAction<ChainNode[]>) => {
       state.chainNodes = [...action.payload];
     },
-    activateChannel: (state, action: PayloadAction<number>) => {
+    activateChannel: (state, action: PayloadAction<ChannelStatus>) => {
       state.activeChannels = [...state.activeChannels, action.payload];
     },
     deactivateChannel: (state, action: PayloadAction<number>) => {
-      state.activeChannels = state.activeChannels.filter(
-        (channel) => channel !== action.payload,
-      );
+      state.activeChannels.forEach((channel) => {
+        if (channel.channelID === action.payload) {
+          channel.isActive = false;
+        }
+      });
+    },
+    changeChannelStatus: (state, action: PayloadAction<ChannelStatus>) => {
+      const { channelID, isActive, isDone, lastChatNodeID } = action.payload;
+      state.activeChannels.forEach((channel) => {
+        if (channel.channelID === channelID) {
+          channel.isActive = isActive;
+          channel.isDone = isDone;
+          channel.lastChatNodeID = lastChatNodeID;
+        }
+      });
     },
     clearActiveChannels: (state) => {
       state.activeChannels = [];
@@ -97,6 +116,7 @@ export const {
   activateChannel,
   deactivateChannel,
   clearActiveChannels,
+  changeChannelStatus,
 } = chatSlice.actions;
 
 export const selectChatChannels = (state: RootState) => state.chat.chatChannels;

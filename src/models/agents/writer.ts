@@ -1,4 +1,12 @@
-export type TutorialContentType = {
+export const TutorialContentTypes = [
+  "title",
+  "background",
+  "explanation",
+  "notification",
+  "summary",
+];
+
+export type TutorialContent = {
   type: "title" | "background" | "explanation" | "notification" | "summary";
   content: string;
   targetCode: string;
@@ -6,7 +14,7 @@ export type TutorialContentType = {
 
 export class Writer {
   tutorial?: string;
-  tutorialContent: TutorialContentType[] = [];
+  tutorialContent: TutorialContent[] = [];
 
   constructor() {
     this.tutorial = "";

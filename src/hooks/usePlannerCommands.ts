@@ -15,6 +15,8 @@ import { selectNodePool, selectRequestPool } from "@/store/nodeSlice";
 import { saveRequestMessages } from "@/hooks/useChatHistory";
 import {
   activateChannel,
+  ChannelStatus,
+  clearActiveChannels,
   deactivateChannel,
   selectActiveChannels,
   selectMainChannelID,
@@ -33,11 +35,10 @@ const usePlannerCommands = () => {
   const requestPool = useAppSelector(selectRequestPool);
   const nodePool = useAppSelector(selectNodePool);
   const activeChannels = useAppSelector(selectActiveChannels);
-  console.log('Request Pool:', requestPool)
+
   const requestMemory = requestPool.filter(
     (request) => request.channelID === mainChannelID,
   );
-
   const tutorialMemory = nodePool.filter(
     (node) => requestPool[node.id].channelID === mainChannelID,
   );
@@ -47,6 +48,7 @@ const usePlannerCommands = () => {
   const continue2next = (numThoughts?: number) => {
     numThoughts = numThoughts || 3;
     dispatch(setNumRuns(numThoughts));
+    dispatch(clearActiveChannels());
     for (let i = 0; i < numThoughts; i++) {
       const planner = planners[i];
       const channel = i === 0 ? mainChannelID : numChannels + i - 1;
@@ -55,11 +57,18 @@ const usePlannerCommands = () => {
         requestMemory.map((request) => request.request),
         tutorialMemory.map((node) => node.action),
       );
-      dispatch(activateChannel(planner.channel));
+      dispatch(
+        activateChannel({
+          channelID: channel,
+          isActive: true,
+          isDone: false,
+          lastChatNodeID: -1,
+        }),
+      );
       planner
         .next()
         .then((res) => {
-          const {hasNext, id} = res;
+          const { hasNext, id } = res;
           if (hasNext) {
             saveRequestMessages(planners[id], requestPool, dispatch);
           } else {
@@ -74,17 +83,55 @@ const usePlannerCommands = () => {
     }
   };
 
+  const vote = (channels: ChannelStatus[]) => {
+    const voteMap: Map<string, number[]> = new Map();
+    let maxVotes = 0;
+    let bestGroup: number[] = [];
+
+    channels
+      .filter((channel) => channel.isActive)
+      .forEach((channel) => {
+        const { channelID, lastChatNodeID } = channel;
+        const node = nodePool.find((node) => node.id === lastChatNodeID);
+        if (node === undefined) return;
+        const type = node.action.type;
+        const codeRange = node.codeRange || [];
+        const key = `${type}-${codeRange}`
+
+        if (!voteMap.has(key)) voteMap.set(key, []);
+        const group = voteMap.get(key);
+        if (group) {
+          group.push(channelID);
+          if (group.length > maxVotes) {
+            maxVotes = group.length;
+            bestGroup = group;
+          }
+        }
+      });
+
+    console.log("[Vote]", voteMap);
+
+    return bestGroup[0];
+  };
+
+  const allChannelsDone = activeChannels.every((channel) => channel.isDone);
+
   useEffect(() => {
-    if (numRuns === 0 && runningState === "running") {
-      if (activeChannels.length === 0) {
+    console.log( "[ActiveChannels]", activeChannels)
+  }, [activeChannels]);
+
+
+  useEffect(() => {
+    if (numRuns === 0 && runningState === "running" && allChannelsDone) {
+      const bestResult = vote(activeChannels);
+      if (bestResult === undefined) {
         dispatch(setRunningState("stopped"));
-      } else {
-        dispatch(setMainChannelID(activeChannels[0]));
-        dispatch(setRunningState("waited"));
-        dispatch(setCommand("continue-next"));
       }
+      dispatch(setMainChannelID(bestResult));
+      dispatch(setRunningState("waited"));
+      dispatch(setCommand("continue-next"));
     }
-  }, [dispatch, numRuns, runningState, activeChannels]);
+  }, [dispatch, numRuns, runningState, activeChannels, allChannelsDone]);
 
   useEffect(() => {
     console.log("Command:", command, "RunningState:", runningState);

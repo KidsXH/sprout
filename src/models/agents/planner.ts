@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessage } from "openai";
 import { BaseModel } from "@/models/api";
-import { TutorialContentType, Writer } from "@/models/agents/writer";
+import { TutorialContent, Writer } from "@/models/agents/writer";
 import plannerPrompt from "@/models/prompts/planner-v2.txt";
 import plannerPromptGpt4 from "@/models/prompts/planner-gpt4.txt";
 import functions from "@/models/functions";
@@ -39,7 +39,7 @@ export class Planner {
 
   setMemory(
     requestMemory: ChatCompletionRequestMessage[],
-    tutorialMemory: TutorialContentType[],
+    tutorialMemory: TutorialContent[],
   ) {
     if (requestMemory.length > 0) {
       this.llm.chatMessages = [...requestMemory];
@@ -51,7 +51,7 @@ export class Planner {
   }
 
   initialize(sourceCode: string, channel: number) {
-    console.log(`[Planner] INIT channel=${channel}`);
+    console.log(`[Planner] set channel=${channel}`);
     this.channel = channel;
     const userPrompt = `Code snippet:\n${sourceCode}\n`;
     this.llm.chatMessages = [
@@ -63,8 +63,6 @@ export class Planner {
   }
 
   async next() {
-    console.log("[Planner] next");
-
     let responseMessage = await this.llm.call();
     let parsedMessage = parseMessage(responseMessage);
 
