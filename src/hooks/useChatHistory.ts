@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   addChat,
   selectMainChannelChats,
-  selectNrOfChats,
+  selectNumChats,
   setChainNodes,
   updateMainChannelChats,
 } from "@/store/chatSlice";
@@ -11,7 +11,8 @@ import {
   addNode,
   addRequests,
   ChatNodeWithID,
-  RequestWithChannelID, selectNodePool,
+  RequestWithChannelID,
+  selectNodePool,
   selectRequestPool,
   updateCodeRange,
 } from "@/store/nodeSlice";
@@ -24,23 +25,23 @@ export const useChatHistory = () => {
   const dispatch = useAppDispatch();
   const requestPool = useAppSelector(selectRequestPool);
   const mainChatIDs = useAppSelector(selectMainChannelChats);
-  const nrOfChats = useAppSelector(selectNrOfChats);
+  const numChats = useAppSelector(selectNumChats);
   const sourceCode = useAppSelector(selectSourceCode);
   const nodePool = useAppSelector(selectNodePool);
 
   useEffect(() => {
-    if (requestPool.length > nrOfChats) {
+    if (requestPool.length > numChats) {
       requestPool.forEach((request, idx) => {
-        if (idx >= nrOfChats) {
+        if (idx >= numChats) {
           dispatch(addChat({ channel: request.channelID, messageID: idx }));
         }
       });
     }
-  }, [requestPool, nrOfChats, dispatch]);
+  }, [requestPool, numChats, dispatch]);
 
   useEffect(() => {
     dispatch(updateMainChannelChats());
-  }, [dispatch, nrOfChats]);
+  }, [dispatch, numChats]);
 
   useEffect(() => {
     const chainNodes = chat2node(mainChatIDs, requestPool, sourceCode);
@@ -57,7 +58,7 @@ export const saveRequestMessages = (
   requestPool: RequestWithChannelID[],
   dispatch: any,
 ) => {
-  console.log("Saving request messages");
+  console.log("Saving request messages: Channel", planner.channel, "...");
   const chatMessages = planner.llm.chatMessages;
   const channelID = planner.channel;
   const chatChannel = requestPool.filter(

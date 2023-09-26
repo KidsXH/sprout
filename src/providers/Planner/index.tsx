@@ -10,27 +10,33 @@ import {
   useState,
 } from "react";
 
+const NUM_PLANNERS = 5;
+
 type PlannerMutations = {
   setupBaseModel: (apiKey: string, modelName: string) => void;
 };
 
-type PlannerContextValue = [Planner, PlannerMutations];
+type PlannerContextValue = [Planner[], PlannerMutations];
 
 const PlannerContext = createContext<PlannerContextValue | null>(null);
 
 const PlannerProvider = (props: PropsWithChildren<{}>) => {
-  const [planner, setPlanner] = useState<Planner>(new Planner("", ""));
+  const [planners, setPlanners] = useState<Planner[]>(
+    Array(5)
+      .fill(null)
+      .map((item, index) => new Planner(index, "", "")),
+  );
 
   const setupBaseModel = useCallback((apiKey: string, modelName: string) => {
-    setPlanner((planner) => {
-      planner.setup(apiKey, modelName);
-      return planner;
+    setPlanners((planners) => {
+      planners.forEach((p) => p.setup(apiKey, modelName));
+      return planners;
     });
   }, []);
 
   const value = useMemo(() => {
-    return [planner, { setupBaseModel }] as [Planner, PlannerMutations];
-  }, [planner, setupBaseModel]);
+    return [planners, { setupBaseModel }] as [Planner[], PlannerMutations];
+  }, [planners, setupBaseModel]);
 
   return (
     <PlannerContext.Provider value={value}>

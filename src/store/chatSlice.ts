@@ -21,8 +21,10 @@ interface ChatState {
   latestChat: Chat | null;
   mainChannelID: number;
   mainChannelChats: number[];
-  nrOfChats: number;
+  numChats: number;
+  numChannels: number;
   chainNodes: ChainNode[];
+  activeChannels: number[];
 }
 
 const initialState: ChatState = {
@@ -30,8 +32,10 @@ const initialState: ChatState = {
   latestChat: null,
   mainChannelID: 0,
   mainChannelChats: [],
-  nrOfChats: 0,
+  numChats: 0,
+  numChannels: 1,
   chainNodes: [],
+  activeChannels: [],
 };
 
 export const chatSlice = createSlice({
@@ -42,10 +46,24 @@ export const chatSlice = createSlice({
       const { channel, messageID } = action.payload;
       if (state.chatChannels[channel] === undefined) {
         state.chatChannels[channel] = [];
+        state.numChannels += 1;
       }
       state.chatChannels[channel].push(messageID);
-      state.nrOfChats += 1;
+      state.numChats += 1;
       state.latestChat = action.payload;
+    },
+    addChats: (state, action: PayloadAction<Chat[]>) => {
+      const chats = action.payload;
+      chats.forEach((chat) => {
+        const { channel, messageID } = chat;
+        if (state.chatChannels[channel] === undefined) {
+          state.chatChannels[channel] = [];
+          state.numChannels += 1;
+        }
+        state.chatChannels[channel].push(messageID);
+        state.numChats += 1;
+        state.latestChat = chat;
+      });
     },
     setMainChannelID: (state, action: PayloadAction<number>) => {
       state.mainChannelID = action.payload;
@@ -57,11 +75,29 @@ export const chatSlice = createSlice({
     setChainNodes: (state, action: PayloadAction<ChainNode[]>) => {
       state.chainNodes = [...action.payload];
     },
+    activateChannel: (state, action: PayloadAction<number>) => {
+      state.activeChannels = [...state.activeChannels, action.payload];
+    },
+    deactivateChannel: (state, action: PayloadAction<number>) => {
+      state.activeChannels = state.activeChannels.filter(
+        (channel) => channel !== action.payload,
+      );
+    },
+    clearActiveChannels: (state) => {
+      state.activeChannels = [];
+    },
   },
 });
 
-export const { addChat, setMainChannelID, updateMainChannelChats, setChainNodes } =
-  chatSlice.actions;
+export const {
+  addChat,
+  setMainChannelID,
+  updateMainChannelChats,
+  setChainNodes,
+  activateChannel,
+  deactivateChannel,
+  clearActiveChannels,
+} = chatSlice.actions;
 
 export const selectChatChannels = (state: RootState) => state.chat.chatChannels;
 
@@ -73,8 +109,13 @@ export const selectMainChannelID = (state: RootState) =>
 export const selectMainChannelChats = (state: RootState) =>
   state.chat.mainChannelChats;
 
-export const selectNrOfChats = (state: RootState) => state.chat.nrOfChats;
+export const selectNumChats = (state: RootState) => state.chat.numChats;
 
 export const selectChainNodes = (state: RootState) => state.chat.chainNodes;
+
+export const selectNumChannels = (state: RootState) => state.chat.numChannels;
+
+export const selectActiveChannels = (state: RootState) =>
+  state.chat.activeChannels;
 
 export default chatSlice.reducer;

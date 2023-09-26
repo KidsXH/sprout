@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessage } from "openai";
 import { BaseModel } from "@/models/api";
-import { Writer } from "@/models/agents/writer";
+import { TutorialContentType, Writer } from "@/models/agents/writer";
 import plannerPrompt from "@/models/prompts/planner-v2.txt";
 import plannerPromptGpt4 from "@/models/prompts/planner-gpt4.txt";
 import functions from "@/models/functions";
@@ -9,8 +9,10 @@ export class Planner {
   llm: BaseModel;
   writer: Writer;
   channel = 0;
+  id: number;
 
-  constructor(apiKey: string, modelName: string) {
+  constructor(id: number, apiKey: string, modelName: string) {
+    this.id = id;
     this.llm = new BaseModel(apiKey, modelName);
 
     this.llm.systemMessage = {
@@ -33,6 +35,19 @@ export class Planner {
     };
     this.llm.stop = ["\n1. Observation", "\n1.Observation"];
     this.llm.functions = functions;
+  }
+
+  setMemory(
+    requestMemory: ChatCompletionRequestMessage[],
+    tutorialMemory: TutorialContentType[],
+  ) {
+    if (requestMemory.length > 0) {
+      this.llm.chatMessages = [...requestMemory];
+    }
+    if (tutorialMemory.length > 0) {
+      this.writer.tutorialContent = [...tutorialMemory];
+      this.writer.generateTutorial();
+    }
   }
 
   initialize(sourceCode: string, channel: number) {
@@ -90,17 +105,16 @@ export class Planner {
 
       if (functionName === "finishTutorial") {
         console.log("[Planner] finish");
-        return { hasNext: false };
+        return {
+          hasNext: false,
+          id: this.id,
+        };
       }
     }
 
     return {
       hasNext: true,
-      chat: {
-        observation: parsedMessage.observation,
-        thought: parsedMessage.thought,
-        action: this.writer.lastContent,
-      },
+      id: this.id,
     };
   }
 }

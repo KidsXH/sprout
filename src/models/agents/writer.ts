@@ -5,7 +5,6 @@ export type TutorialContentType = {
 };
 
 export class Writer {
-  sourceCode?: string;
   tutorial?: string;
   tutorialContent: TutorialContentType[] = [];
 
@@ -86,7 +85,7 @@ export class Writer {
   }
 
   generateTutorial() {
-    return this.tutorialContent
+    this.tutorial = this.tutorialContent
       .map((step) => {
         if (step.type === "background") {
           return `Background: ${step.content}`;
