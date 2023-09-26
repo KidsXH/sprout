@@ -8,13 +8,17 @@ import {
 } from "@/store/chatSlice";
 import { useEffect } from "react";
 import {
+  addNode,
   addRequests,
-  RequestWithChannelID,
+  ChatNodeWithID,
+  RequestWithChannelID, selectNodePool,
   selectRequestPool,
+  updateCodeRange,
 } from "@/store/nodeSlice";
 import { parseMessage, Planner } from "@/models/agents/planner";
 import { selectSourceCode } from "@/store/modelSlice";
 import { palatte } from "@/themes/palatte";
+import { matchCode } from "@/utils/matchCode";
 
 export const useChatHistory = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +26,7 @@ export const useChatHistory = () => {
   const mainChatIDs = useAppSelector(selectMainChannelChats);
   const nrOfChats = useAppSelector(selectNrOfChats);
   const sourceCode = useAppSelector(selectSourceCode);
+  const nodePool = useAppSelector(selectNodePool);
 
   useEffect(() => {
     if (requestPool.length > nrOfChats) {
@@ -41,6 +46,10 @@ export const useChatHistory = () => {
     const chainNodes = chat2node(mainChatIDs, requestPool, sourceCode);
     dispatch(setChainNodes(chainNodes));
   }, [mainChatIDs, requestPool, sourceCode, dispatch]);
+
+  useEffect(() => {
+    dispatch(updateCodeRange(sourceCode));
+  }, [sourceCode, nodePool, dispatch]);
 };
 
 export const saveRequestMessages = (
@@ -55,6 +64,22 @@ export const saveRequestMessages = (
     (request) => request.channelID === channelID,
   );
   const newRequests = chatMessages.slice(chatChannel.length);
+
+  const newContent = planner.writer.lastContent;
+  newRequests.forEach((request, index) => {
+    const msg = parseMessage(request);
+    if (msg && request.role === "assistant") {
+      const id = chatChannel.length + index;
+      const node: ChatNodeWithID = {
+        id,
+        observation: msg.observation,
+        thought: msg.thought,
+        action: newContent,
+      };
+      dispatch(addNode(node));
+    }
+  });
+
   dispatch(addRequests([channelID, newRequests]));
 };
 
@@ -112,22 +137,4 @@ const chat2node = (
   }
 
   return nodeList;
-};
-
-const matchCode = (searchCode: string, sourceCode: string) => {
-  searchCode = searchCode.replaceAll(" ", "");
-  sourceCode = sourceCode.replaceAll(" ", "");
-  const numSearchCodeLines = searchCode.split("\n").length;
-  const numSourceCodeLines = sourceCode.split("\n").length;
-
-  const start = sourceCode.indexOf(searchCode);
-
-  let startLine = 1;
-  let endLine = numSourceCodeLines;
-
-  if (start !== -1) {
-    startLine = sourceCode.slice(0, start).split("\n").length;
-    endLine = startLine + numSearchCodeLines - 1;
-  }
-  return [startLine, endLine];
 };

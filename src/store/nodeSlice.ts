@@ -3,12 +3,13 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store/index";
 import { TutorialContentType } from "@/models/agents/writer";
 import { ChatCompletionRequestMessage } from "openai";
+import { matchCode } from "@/utils/matchCode";
 
 export type ChatNodeType = {
   observation: string;
   thought: string;
   action: TutorialContentType;
-  codeRange: number[];
+  codeRange?: number[];
 };
 
 export type ChatNodeWithID = ChatNodeType & { id: number };
@@ -32,9 +33,6 @@ export const nodeSlice = createSlice({
   name: "node",
   initialState,
   reducers: {
-    addNode: (state, action: PayloadAction<ChatNodeWithID>) => {
-      state.nodePool.push(action.payload);
-    },
     addRequests: (
       state,
       action: PayloadAction<[number, ChatCompletionRequestMessage[]]>,
@@ -45,12 +43,33 @@ export const nodeSlice = createSlice({
         ...requests.map((request) => ({ channelID, request })),
       ];
     },
+    updateNodePool: (state, action: PayloadAction<ChatNodeWithID[]>) => {
+      state.nodePool = [...action.payload];
+    },
+    updateCodeRange: (state, action: PayloadAction<string>) => {
+      const code = action.payload;
+      const numLines = code.split("\n").length;
+      state.nodePool.forEach((node) => {
+        const searchCode = node.action.targetCode;
+        if (node.codeRange === undefined) {
+          if (searchCode === undefined || searchCode === "") {
+            node.codeRange = [1, numLines];
+          } else {
+            node.codeRange = matchCode(searchCode, code);
+          }
+        }
+      });
+    },
+    addNode: (state, action: PayloadAction<ChatNodeWithID>) => {
+      state.nodePool = [...state.nodePool, action.payload];
+    },
   },
 });
 
-export const { addNode, addRequests } = nodeSlice.actions;
+export const { addNode, addRequests, updateNodePool, updateCodeRange } =
+  nodeSlice.actions;
 
-export const selectNodes = (state: RootState) => state.node.nodePool;
+export const selectNodePool = (state: RootState) => state.node.nodePool;
 
 export const selectRequestPool = (state: RootState) => state.node.requestPool;
 
