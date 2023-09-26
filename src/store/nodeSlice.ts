@@ -8,6 +8,7 @@ export type ChatNodeType = {
   observation: string;
   thought: string;
   action: TutorialContentType;
+  codeRange: number[];
 };
 
 export type ChatNodeWithID = ChatNodeType & { id: number };
@@ -19,12 +20,12 @@ export type RequestWithChannelID = {
 
 interface NodeState {
   requestPool: RequestWithChannelID[];
-  nodes: ChatNodeWithID[];
+  nodePool: ChatNodeWithID[];
 }
 
 const initialState: NodeState = {
   requestPool: [],
-  nodes: [],
+  nodePool: [],
 };
 
 export const nodeSlice = createSlice({
@@ -32,7 +33,7 @@ export const nodeSlice = createSlice({
   initialState,
   reducers: {
     addNode: (state, action: PayloadAction<ChatNodeWithID>) => {
-      state.nodes.push(action.payload);
+      state.nodePool.push(action.payload);
     },
     addRequests: (
       state,
@@ -49,7 +50,7 @@ export const nodeSlice = createSlice({
 
 export const { addNode, addRequests } = nodeSlice.actions;
 
-export const selectNodes = (state: RootState) => state.node.nodes;
+export const selectNodes = (state: RootState) => state.node.nodePool;
 
 export const selectRequestPool = (state: RootState) => state.node.requestPool;
 

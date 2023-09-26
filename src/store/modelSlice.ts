@@ -23,6 +23,7 @@ interface modelState {
     | "none";
   modelName: string;
   apiKey: string;
+  numRuns: number;
 }
 
 const initialState: modelState = {
@@ -31,6 +32,7 @@ const initialState: modelState = {
   command: "none",
   modelName: "gpt-3.5-turbo",
   apiKey: DEFAULT_API_KEY,
+  numRuns: 0,
 };
 
 export const modelSlice = createSlice({
@@ -63,6 +65,12 @@ export const modelSlice = createSlice({
     setApiKey: (state, action: PayloadAction<string>) => {
       state.apiKey = action.payload;
     },
+    setNumRuns: (state, action: PayloadAction<number>) => {
+      state.numRuns = action.payload;
+    },
+    decreaseNumRuns: (state) => {
+      state.numRuns -= 1;
+    }
   },
 });
 
@@ -72,15 +80,16 @@ export const {
   setCommand,
   setModelName,
   setApiKey,
+  setNumRuns,
+  decreaseNumRuns,
 } = modelSlice.actions;
 
 export const selectSourceCode = (state: RootState) => state.model.sourceCode;
 export const selectRunningState = (state: RootState) =>
   state.model.runningState;
 export const selectCommand = (state: RootState) => state.model.command;
-
 export const selectModelName = (state: RootState) => state.model.modelName;
-
 export const selectApiKey = (state: RootState) => state.model.apiKey;
+export const selectNumRuns = (state: RootState) => state.model.numRuns;
 
 export default modelSlice.reducer;
