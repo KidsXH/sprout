@@ -14,7 +14,7 @@ export const useProgressRender = () => {
   useEffect(() => {
     const tutorialLength = tutorialContent.length;
     setRenderedContent([...tutorialContent]);
-    setRenderedCount(tutorialLength - 1);
+    setRenderedCount(Math.max(tutorialLength - 1, 0));
   }, [mainChannelID]);
 
   useEffect(() => {
