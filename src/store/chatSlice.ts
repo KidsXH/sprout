@@ -32,6 +32,7 @@ interface ChatState {
   numChannels: number;
   chainNodes: ChainNode[];
   activeChannels: ChannelStatus[];
+  focusChatID: number;
 }
 
 const initialState: ChatState = {
@@ -43,6 +44,7 @@ const initialState: ChatState = {
   numChannels: 1,
   chainNodes: [],
   activeChannels: [],
+  focusChatID: -1,
 };
 
 export const chatSlice = createSlice({
@@ -105,6 +107,9 @@ export const chatSlice = createSlice({
     clearActiveChannels: (state) => {
       state.activeChannels = [];
     },
+    setFocusChatID: (state, action: PayloadAction<number>) => {
+      state.focusChatID = action.payload;
+    }
   },
 });
 
@@ -117,6 +122,7 @@ export const {
   deactivateChannel,
   clearActiveChannels,
   changeChannelStatus,
+  setFocusChatID,
 } = chatSlice.actions;
 
 export const selectChatChannels = (state: RootState) => state.chat.chatChannels;
@@ -137,5 +143,8 @@ export const selectNumChannels = (state: RootState) => state.chat.numChannels;
 
 export const selectActiveChannels = (state: RootState) =>
   state.chat.activeChannels;
+
+export const selectFocusChatID = (state: RootState) =>
+  state.chat.focusChatID;
 
 export default chatSlice.reducer;

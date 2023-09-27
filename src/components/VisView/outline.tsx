@@ -8,7 +8,7 @@ import {
   selectNodePool,
   selectRequestPool,
 } from "@/store/nodeSlice";
-import { selectMainChannelChats, setMainChannelID } from "@/store/chatSlice";
+import {selectFocusChatID, selectMainChannelChats, setFocusChatID, setMainChannelID} from "@/store/chatSlice";
 
 type TreeNode = {
   requestID: number[];
@@ -28,8 +28,8 @@ const OutlineView = () => {
 
   const dispatch = useAppDispatch();
   const mainChannelChats = useAppSelector(selectMainChannelChats);
-  const nodeData = useAppSelector(selectNodePool);
   const requestPool = useAppSelector(selectRequestPool);
+  const focusChatID = useAppSelector(selectFocusChatID);
 
   const treeNodes = useTreeNodes();
 
@@ -44,13 +44,21 @@ const OutlineView = () => {
     }
   };
 
-  const clickNodeFn = useCallback((nodeID: number) => {}, []);
+  const clickNodeFn = useCallback((treeID: number) => {
+    if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
+      const requestID = treeNodes[treeID].requestID[0];
+      const channelID = requestPool[requestID].channelID;
+      dispatch(setMainChannelID(channelID));
+    }
+    dispatch(setFocusChatID(treeNodes[treeID].requestID[0]));
+  }, [dispatch, mainChannelChats, requestPool, treeNodes]);
 
   const clickLeafFn = useCallback(
     (treeID: number) => {
       const treeNode = treeNodes[treeID];
       const channelID = requestPool[treeNode.requestID[0]].channelID;
       dispatch(setMainChannelID(channelID));
+      dispatch(setFocusChatID(treeNode.requestID[0]));
     },
     [dispatch, treeNodes, requestPool],
   );
@@ -65,10 +73,11 @@ const OutlineView = () => {
       height,
       treeNodes,
       mainChannelChats,
+      focusChatID,
       clickNodeFn,
       clickLeafFn,
     );
-  }, [width, height, mainChannelChats, clickNodeFn, treeNodes, clickLeafFn]);
+  }, [width, height, mainChannelChats, focusChatID, clickNodeFn, treeNodes, clickLeafFn]);
 
   return (
     <>
@@ -109,6 +118,7 @@ const updateSVG = (
   height: number,
   data: TreeNode[],
   mainChannelChats: number[],
+  focusChatID: number,
   clickNodeFn: (treeID: number) => void,
   clickLeafFn: (treeID: number) => void,
 ) => {
@@ -136,10 +146,8 @@ const updateSVG = (
   });
 
   const focusNode =
-    mainChannelChats.length === 0
-      ? null
-      : data.find((n) =>
-          n.requestID.includes(mainChannelChats[mainChannelChats.length - 1]),
+data.find((n) =>
+          n.requestID.includes(focusChatID),
         );
 
   let highlightNodeData = focusNode
@@ -487,3 +495,7 @@ const calculateNodePosition = (
     }
   });
 };
+
+export const isTreeNodeInActiveChain = (node: TreeNode, mainChannelChats: number[]) => {
+  return mainChannelChats.find((n) => node.requestID.includes(n)) !== undefined;
+}
