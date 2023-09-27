@@ -10,7 +10,7 @@ import {
 } from "@/store/nodeSlice";
 import {selectFocusChatID, selectMainChannelChats, setFocusChatID, setMainChannelID} from "@/store/chatSlice";
 
-type TreeNode = {
+export type TreeNode = {
   requestID: number[];
   treeID: number;
   depth: number;
