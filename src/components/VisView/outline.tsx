@@ -1,18 +1,44 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import data from "@/mocks/treeNodeData";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as d3 from "d3";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { pickChain, selectChainNodes } from "@/store/selectionSlice";
-import chain from "@/mocks/chain";
 import { createLinearGradient } from "@/components/VisView/gradient";
-import { node } from "prop-types";
+import {
+  ChatNodeWithID,
+  RequestWithChannelID,
+  selectNodePool,
+  selectRequestPool,
+} from "@/store/nodeSlice";
+import { selectMainChannelChats, setMainChannelID } from "@/store/chatSlice";
+
+type TreeNode = {
+  requestID: number[];
+  treeID: number;
+  depth: number;
+  key: string;
+  label: string;
+  parentID?: number;
+  childrenID: number[];
+  x: number;
+  y: number;
+};
 
 const OutlineView = () => {
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
-  const chainNodes = useAppSelector(selectChainNodes);
   const dispatch = useAppDispatch();
+  const mainChannelChats = useAppSelector(selectMainChannelChats);
+  const nodeData = useAppSelector(selectNodePool);
+  const requestPool = useAppSelector(selectRequestPool);
+
+  const treeNodes = useMemo(
+    () => calculateTreeNode(nodeData, requestPool),
+    [nodeData, requestPool, mainChannelChats],
+  );
+
+  useEffect(() => {
+    calculateNodePosition(treeNodes, mainChannelChats);
+  }, [treeNodes, mainChannelChats]);
 
   const measuredRef = (node: any) => {
     if (node !== null) {
@@ -21,23 +47,15 @@ const OutlineView = () => {
     }
   };
 
-  const clickNodeFn = useCallback(
-    (nodeID: number) => {
-      let newChainNodes: number[] = [];
-      let index = data.findIndex((d) => d.id === nodeID);
+  const clickNodeFn = useCallback((nodeID: number) => {}, []);
 
-      if (index > -1) {
-        let currentNode = nodeID;
-        for (let i = index; i >= 0; i--) {
-          if (data[i].id === currentNode) {
-            newChainNodes.push(currentNode);
-            currentNode = data[currentNode].parent;
-          }
-        }
-      }
-      dispatch(pickChain(newChainNodes));
+  const clickLeafFn = useCallback(
+    (treeID: number) => {
+      const treeNode = treeNodes[treeID];
+      const channelID = requestPool[treeNode.requestID[0]].channelID;
+      dispatch(setMainChannelID(channelID));
     },
-    [dispatch],
+    [dispatch, treeNodes, requestPool],
   );
 
   useEffect(() => {
@@ -45,8 +63,15 @@ const OutlineView = () => {
   }, []);
 
   useEffect(() => {
-    updateSVG(width, height, data, chainNodes, clickNodeFn);
-  }, [width, height, chainNodes, clickNodeFn]);
+    updateSVG(
+      width,
+      height,
+      treeNodes,
+      mainChannelChats,
+      clickNodeFn,
+      clickLeafFn,
+    );
+  }, [width, height, mainChannelChats, clickNodeFn, treeNodes, clickLeafFn]);
 
   return (
     <>
@@ -58,24 +83,37 @@ const OutlineView = () => {
 export default OutlineView;
 
 const createSVG = () => {
-  const svg = d3.selectAll("#outline-svg");
+  const width = 500;
+  const height = 300;
+  const svg = d3.select("#outline-svg");
   svg.attr("viewBox", `0 0 500 300`);
   svg.selectAll("*").remove();
-  svg.append("g").attr("class", "tree-link-group");
-  svg.append("g").attr("class", "tree-node-shadow-group");
-  svg.append("g").attr("class", "tree-node-bg-group");
-  svg.append("g").attr("class", "tree-node-text-group");
-  svg.append("g").attr("class", "tree-node-highlight-group");
+  const g = svg.append("g");
+  g.append("g").attr("class", "tree-link-group");
+  g.append("g").attr("class", "tree-node-shadow-group");
+  g.append("g").attr("class", "tree-node-bg-group");
+  g.append("g").attr("class", "tree-node-text-group");
+  g.append("g").attr("class", "tree-node-highlight-group");
   createLinearGradient(svg, "linkGradient", "#C6EBD4");
   renderLegend(svg);
+  // @ts-ignore
+  svg.call(d3.zoom()
+    .extent([[0, 0], [width, height]])
+    .scaleExtent([0.1, 8])
+    .on("zoom", zoomed));
+  // @ts-ignore
+  function zoomed({transform}) {
+    g.attr("transform", transform);
+  }
 };
 
 const updateSVG = (
   width: number,
   height: number,
-  data: any,
-  chainNodes: number[],
-  nodeClickFn: (nodeID: number) => void,
+  data: TreeNode[],
+  mainChannelChats: number[],
+  clickNodeFn: (treeID: number) => void,
+  clickLeafFn: (treeID: number) => void,
 ) => {
   const svg = d3.selectAll("#outline-svg");
   svg.attr("viewBox", `0 0 ${width} ${height}`);
@@ -85,55 +123,50 @@ const updateSVG = (
   const dx = 70;
   const dy = 60;
 
-  const nodeData = d3.map(data, (d: any) => {
+  const nodeData = d3.map(data, (d) => {
     return {
-      id: d.id,
-      text: d.text,
+      requestID: d.requestID,
+      treeID: d.treeID,
+      childrenID: d.childrenID,
+      text: d.label,
       x: d.x * dx + offsetX,
       y: d.y * dy + offsetY,
       highlight:
-        chainNodes.find((n: any) => n === d.id) !== undefined
+        mainChannelChats.find((n) => d.requestID.includes(n)) !== undefined
           ? "#C6EBD4"
           : "#f5f5f5",
     };
   });
 
   const focusNode =
-    chainNodes.length === 0
+    mainChannelChats.length === 0
       ? null
-      : data.find((n: any) => n.id === chainNodes[0]);
+      : data.find((n) =>
+          n.requestID.includes(mainChannelChats[mainChannelChats.length - 1]),
+        );
 
   let highlightNodeData = focusNode
     ? d3.map(
-        data.filter((d: any) => d.text === focusNode.text),
-        (d: any) => {
+        data.filter((d) => d.label === focusNode.label),
+        (d) => {
           return {
-            id: d.id,
-            text: d.text,
+            requestID: d.requestID,
+            treeID: d.treeID,
+            text: d.label,
             x: d.x * dx + offsetX,
             y: d.y * dy + offsetY,
-            highlight: d.id === focusNode.id ? "#8BBD9E" : "#EECD9C",
+            highlight: d.treeID === focusNode.treeID ? "#8BBD9E" : "#EECD9C",
           };
         },
       )
     : [];
 
-  const linkData = [
-    { source: 0, target: 3 },
-    { source: 0, target: 1 },
-    { source: 0, target: 4 },
-    { source: 1, target: 2 },
-    { source: 3, target: 5 },
-    { source: 3, target: 6 },
-    { source: 4, target: 7 },
-    { source: 4, target: 8 },
-    { source: 9, target: 5 },
-  ];
+  const linkData: { source: number; target: number }[] = [];
 
   const renderNodeSd = (selection: any) => {
     selection
       .attr("class", (d: any) =>
-        d.id === focusNode?.id
+        d.treeID === focusNode?.treeID
           ? "drop-shadow-sm cursor-pointer"
           : "hover:drop-shadow-sm cursor-pointer",
       )
@@ -145,7 +178,7 @@ const updateSVG = (
       .attr("x", (d: any) => d.x - 24)
       .attr("y", (d: any) => d.y)
       .on("click", (event: any, d: any) => {
-        nodeClickFn(d.id);
+        d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
       });
   };
 
@@ -169,7 +202,7 @@ const updateSVG = (
       .attr("text-anchor", "middle")
       .text((d: any) => d.text)
       .on("click", (event: any, d: any) => {
-        nodeClickFn(d.id);
+        d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
       });
   };
 
@@ -189,11 +222,11 @@ const updateSVG = (
   const updateTreeLinks = (linkData: any) =>
     linkData.map((d: any) => {
       const highlighted =
-        chainNodes.find((n: any) => n === d.source) !== undefined &&
-        chainNodes.find((n: any) => n === d.target) !== undefined;
+        mainChannelChats.find((n: any) => n === d.source) !== undefined &&
+        mainChannelChats.find((n: any) => n === d.target) !== undefined;
 
-      const source = nodeData.find((n) => n.id === d.source);
-      const target = nodeData.find((n) => n.id === d.target);
+      const source = nodeData.find((n) => n.treeID === d.source);
+      const target = nodeData.find((n) => n.treeID === d.target);
       if (!source || !target) {
         return;
       }
@@ -349,4 +382,92 @@ const renderLegend = (svg: any) => {
     .attr("x", 295 + 44)
     .attr("y", 22)
     .text("highlighted node");
+};
+
+const calculateTreeNode = (
+  nodeData: ChatNodeWithID[],
+  requestPool: RequestWithChannelID[],
+) => {
+  const nodeList: TreeNode[] = [];
+  const lastNodeMap: Map<number, TreeNode> = new Map();
+  const layerWidth = Array(nodeData.length).fill(0);
+  nodeData.forEach((node, i) => {
+    const { id, codeRange, action } = node;
+    const channelID = requestPool[id].channelID;
+    const key = `${action.type}-${codeRange}`;
+    const label = codeRange ? `${codeRange[0]}-${codeRange[1]}` : action.type;
+
+    const lastNode = lastNodeMap.get(channelID);
+
+    let depth = 0;
+    let parentID = undefined;
+    let treeID = -1;
+
+    if (lastNode) {
+      depth = lastNode.depth + 1;
+      parentID = lastNode.treeID;
+      lastNode.childrenID.find((id) => {
+        const node = nodeList[id];
+        if (node.key === key) {
+          treeID = id;
+          return true;
+        }
+        return false;
+      });
+    } else {
+      depth = 0;
+      nodeList
+        .filter((node) => node.depth === 0)
+        .forEach((node) => {
+          if (node.key === key) {
+            treeID = node.treeID;
+            return true;
+          }
+          return false;
+        });
+    }
+
+    if (treeID === -1) {
+      treeID = nodeList.length;
+      let x = 0;
+      if (parentID !== undefined) {
+        x = nodeList[parentID].x + nodeList[parentID].childrenID.length;
+        nodeList[parentID].childrenID.push(treeID);
+      }
+      nodeList.push({
+        requestID: [id],
+        treeID: treeID,
+        depth: depth,
+        parentID: parentID,
+        childrenID: [],
+        key: key,
+        label: label,
+        x: x,
+        y: depth,
+      });
+      layerWidth[depth] += 1;
+    } else {
+      nodeList[treeID].requestID.push(id);
+    }
+    lastNodeMap.set(channelID, nodeList[treeID]);
+  });
+
+  return nodeList;
+};
+
+const calculateNodePosition = (
+  data: TreeNode[],
+  mainChannelChats: number[],
+) => {
+  const offsetX = Array(data.length).fill(0); // the offset of each layer
+  data.forEach((node) => {
+    node.requestID.forEach((id) => {
+      if (mainChannelChats.includes(id)) {
+        offsetX[node.depth] = 0 - node.x;
+      }
+    });
+  });
+  data.forEach((node) => {
+    node.x += offsetX[node.depth];
+  });
 };
