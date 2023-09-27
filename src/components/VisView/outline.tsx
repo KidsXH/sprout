@@ -31,10 +31,7 @@ const OutlineView = () => {
   const nodeData = useAppSelector(selectNodePool);
   const requestPool = useAppSelector(selectRequestPool);
 
-  const treeNodes = useMemo(
-    () => calculateTreeNode(nodeData, requestPool),
-    [nodeData, requestPool, mainChannelChats],
-  );
+  const treeNodes = useTreeNodes();
 
   useEffect(() => {
     calculateNodePosition(treeNodes, mainChannelChats);
@@ -388,6 +385,15 @@ const renderLegend = (svg: any) => {
     .attr("y", 22)
     .text("highlighted node");
 };
+
+export const useTreeNodes = () => {
+  const nodeData = useAppSelector(selectNodePool);
+  const requestPool = useAppSelector(selectRequestPool);
+  return useMemo(() => calculateTreeNode(nodeData, requestPool), [
+    nodeData,
+    requestPool,
+  ]);
+}
 
 const calculateTreeNode = (
   nodeData: ChatNodeWithID[],
