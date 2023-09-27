@@ -86,7 +86,7 @@ export const useChatHistory = () => {
 
   useEffect(() => {
     dispatch(updateCodeRange(sourceCode));
-  }, [sourceCode, nodePool, numRequests, dispatch]);
+  }, [sourceCode, nodePool, numNodes, dispatch]);
 };
 
 export const saveRequestMessages = (
