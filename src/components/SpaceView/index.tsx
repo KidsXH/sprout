@@ -8,7 +8,8 @@ import { selectApiKey } from "@/store/modelSlice";
 import { getCoordinates } from "@/models/embeddings";
 import { isUndefined } from "util";
 import { ConfigPanel } from "./configPanel";
-import { useTreeNodes } from "../VisView/outline";
+import { TreeNode, useTreeNodes } from "../VisView/outline";
+import { selectMainChannelChats } from "@/store/chatSlice";
 
 // cast length of content string across acceptable radius ranges relative to shortest and longest content strings
 function calcNodeRadius(
@@ -43,25 +44,39 @@ export const SpaceView = () => {
       content: string;
     }[]
   >([]);
+  // const mainChannelChats = useAppSelector(selectMainChannelChats);
   const chatNodes = useAppSelector(selectNodePool);
-  const requestPool = useAppSelector(selectNodePool);
+  // const requestPool = useAppSelector(selectNodePool);
   const treeNodes = useTreeNodes();
 
-  const selectedChatNodeId = 1;
+  const selectedTreeNodeId = 0;
   // const selectedChatNodeId = useAppSelector(select)
 
-  let matchedChatNodesData: { content: string; chatNodeId: number }[] = [];
-  const codeRange = chatNodes[selectedChatNodeId]?.codeRange || [-1, -1];
+  // if (treeNodes.length == 0) return;
+  const selectedTreeNode = treeNodes[selectedTreeNodeId];
+  let matchedChatNodes: { content: string; type: string }[] = [];
 
-  chatNodes.forEach((node) => {
-    if (node.codeRange !== undefined && codeRange !== undefined) {
-      if (
-        node.codeRange[0] == codeRange[0] &&
-        node.codeRange[1] == codeRange[1]
-      ) {
-        matchedChatNodesData.push({
-          content: node.action.content,
-          chatNodeId: node.id,
+  if (selectedTreeNode === undefined) {
+    console.log("[node spcace] selected TreeNode is undefined");
+  } else {
+    selectedTreeNode.requestID.forEach((index) => {
+      const chatNode = chatNodes.find((node) => node.id == index);
+      matchedChatNodes.push({
+        content: chatNode?.action.content || "",
+        type: "current",
+      });
+    });
+  }
+
+  treeNodes.forEach((node: TreeNode) => {
+    if (node.label == treeNodes[selectedTreeNodeId].label) {
+      if (node.treeID !== selectedTreeNode.treeID) {
+        node.requestID.forEach((index) => {
+          const chatNode = chatNodes.find((node) => node.id == index);
+          matchedChatNodes.push({
+            content: chatNode?.action.content || "",
+            type: "other",
+          });
         });
       }
     }
@@ -75,22 +90,14 @@ export const SpaceView = () => {
   // const nodes = useAppSelector(selectNodePool);
   const apiKey = useAppSelector(selectApiKey);
 
-  // const nodes = [
-  //   { action: { content: "This is a test" } },
-  //   { action: { content: "This is a longer test" } },
-  //   { action: { content: "Short test" } },
-  //   { action: { content: "This is another even longer test" } },
-  //   { action: { content: "This is a test" } },
-  // ];
-
   // console.log("matchdata", matchedChatNodesData);
   //processData
   useEffect(() => {
-    console.log("processData");
+    console.log("[space] processData");
     let longestContentLength: number = -1;
     let shortestContentLength: number = -1;
 
-    const contentArray = matchedChatNodesData.map((value, index) => {
+    const contentArray = matchedChatNodes.map((value, index) => {
       // filter out irrelevant nodes
 
       // find shortest and longest content length to calc node radius
@@ -123,13 +130,11 @@ export const SpaceView = () => {
           x: width / 2 + margin + res[index][0],
           y: width / 2 + margin + res[index][1],
           stroke:
-            matchedChatNodesData[index].chatNodeId == selectedChatNodeId
+            matchedChatNodes[index].type == "current"
               ? "#8BBD9E"
               : "transparent",
           fill:
-            matchedChatNodesData[index].chatNodeId == selectedChatNodeId
-              ? "#C6EBD4"
-              : "#FBE1B9",
+            matchedChatNodes[index].type == "current" ? "#C6EBD4" : "#FBE1B9",
           content: value,
         };
       });
