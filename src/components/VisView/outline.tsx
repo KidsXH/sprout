@@ -162,6 +162,11 @@ const updateSVG = (
     : [];
 
   const linkData: { source: number; target: number }[] = [];
+  data.forEach((d) => {
+    d.childrenID.forEach((childID) => {
+      linkData.push({ source: d.treeID, target: childID });
+    });
+  });
 
   const renderNodeSd = (selection: any) => {
     selection
@@ -222,8 +227,8 @@ const updateSVG = (
   const updateTreeLinks = (linkData: any) =>
     linkData.map((d: any) => {
       const highlighted =
-        mainChannelChats.find((n: any) => n === d.source) !== undefined &&
-        mainChannelChats.find((n: any) => n === d.target) !== undefined;
+        mainChannelChats.find((n) => data[d.source].requestID.includes(n)) !== undefined &&
+        mainChannelChats.find((n) => data[d.target].requestID.includes(n)) !== undefined;
 
       const source = nodeData.find((n) => n.treeID === d.source);
       const target = nodeData.find((n) => n.treeID === d.target);
@@ -460,14 +465,19 @@ const calculateNodePosition = (
   mainChannelChats: number[],
 ) => {
   const offsetX = Array(data.length).fill(0); // the offset of each layer
+  let maxDepth = 0;
   data.forEach((node) => {
     node.requestID.forEach((id) => {
       if (mainChannelChats.includes(id)) {
         offsetX[node.depth] = 0 - node.x;
+        maxDepth = Math.max(maxDepth, node.depth);
       }
     });
   });
   data.forEach((node) => {
     node.x += offsetX[node.depth];
+    if (node.depth > maxDepth) {
+      node.x += offsetX[maxDepth]
+    }
   });
 };
