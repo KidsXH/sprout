@@ -5,7 +5,7 @@ import {
   selectActiveChannels,
   selectMainChannelChats, selectMainChannelID,
   selectNumChats,
-  setChainNodes,
+  setChainNodes, setFocusChatID,
   updateMainChannelChats,
 } from "@/store/chatSlice";
 import { useEffect } from "react";
@@ -87,6 +87,17 @@ export const useChatHistory = () => {
   useEffect(() => {
     dispatch(updateCodeRange(sourceCode));
   }, [sourceCode, nodePool, numNodes, numRequests, dispatch]);
+
+  // update the focus chat id when the number of chats is changed
+  useEffect(() => {
+    const latestNode = nodePool[nodePool.length - 1];
+    if (latestNode) {
+      const requestID = latestNode.id;
+      if (mainChannelID === requestPool[requestID].channelID) {
+        dispatch(setFocusChatID(latestNode.id));
+      }
+    }
+  }, [numNodes, nodePool, dispatch]);
 };
 
 export const saveRequestMessages = (
