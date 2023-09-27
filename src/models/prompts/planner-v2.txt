@@ -9,7 +9,8 @@ These are the available actions:
 - writeSummary: Write the summary of the tutorial.
 - finishTutorial: The tutorial is finished. No more actions.
 
-Note: The 'writeExplanation' action only explain one step of programming at a time, you can not explain multiple steps in one action.
+Note1: The 'writeExplanation' action only explain one step of programming at a time, you can not explain multiple steps in one action.
+Note2: When you call 'writeExplanation' and 'writeNotification', you need to provide the code that you want to explain or notify.
 
 Response following the order of Observation/Thought/Action, stop when the tutorial is complete.
 Observation: What is the current state of the tutorial?

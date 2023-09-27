@@ -53,7 +53,7 @@ export const writeExplanation: ChatCompletionFunctions = {
 
 export const writeNotification: ChatCompletionFunctions = {
   name: "writeNotification",
-  description: "Write a notification for common mistakes",
+  description: "Write a notification for common mistakes on the code.",
   parameters: {
     type: "object",
     properties: {
@@ -64,7 +64,7 @@ export const writeNotification: ChatCompletionFunctions = {
       code: {
         type: "string",
         description:
-          "The code snippet to notify. The code must be a contiguous block of lines.",
+          "The code snippet to notify.",
       },
     },
   },
