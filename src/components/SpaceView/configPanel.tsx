@@ -6,6 +6,11 @@ import { styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/hooks/redux";
 import { setCommand } from "@/store/modelSlice";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
 const styles = ["Academic", "Humorous", "Objective", "Other"];
 
 const PrettoSlider = styled(Slider)({
@@ -159,7 +164,7 @@ export const ConfigPanel = () => {
         </div>
       </div>
       <div className="h-full w-full rounded-md border-2 border-solid border-gray-100">
-        <div className="polish m-2">
+        <div className="polish m-2 mb-3">
           <div className="p-1 text-base">Polishing</div>
           <div className="p-1 text-sm text-gray-600"> Make it more</div>
           <div className="grid grid-flow-col grid-rows-2 gap-3">
@@ -183,7 +188,7 @@ export const ConfigPanel = () => {
             </div> */}
           </div>
           <div className="mt-1 p-1 text-base">Level of Details</div>
-          <div className="flex flex-row">
+          {/* <div className="flex flex-row">
             <PrettoSlider
               className="basis-1/2"
               defaultValue={4}
@@ -193,13 +198,7 @@ export const ConfigPanel = () => {
               step={1}
               onChange={(e, v) => setSentenceValue(v as number)}
             />
-            {/* <input className="w-10 border-2 border-gray-200 p-1" type="text" /> */}
-            {/* <span className="flex items-center justify-center pl-2 text-sm">
-              {sentenceValue}
-            </span> */}
-            {/* <span className="flex items-center justify-center pl-5 text-sm text-gray-400">
-              sentences
-            </span> */}
+            
             <span className="flex items-center justify-center pl-5 text-sm text-gray-400">
               {(sentenceValue == 1
                 ? "Low"
@@ -207,7 +206,33 @@ export const ConfigPanel = () => {
                 ? "Medium"
                 : "High") + " Level"}
             </span>
-          </div>
+          </div> */}
+          <FormControl>
+            {/* <FormLabel id="demo-radio-buttons-group-label">Sentences</FormLabel> */}
+            <RadioGroup
+              row={true}
+              aria-labelledby="demo-radio-buttons-group-label"
+              defaultValue="same"
+              name="radio-buttons-group"
+              // size="small"
+            >
+              <FormControlLabel
+                value="less"
+                control={<Radio size="small" color="success" />}
+                label="less"
+              />
+              <FormControlLabel
+                value="same"
+                control={<Radio size="small" color="success" />}
+                label="same"
+              />
+              <FormControlLabel
+                value="more"
+                control={<Radio size="small" color="success" />}
+                label="more"
+              />
+            </RadioGroup>
+          </FormControl>
           <div></div>
         </div>
 

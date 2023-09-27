@@ -54,3 +54,6 @@ body {
   text-decoration-color: #c8f4d1;
   color: black;
 }
+.MuiFormControl-root .MuiSvgIcon-root {
+  font-size: 12px !important;
+}
