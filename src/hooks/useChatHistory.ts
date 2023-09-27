@@ -3,7 +3,7 @@ import {
   addChat,
   changeChannelStatus, ChannelStatus,
   selectActiveChannels,
-  selectMainChannelChats,
+  selectMainChannelChats, selectMainChannelID,
   selectNumChats,
   setChainNodes,
   updateMainChannelChats,
@@ -38,7 +38,7 @@ export const useChatHistory = () => {
   const nodePool = useAppSelector(selectNodePool);
   const numNodes = useAppSelector(selectNumNodes);
   const numHandledRequests = useAppSelector(selectNumHandledRequests);
-  const activeChannels = useAppSelector(selectActiveChannels);
+  const mainChannelID = useAppSelector(selectMainChannelID);
 
   useEffect(() => {
     if (requestPool.length > numChats) {
@@ -52,7 +52,7 @@ export const useChatHistory = () => {
 
   useEffect(() => {
     dispatch(updateMainChannelChats());
-  }, [dispatch, numChats]);
+  }, [dispatch, numChats, mainChannelID]);
 
   useEffect(() => {
     const chainNodes = chat2node(mainChatIDs, requestPool, sourceCode);

@@ -46,19 +46,19 @@ const OutlineView = () => {
 
   const clickNodeFn = useCallback((treeID: number) => {
     if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
-      const requestID = treeNodes[treeID].requestID[0];
+      const requestID = treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]
       const channelID = requestPool[requestID].channelID;
       dispatch(setMainChannelID(channelID));
     }
-    dispatch(setFocusChatID(treeNodes[treeID].requestID[0]));
+    dispatch(setFocusChatID(treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]));
   }, [dispatch, mainChannelChats, requestPool, treeNodes]);
 
   const clickLeafFn = useCallback(
     (treeID: number) => {
       const treeNode = treeNodes[treeID];
-      const channelID = requestPool[treeNode.requestID[0]].channelID;
+      const channelID = requestPool[treeNode.requestID[treeNodes[treeID].requestID.length - 1]].channelID;
       dispatch(setMainChannelID(channelID));
-      dispatch(setFocusChatID(treeNode.requestID[0]));
+      dispatch(setFocusChatID(treeNode.requestID[treeNodes[treeID].requestID.length - 1]));
     },
     [dispatch, treeNodes, requestPool],
   );

@@ -13,8 +13,8 @@ export const useProgressRender = () => {
 
   useEffect(() => {
     const tutorialLength = tutorialContent.length;
-    setRenderedContent(tutorialContent.slice(0, tutorialLength - 1));
-    setRenderedCount(0);
+    setRenderedContent([...tutorialContent]);
+    setRenderedCount(tutorialLength - 1);
   }, [mainChannelID]);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const useProgressRender = () => {
         renderedContent[index].content = "";
         setRenderedContent([...renderedContent]);
       }
-    } else {
+    } else if (index < renderedContent.length && index < tutorialContent.length) {
       const currentLength = renderedContent[index].content.length;
       const fullLength = tutorialContent[index].content.length;
 
