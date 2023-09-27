@@ -49,3 +49,25 @@ export class BaseModel {
     return chatCompletion.data.choices[0].message;
   }
 }
+
+export class EmbeddingModel {
+  openai: OpenAIApi;
+  model: string;
+  user?: string;
+
+  constructor(apiKey: string, modelName: string) {
+    const configuration = new Configuration({
+      apiKey: apiKey,
+    });
+    this.openai = new OpenAIApi(configuration);
+    this.model = modelName;
+  }
+
+  async getEmbeddings(inputs: string[]) {
+    const embeddings = await this.openai.createEmbedding({
+      model: this.model,
+      input: inputs,
+    });
+    return embeddings.data;
+  }
+}
