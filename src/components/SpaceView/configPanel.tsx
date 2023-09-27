@@ -4,6 +4,8 @@ import * as d3 from "d3";
 import Slider from "@mui/material/Slider";
 import { styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
+import { useAppDispatch } from "@/hooks/redux";
+import { setCommand } from "@/store/modelSlice";
 const styles = ["Academic", "Humorous", "Objective", "Other"];
 
 const PrettoSlider = styled(Slider)({
@@ -61,7 +63,15 @@ export const ConfigPanel = () => {
     range: [2, 4],
     text: "node",
   };
-  const handleClick = () => {};
+  const dispatch = useAppDispatch();
+
+  const handleClick = () => {
+    // setTimeout(() => {
+    //   dispatch(setCommand("polish"));
+    //   // dispatch
+    //   // set polish style
+    // }, 200);
+  };
 
   useEffect(() => {
     const svg = d3.select("#node-space");
@@ -123,9 +133,11 @@ export const ConfigPanel = () => {
 
   useEffect(() => {
     const buttons = document.getElementsByClassName("style-button");
+    if (buttons.length === 0) return;
     buttons[selectedIndex].classList.add("selectedStyleButtonStyle");
 
     return () => {
+      if (buttons.length === 0) return;
       buttons[selectedIndex].classList.remove("selectedStyleButtonStyle");
     };
   }, [selectedIndex]);
@@ -169,36 +181,34 @@ export const ConfigPanel = () => {
                 defaultValue={"?"}
               />
             </div> */}
-
-            {/* <div
-              className="flex h-5  w-full  items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-0"
-              onClick={() => {
-                // setStyle(v);
-              }}
-            >
-              {"  ?  "}
-            </div> */}
           </div>
-          <div className="mt-1 p-1 text-base">Length</div>
+          <div className="mt-1 p-1 text-base">Level of Details</div>
           <div className="flex flex-row">
-            {" "}
             <PrettoSlider
-              className="pl-2"
+              className="basis-1/2"
               defaultValue={4}
               marks={true}
               min={1}
-              max={11}
-              step={2}
+              max={3}
+              step={1}
               onChange={(e, v) => setSentenceValue(v as number)}
             />
             {/* <input className="w-10 border-2 border-gray-200 p-1" type="text" /> */}
-            <span className="flex items-center justify-center pl-2 text-sm">
+            {/* <span className="flex items-center justify-center pl-2 text-sm">
               {sentenceValue}
-            </span>
-            <span className="flex items-center justify-center pl-2 text-sm text-gray-400">
+            </span> */}
+            {/* <span className="flex items-center justify-center pl-5 text-sm text-gray-400">
               sentences
+            </span> */}
+            <span className="flex items-center justify-center pl-5 text-sm text-gray-400">
+              {(sentenceValue == 1
+                ? "Low"
+                : sentenceValue == 2
+                ? "Medium"
+                : "High") + " Level"}
             </span>
           </div>
+          <div></div>
         </div>
 
         <div className="confirmButton m-2 flex items-center justify-center">

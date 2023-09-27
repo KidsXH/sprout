@@ -8,14 +8,15 @@ import { selectApiKey } from "@/store/modelSlice";
 import { getCoordinates } from "@/models/embeddings";
 import { isUndefined } from "util";
 import { ConfigPanel } from "./configPanel";
+import { useTreeNodes } from "../VisView/outline";
 
 // cast length of content string across acceptable radius ranges relative to shortest and longest content strings
 function calcNodeRadius(
   contentString: string,
   shortestContentLength: number,
   longestContentLength: number,
-  minRadius: number = 3,
-  maxRadius: number = 15,
+  minRadius: number = 1,
+  maxRadius: number = 5,
 ): number {
   if (contentString.length >= longestContentLength) {
     return maxRadius;
@@ -42,6 +43,29 @@ export const SpaceView = () => {
       content: string;
     }[]
   >([]);
+  const chatNodes = useAppSelector(selectNodePool);
+  const requestPool = useAppSelector(selectNodePool);
+  const treeNodes = useTreeNodes();
+
+  const selectedChatNodeId = 1;
+  // const selectedChatNodeId = useAppSelector(select)
+
+  let matchedChatNodesData: { content: string; chatNodeId: number }[] = [];
+  const codeRange = chatNodes[selectedChatNodeId]?.codeRange || [-1, -1];
+
+  chatNodes.forEach((node) => {
+    if (node.codeRange !== undefined && codeRange !== undefined) {
+      if (
+        node.codeRange[0] == codeRange[0] &&
+        node.codeRange[1] == codeRange[1]
+      ) {
+        matchedChatNodesData.push({
+          content: node.action.content,
+          chatNodeId: node.id,
+        });
+      }
+    }
+  });
 
   const focusBranchNode = 3;
   const width = 250;
@@ -51,37 +75,42 @@ export const SpaceView = () => {
   // const nodes = useAppSelector(selectNodePool);
   const apiKey = useAppSelector(selectApiKey);
 
-  const nodes = [
-    { action: { content: "This is a test" } },
-    { action: { content: "This is a longer test" } },
-    { action: { content: "Short test" } },
-    { action: { content: "This is another even longer test" } },
-    { action: { content: "This is a test" } },
-  ];
+  // const nodes = [
+  //   { action: { content: "This is a test" } },
+  //   { action: { content: "This is a longer test" } },
+  //   { action: { content: "Short test" } },
+  //   { action: { content: "This is another even longer test" } },
+  //   { action: { content: "This is a test" } },
+  // ];
 
+  // console.log("matchdata", matchedChatNodesData);
+  //processData
   useEffect(() => {
+    console.log("processData");
     let longestContentLength: number = -1;
     let shortestContentLength: number = -1;
 
-    const contentArray = nodes.map((value, index) => {
+    const contentArray = matchedChatNodesData.map((value, index) => {
       // filter out irrelevant nodes
 
       // find shortest and longest content length to calc node radius
       if (
         shortestContentLength == -1 ||
-        value.action.content.length < shortestContentLength
+        value.content.length < shortestContentLength
       ) {
-        shortestContentLength = value.action.content.length;
+        shortestContentLength = value.content.length;
       }
       if (
         longestContentLength == -1 ||
-        value.action.content.length > longestContentLength
+        value.content.length > longestContentLength
       ) {
-        longestContentLength = value.action.content.length;
+        longestContentLength = value.content.length;
       }
 
-      return value.action.content;
+      return value.content;
     });
+
+    if (contentArray.length == 0) return;
 
     const dotData = getCoordinates(contentArray, apiKey).then((res) => {
       if (!res) {
@@ -93,8 +122,14 @@ export const SpaceView = () => {
           r: calcNodeRadius(value, 5, 25),
           x: width / 2 + margin + res[index][0],
           y: width / 2 + margin + res[index][1],
-          stroke: "#8BBD9E",
-          fill: index == focusBranchNode ? "#C6EBD4" : "#FBE1B9",
+          stroke:
+            matchedChatNodesData[index].chatNodeId == selectedChatNodeId
+              ? "#8BBD9E"
+              : "transparent",
+          fill:
+            matchedChatNodesData[index].chatNodeId == selectedChatNodeId
+              ? "#C6EBD4"
+              : "#FBE1B9",
           content: value,
         };
       });
@@ -103,7 +138,7 @@ export const SpaceView = () => {
       setDotCorData(dotData);
       return dotData;
     });
-  }, []);
+  }, [chatNodes]);
 
   useEffect(() => {
     // const contentSet = nodes[focusBranchNode].content;
@@ -166,13 +201,51 @@ export const SpaceView = () => {
         Context
       </div>
       <div className="flex h-full w-full">
-        <svg
-          className="h-full w-[16rem] flex-col"
-          id="ToT-space"
-          onClick={() => {
-            // handleBranchClick();
-          }}
-        ></svg>
+        <div className="flex flex-col">
+          <div className="legend mb-1">
+            <div className="m-1 flex flex-row">
+              <svg className="m=2 " viewBox="0 0 10 20" width="10" height="20">
+                <circle
+                  cx="5"
+                  cy="10"
+                  r="4.5"
+                  fill={"#C8F4D1"}
+                  stroke={"green"}
+                />
+              </svg>
+              <div className="ml-2 flex items-center text-center text-xs">
+                {" "}
+                Current Node
+              </div>
+            </div>
+            <div className="m-1 flex flex-row">
+              <svg className="m=2 " viewBox="0 0 10 20" width="10" height="20">
+                <circle cx="5" cy="10" r="5" fill={"#C8F4D1"} />
+              </svg>
+              <div className="ml-2 flex items-center text-center text-xs">
+                {" "}
+                Alternatives in Current Node
+              </div>
+            </div>
+            <div className="m-1 flex flex-row">
+              <svg className="m=2 " viewBox="0 0 10 20" width="10" height="20">
+                <circle cx="5" cy="10" r="5" fill={"#FFF1CC"} />
+              </svg>
+              <div className="ml-2 flex items-center text-center text-xs">
+                {" "}
+                Alternatives in Other Nodes
+              </div>
+            </div>
+          </div>
+          <svg
+            className="h-full w-[16rem] flex-col"
+            id="ToT-space"
+            onClick={() => {
+              // handleBranchClick();
+            }}
+          ></svg>
+        </div>
+
         {/* <div className="flex h-full  flex-col">config panel</div> */}
         <ConfigPanel />
       </div>
