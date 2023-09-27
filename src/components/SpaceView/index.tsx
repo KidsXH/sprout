@@ -163,6 +163,7 @@ export const SpaceView = () => {
     const svg = d3
       .select("#ToT-space")
       .attr("preserveAspectRatio", "xMinYMin meet")
+
       // .attr("viewBox", `${-width / 2} -10 ${width} ${height + 10}`);
       .attr("viewBox", `0 0 256 256`);
 
@@ -184,7 +185,8 @@ export const SpaceView = () => {
       return;
     }
 
-    svg
+    const g = svg
+      .append("g")
       .selectAll("circle")
       .data(dotCorData)
       .join("circle")
@@ -196,9 +198,34 @@ export const SpaceView = () => {
       .attr("stroke-width", 1)
       .append("title")
       .text((d) => d.content);
+
     // .on("hover", (d) => {})
   }),
     [dotCorData];
+
+  useEffect(() => {
+    const svg = d3.select("#ToT-space");
+    // @ts-ignore
+    svg.call(
+      // @ts-ignore
+      d3
+        .zoom()
+        .extent([
+          [0, 0],
+          [250, 250],
+        ])
+        .scaleExtent([0.1, 10])
+        .on("zoom", zoomed),
+    );
+    // @ts-ignore
+    function zoomed({ transform }) {
+      console.log("zoom");
+      const g = svg.select("g");
+      g.attr("transform", transform);
+      g.selectAll("circle").attr("stroke-width", 1 / transform.k);
+      g.selectAll("circle").attr("r", (d: any) => d.r / transform.k);
+    }
+  }, []);
 
   return (
     <div className="flex w-[30rem] flex-col">
