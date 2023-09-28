@@ -3,7 +3,6 @@ import {
   addChat,
   changeChannelStatus,
   ChannelStatus,
-  selectActiveChannels,
   selectMainChannelChats,
   selectMainChannelID,
   selectNumChats,
@@ -26,7 +25,7 @@ import {
   updateCodeRange,
 } from "@/store/nodeSlice";
 import { parseMessage, Planner } from "@/models/agents/planner";
-import { selectSourceCode } from "@/store/modelSlice";
+import { selectNumRuns, selectSourceCode } from "@/store/modelSlice";
 import { palatte } from "@/themes/palatte";
 import { matchCode } from "@/utils/matchCode";
 import { TutorialContentTypes } from "@/models/agents/writer";
@@ -91,16 +90,20 @@ export const useChatHistory = () => {
     dispatch(updateCodeRange(sourceCode));
   }, [sourceCode, nodePool, numNodes, numRequests, dispatch]);
 
-  // update the focus chat id when the number of chats is changed
+  const numRuns = useAppSelector(selectNumRuns);
   useEffect(() => {
-    const latestNode = nodePool[nodePool.length - 1];
-    if (latestNode) {
-      const requestID = latestNode.id;
-      if (mainChannelID === requestPool[requestID].channelID) {
-        dispatch(setFocusChatID(latestNode.id));
+    if (numRuns > 0 || nodePool.length === 0) return;
+    let latestNode = nodePool[0];
+
+    nodePool.forEach((node) => {
+      const requestID = node.id;
+      if (requestPool[requestID].channelID === mainChannelID) {
+        latestNode = node;
       }
-    }
-  }, [numNodes, nodePool, dispatch]);
+    });
+
+    if (latestNode) dispatch(setFocusChatID(latestNode.id));
+  }, [numNodes, nodePool, numRuns, dispatch, requestPool, mainChannelID]);
 };
 
 export const saveRequestMessages = (
@@ -162,12 +165,11 @@ const chat2node = (
 
     const node = {
       id: indexInChain,
-
       text: `${codeRange[0]}-${codeRange[1]}`,
       color: palatte[nodeList.length],
       range: codeRange,
       step: nodeList.length,
-      summary: "$summary",
+      summary: functionArgs.summary || "",
       requestID: chats[index],
     };
 
@@ -197,6 +199,7 @@ const request2chatNode = (
           type: type,
           content: content,
           targetCode: functionArgs.code || "",
+          summary: functionArgs.summary || "",
         },
       } as ChatNodeType;
     }
