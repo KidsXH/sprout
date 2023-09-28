@@ -162,7 +162,7 @@ export const ConfigPanel = (props: { content: string }) => {
             Explanation
           </div>
         </div> */}
-        <div className="mb-2 flex h-[4.5rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3 text-xs hover:border-neutral-200 hover:shadow">
+        <div className="mb-2 flex h-[4.5rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3 pt-2  text-xs leading-5 hover:border-neutral-200 hover:shadow">
           {props.content}
         </div>
       </div>
@@ -173,7 +173,7 @@ export const ConfigPanel = (props: { content: string }) => {
           <div className="grid grid-flow-col grid-rows-2 gap-3">
             {styles.map((v, i) => (
               <div
-                className="style-button flex h-5  w-full  items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-0"
+                className="style-button flex h-5  w-full  items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-1"
                 key={i}
                 onClick={() => {
                   setSelectedIndex(i);

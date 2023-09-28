@@ -27,7 +27,7 @@ export const BranchView = () => {
 
   const bigRectWidth = 150;
   const bigRectHeight = 72;
-  const reasonBoxHeight = 80;
+  const reasonBoxHeight = 70;
   const reasonBoxWidth = 150;
   const childBranchNodeY = 220;
   const interval = 15;
@@ -406,19 +406,59 @@ export const BranchView = () => {
           .style("opacity", 1);
 
         //render reasoning text
+        // svg
+        //   .append("g")
+        //   .selectAll("text")
+        //   .data(reasonBoxData)
+        //   .join("text")
+        //   .attr("class", "reason-text select-none")
+        //   .attr("x", (d) => d.x + 15)
+        //   .attr("y", (d, i) => d.y + 25)
+        //   .attr("width", reasonBoxWidth)
+        //   .attr("fill", "#000")
+        //   .attr("font-size", "14px")
+        //   .attr("text-anchor", "start")
+        //   .text((d) => d.text.slice(0, 20) + "...")
+        //   .style("opacity", 0)
+        //   .transition()
+        //   .duration(phase3)
+        //   .ease(d3.easeLinear)
+        //   .style("opacity", 1);
+
+        // svg.append("g").selectAll("switch").append('p').
+
         svg
           .append("g")
-          .selectAll("text")
+          .selectAll("switch")
+
           .data(reasonBoxData)
-          .join("text")
-          .attr("class", "reason-text select-none")
+          .join("switch")
+          .append("foreignObject")
           .attr("x", (d) => d.x + 15)
-          .attr("y", (d, i) => d.y + 25)
+          .attr("y", (d, i) => d.y + 15)
           .attr("width", reasonBoxWidth)
-          .attr("fill", "#000")
-          .attr("font-size", "14px")
-          .attr("text-anchor", "start")
-          .text((d) => d.text.slice(0, 20) + "...")
+          .attr("height", reasonBoxHeight)
+          .attr("class", "reason-text select-none")
+          // .append("p")
+          // .attr("fill", "#000")
+          // .attr("font-size", "14px")
+          // .attr("text-anchor", "start")
+          // .text((d) => d.text)
+          .append("xhtml:body")
+          .style("font", "12px 'Helvetica Neue'")
+          .style("line-height", "1.2")
+          .style("color", "#848484")
+          .style("overflow", "scroll")
+          .html(
+            (d) =>
+              "<p className='reason-p'>" +
+              (d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text) +
+              "</p>",
+            // "<p className='reason-p'>" + d.text + "</p>",
+          )
+          // .append("title")
+          // .text((d) => d.text)
+          // .text((d) => d.text.slice(0, 20) + "...")
           .style("opacity", 0)
           .transition()
           .duration(phase3)
@@ -685,7 +725,19 @@ export const BranchView = () => {
         onClick={() => {
           // handleBranchClick();
         }}
-      ></svg>
+      >
+        <switch>
+          <foreignObject x="20" y="90" width="150" height="200">
+            <p>Text goes hereasasjdioajcads</p>
+          </foreignObject>
+        </switch>
+        <switch>
+          <foreignObject x="50" y="90" width="150" height="200">
+            <p>Text goes hereasasjdioajcads</p>
+          </foreignObject>
+        </switch>
+        ;
+      </svg>
     </div>
   );
 };
