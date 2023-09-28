@@ -52,7 +52,7 @@ const PrettoSlider = styled(Slider)({
   },
 });
 
-export const ConfigPanel = () => {
+export const ConfigPanel = (props: { content: string }) => {
   const [sentenceValue, setSentenceValue] = useState(4);
   const [style, setStyle] = useState("Academic");
 
@@ -147,7 +147,7 @@ export const ConfigPanel = () => {
     };
   }, [selectedIndex]);
   return (
-    <div className="m-3 mt-0 flex w-full flex-col">
+    <div className="ml-3 mt-0 flex w-full flex-col">
       <div className="flex w-full ">
         {/* <svg
           className="h-[5rem] w-[10rem] "
@@ -162,9 +162,11 @@ export const ConfigPanel = () => {
             Explanation
           </div>
         </div> */}
-        <div></div>
+        <div className="mb-2 flex h-[4.5rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3 text-xs hover:border-neutral-200 hover:shadow">
+          {props.content}
+        </div>
       </div>
-      <div className="h-full w-full rounded-md border-2 border-solid border-gray-100">
+      <div className="h-[15rem] w-full rounded-md border-2 border-solid border-gray-100">
         <div className="polish m-2 mb-3">
           <div className="p-1 text-base">Polishing</div>
           <div className="p-1 text-sm text-gray-600"> Make it more</div>
@@ -238,7 +240,7 @@ export const ConfigPanel = () => {
           <div></div>
         </div>
 
-        <div className="confirmButton m-2 flex items-center justify-center">
+        <div className="confirmButton  flex items-center justify-center">
           <div
             className="flex  h-7  w-16 items-center justify-center rounded-md border-2 border-gray-200 bg-gray-100 text-xs"
             onClick={handleClick}

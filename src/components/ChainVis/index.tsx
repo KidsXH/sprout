@@ -68,7 +68,7 @@ const ChainVis = () => {
   }, [focusChatID, chainNodes]);
 
   const width = 258;
-  const height = 484;
+  const height = 450;
   const margin = { top: 20, right: 20, bottom: 20, left: 20 };
   const rectWidth = 48;
   const rectHeight = 34;
@@ -559,11 +559,11 @@ const ChainVis = () => {
 
   return (
     <div
-      className="ml-px mr-px w-[20rem] pt-12 "
+      className="mb-4 ml-px mr-px w-[20rem] pt-12"
       onWheel={handleWheelEvent}
       id="chainVis"
     >
-      <svg id="chain-svg" className="h-[484px] w-[258px]" ref={svgRef} />
+      <svg id="chain-svg" className="h-[450px] w-[258px]" ref={svgRef} />
       {/* <TestView /> */}
     </div>
   );

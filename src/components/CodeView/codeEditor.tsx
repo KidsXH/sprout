@@ -73,7 +73,7 @@ function CodeEditor() {
         const lineCount = selectedCode.split("\n").length;
         const start = state.line.number;
         dispatch(updateSelectedCodeRange([start, start + lineCount - 1]));
-        console.log("code range", [start - 1, start + lineCount - 2]);
+        // console.log("code range", [start - 1, start + lineCount - 2]);
       }}
       onBlur={() => {
         dispatch(setSourceCode(code));

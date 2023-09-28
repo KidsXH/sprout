@@ -7,8 +7,8 @@ import OutlineView from "@/components/VisView/outline";
 export const VisView = () => {
   return (
     <>
-      <div className="m-1 flex h-full w-full bg-white p-1 shadow-sm">
-        <div className="flex flex-col">
+      <div className="- m-1 flex h-full w-full bg-white p-1">
+        <div className="flex w-[28rem] flex-col">
           <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-green-900">
             Outline
           </div>

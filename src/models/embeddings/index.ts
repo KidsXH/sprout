@@ -36,13 +36,16 @@ export async function getCoordinates(
         return value.embedding;
       });
 
-      if (embeddings.length <= 2) {
-        return [];
-      }
+      console.log("embeddings: ", embeddings);
+
       const umap = new UMAP({
         nComponents: 2,
         nNeighbors: 1,
       });
+      if (embeddings.length <= 1) {
+        const umapResult = umap.fit(embeddings.concat(embeddings));
+        return umapResult;
+      }
       const umapResult = umap.fit(embeddings);
       return umapResult;
     });

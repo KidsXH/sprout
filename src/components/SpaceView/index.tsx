@@ -9,16 +9,17 @@ import { getCoordinates } from "@/models/embeddings";
 import { isUndefined } from "util";
 import { ConfigPanel } from "./configPanel";
 import { TreeNode, useTreeNodes } from "../VisView/outline";
-import { selectMainChannelChats } from "@/store/chatSlice";
+import { selectFocusChatID, selectMainChannelChats } from "@/store/chatSlice";
 
 // cast length of content string across acceptable radius ranges relative to shortest and longest content strings
 function calcNodeRadius(
   contentString: string,
   shortestContentLength: number,
   longestContentLength: number,
-  minRadius: number = 1,
-  maxRadius: number = 5,
+  minRadius: number = 5,
+  maxRadius: number = 10,
 ): number {
+  console.log(contentString);
   if (contentString.length >= longestContentLength) {
     return maxRadius;
   } else if (contentString.length <= shortestContentLength) {
@@ -44,45 +45,53 @@ export const SpaceView = () => {
       content: string;
     }[]
   >([]);
+  const focusChatID = useAppSelector(selectFocusChatID);
   // const mainChannelChats = useAppSelector(selectMainChannelChats);
   const chatNodes = useAppSelector(selectNodePool);
   // const requestPool = useAppSelector(selectNodePool);
   const treeNodes = useTreeNodes();
+  // let matchedChatNodes = [];
+  const [matchChatNodes, setMatchChatNodes] = useState<
+    {
+      content: string;
+      type: string;
+    }[]
+  >([]);
+  const [dotContent, setDotContent] = useState<string>("");
 
-  const selectedTreeNodeId = 0;
-  // const selectedChatNodeId = useAppSelector(select)
+  useEffect(() => {
+    const curContent =
+      chatNodes.find((node) => node.id === focusChatID)?.action.content || "";
+    setDotContent(curContent);
+    const currentTreeNode = treeNodes.find((node) =>
+      node.requestID.includes(focusChatID),
+    );
+    const alterInCurrent = currentTreeNode?.requestID.map((id) =>
+      chatNodes.find((node) => node.id === id),
+    );
+    const currentChatNodes =
+      alterInCurrent?.map((alter) => {
+        return { content: alter?.action.content || "", type: "alterInCurrent" };
+      }) || [];
 
-  // if (treeNodes.length == 0) return;
-  const selectedTreeNode = treeNodes[selectedTreeNodeId];
-  let matchedChatNodes: { content: string; type: string }[] = [];
+    const otherTreeNode = treeNodes.find(
+      (node) =>
+        node.label == currentTreeNode?.label &&
+        node.treeID != currentTreeNode?.treeID,
+    );
+    const alterInOther = otherTreeNode?.requestID.map((id) =>
+      chatNodes.find((node) => node.id === id),
+    );
 
-  if (selectedTreeNode === undefined) {
-    console.log("[node spcace] selected TreeNode is undefined");
-  } else {
-    selectedTreeNode.requestID.forEach((index) => {
-      const chatNode = chatNodes.find((node) => node.id == index);
-      matchedChatNodes.push({
-        content: chatNode?.action.content || "",
-        type: "current",
-      });
-    });
-  }
+    const otherChatNodes =
+      alterInOther?.map((alter) => {
+        return { content: alter?.action.content || "", type: "alterInOther" };
+      }) || [];
 
-  treeNodes.forEach((node: TreeNode) => {
-    if (node.label == treeNodes[selectedTreeNodeId].label) {
-      if (node.treeID !== selectedTreeNode.treeID) {
-        node.requestID.forEach((index) => {
-          const chatNode = chatNodes.find((node) => node.id == index);
-          matchedChatNodes.push({
-            content: chatNode?.action.content || "",
-            type: "other",
-          });
-        });
-      }
-    }
-  });
+    setMatchChatNodes(currentChatNodes.concat(otherChatNodes));
+    console.log("current", currentChatNodes, "other", otherChatNodes);
+  }, [focusChatID]);
 
-  const focusBranchNode = 3;
   const width = 250;
   const height = 250;
   const margin = 10;
@@ -93,11 +102,11 @@ export const SpaceView = () => {
   // console.log("matchdata", matchedChatNodesData);
   //processData
   useEffect(() => {
-    console.log("[space] processData");
+    // console.log("[space] processData");
     let longestContentLength: number = -1;
     let shortestContentLength: number = -1;
 
-    const contentArray = matchedChatNodes.map((value, index) => {
+    const contentArray = matchChatNodes.map((value, index) => {
       // filter out irrelevant nodes
 
       // find shortest and longest content length to calc node radius
@@ -126,24 +135,23 @@ export const SpaceView = () => {
 
       const dotData = contentArray.map((value, index) => {
         return {
-          r: calcNodeRadius(value, 5, 25),
+          r: calcNodeRadius(value, 10, 125),
           x: width / 2 + margin + res[index][0],
           y: width / 2 + margin + res[index][1],
-          stroke:
-            matchedChatNodes[index].type == "current"
-              ? "#8BBD9E"
-              : "transparent",
+          stroke: matchChatNodes[index].type == "current" ? "#8BBD9E" : "#fff",
           fill:
-            matchedChatNodes[index].type == "current" ? "#C6EBD4" : "#FBE1B9",
+            matchChatNodes[index].type == "alterInCurrent"
+              ? "#C6EBD4"
+              : "#FBE1B9",
           content: value,
         };
       });
 
-      setLoading(false);
+      // setLoading(false);
       setDotCorData(dotData);
       return dotData;
     });
-  }, [chatNodes]);
+  }, [matchChatNodes]);
 
   useEffect(() => {
     // const contentSet = nodes[focusBranchNode].content;
@@ -181,9 +189,9 @@ export const SpaceView = () => {
       .attr("rx", 8)
       .attr("ry", 8);
 
-    if (isLoading) {
-      return;
-    }
+    // if (isLoading) {
+    //   return;
+    // }
 
     const g = svg
       .append("g")
@@ -196,10 +204,15 @@ export const SpaceView = () => {
       .attr("fill", (d) => d.fill)
       .attr("stroke", (d) => d.stroke)
       .attr("stroke-width", 1)
-      .append("title")
-      .text((d) => d.content);
+      .on("click", (e, d) => {
+        // console.log(d.content);
+        setDotContent(d.content);
+        // this.style("fill", "red");
+      });
+    // .append("title")
+    // .text((d) => d.content);
 
-    // .on("hover", (d) => {})
+    console.log("rerender");
   }),
     [dotCorData];
 
@@ -228,8 +241,8 @@ export const SpaceView = () => {
   }, []);
 
   return (
-    <div className="flex w-[30rem] flex-col">
-      <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-neutral-600">
+    <div className="flex w-[31.5rem] flex-col">
+      <div className="flex h-12 w-full select-none items-center p-1 text-xl font-bold text-neutral-600">
         Context
       </div>
       <div className="flex h-full w-full">
@@ -251,7 +264,7 @@ export const SpaceView = () => {
               </div>
             </div>
             <div className="m-1 flex flex-row">
-              <svg className="m=2 " viewBox="0 0 10 20" width="10" height="20">
+              <svg className=" " viewBox="0 0 10 20" width="10" height="20">
                 <circle cx="5" cy="10" r="5" fill={"#C8F4D1"} />
               </svg>
               <div className="ml-2 flex items-center text-center text-xs">
@@ -260,7 +273,7 @@ export const SpaceView = () => {
               </div>
             </div>
             <div className="m-1 flex flex-row">
-              <svg className="m=2 " viewBox="0 0 10 20" width="10" height="20">
+              <svg className=" " viewBox="0 0 10 20" width="10" height="20">
                 <circle cx="5" cy="10" r="5" fill={"#FFF1CC"} />
               </svg>
               <div className="ml-2 flex items-center text-center text-xs">
@@ -270,7 +283,7 @@ export const SpaceView = () => {
             </div>
           </div>
           <svg
-            className="h-full w-[16rem] flex-col"
+            className="mt-2 h-full w-[14.5rem] flex-col"
             id="ToT-space"
             onClick={() => {
               // handleBranchClick();
@@ -279,7 +292,7 @@ export const SpaceView = () => {
         </div>
 
         {/* <div className="flex h-full  flex-col">config panel</div> */}
-        <ConfigPanel />
+        <ConfigPanel content={dotContent} />
       </div>
     </div>
   );

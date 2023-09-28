@@ -36,7 +36,7 @@ const LLMController = () => {
   return (
     <>
       <div className="ml-2 flex items-center">
-        {runningState === "stopped" ? (
+        {runningState !== "running" ? (
           <StartButton onClick={handleStart} />
         ) : (
           <GeneratingButton />
@@ -83,11 +83,12 @@ export const GeneratingButton = (props: { onClick?: any }) => {
         <Button
           variant="outlined"
           startIcon={
-            <CircularProgress
-              className="p-1 text-green-500"
-              color="inherit"
-              size={20}
-            />
+            // <CircularProgress
+            //   className="p-1 text-green-500"
+            //   color="inherit"
+            //   size={20}
+            // />
+            <PlayArrowRoundedIcon className="fill-green-500" />
           }
           className="mr-2 w-28 rounded-md border-2 border-green-100 bg-green-50 py-1 pr-8 text-gray-500 transition-all duration-500 ease-in-out hover:border-green-200 hover:bg-green-200"
           onClick={props.onClick}
