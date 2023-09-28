@@ -147,9 +147,9 @@ export const ConfigPanel = () => {
     };
   }, [selectedIndex]);
   return (
-    <div className="m-3 mt-0 flex flex-col">
-      <div className="flex flex-row">
-        <svg
+    <div className="m-3 mt-0 flex w-full flex-col">
+      <div className="flex w-full ">
+        {/* <svg
           className="h-[5rem] w-[10rem] "
           id="node-space"
           onClick={() => {
@@ -161,7 +161,8 @@ export const ConfigPanel = () => {
           <div className="flex h-8 w-20 items-center justify-center  border-2 border-solid border-black bg-green-100 text-xs">
             Explanation
           </div>
-        </div>
+        </div> */}
+        <div></div>
       </div>
       <div className="h-full w-full rounded-md border-2 border-solid border-gray-100">
         <div className="polish m-2 mb-3">
@@ -171,6 +172,7 @@ export const ConfigPanel = () => {
             {styles.map((v, i) => (
               <div
                 className="style-button flex h-5  w-full  items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-0"
+                key={i}
                 onClick={() => {
                   setSelectedIndex(i);
                   setStyle(v);

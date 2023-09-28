@@ -5,11 +5,13 @@ import type { RootState } from "@/store/index";
 interface SelectionState {
   chainNodes: number[]; // The id of the nodes in the chain
   clickNodeTrigger: boolean;
+  selectedCodeRange: [number, number];
 }
 
 const initialState: SelectionState = {
   chainNodes: [],
   clickNodeTrigger: false,
+  selectedCodeRange: [0, 0],
 };
 
 export const selectionSlice = createSlice({
@@ -21,16 +23,26 @@ export const selectionSlice = createSlice({
     },
     clickNode: (state) => {
       state.clickNodeTrigger = !state.clickNodeTrigger;
-    }
+    },
+    updateSelectedCodeRange: (
+      state,
+      action: PayloadAction<[number, number]>,
+    ) => {
+      state.selectedCodeRange = [...action.payload];
+    },
   },
 });
 
-export const { pickChain , clickNode} = selectionSlice.actions;
+export const { pickChain, clickNode, updateSelectedCodeRange } =
+  selectionSlice.actions;
 
 export const selectChainNodes = (state: RootState) =>
   state.selection.chainNodes;
 
 export const selectClickNodeTrigger = (state: RootState) =>
   state.selection.clickNodeTrigger;
+
+export const selectSelectedCodeRange = (state: RootState) =>
+  state.selection.selectedCodeRange;
 
 export default selectionSlice.reducer;

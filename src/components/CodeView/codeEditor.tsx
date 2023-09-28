@@ -1,6 +1,9 @@
 "use client";
 import React, { MutableRefObject } from "react";
-import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import CodeMirror, {
+  ReactCodeMirrorRef,
+  getStatistics,
+} from "@uiw/react-codemirror";
 import { useEffect, useRef } from "react";
 import { python } from "@codemirror/lang-python";
 import { zebraStripes } from "@uiw/codemirror-extensions-zebra-stripes";
@@ -12,7 +15,8 @@ import {
   updateCodeScrollTop,
 } from "@/store/highlightSlice";
 import { setSourceCode } from "@/store/modelSlice";
-import {selectChainNodes} from "@/store/chatSlice";
+import { selectChainNodes } from "@/store/chatSlice";
+import { updateSelectedCodeRange } from "@/store/selectionSlice";
 
 function CodeEditor() {
   const CodeRef: MutableRefObject<ReactCodeMirrorRef | null> = useRef(null);
@@ -62,6 +66,14 @@ function CodeEditor() {
       value={code}
       onChange={(value) => {
         setCode(value);
+      }}
+      onUpdate={(view) => {
+        const state = getStatistics(view);
+        const selectedCode = state.selectionCode;
+        const lineCount = selectedCode.split("\n").length;
+        const start = state.line.number;
+        dispatch(updateSelectedCodeRange([start, start + lineCount - 1]));
+        console.log("code range", [start - 1, start + lineCount - 2]);
       }}
       onBlur={() => {
         dispatch(setSourceCode(code));

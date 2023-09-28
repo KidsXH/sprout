@@ -30,6 +30,7 @@ import {
   selectNumChannels,
   setMainChannelID,
 } from "@/store/chatSlice";
+import { selectSelectedCodeRange } from "@/store/selectionSlice";
 
 const usePlannerCommands = () => {
   const dispatch = useAppDispatch();
@@ -44,6 +45,7 @@ const usePlannerCommands = () => {
   const activeChannels = useAppSelector(selectActiveChannels);
   const focusChatID = useAppSelector(selectFocusChatID);
   const mainChannelChats = useAppSelector(selectMainChannelChats);
+  const selectedCodeRange = useAppSelector(selectSelectedCodeRange);
 
   const requestMemory = useMemo(() => {
     let requests = requestPool;
@@ -251,7 +253,7 @@ const usePlannerCommands = () => {
     if (command === "next-plan") {
       if (runningState === "paused") {
         dispatch(setRunningState("running"));
-        nextWithCodeRange(sourceCode, [0, sourceCode.length]);
+        nextWithCodeRange(sourceCode, selectedCodeRange);
         dispatch(setCommand("none"));
       }
     }
