@@ -9,9 +9,14 @@ import {
   setNumRuns,
   setRunningState,
 } from "@/store/modelSlice";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { usePlannerContext } from "@/providers/Planner";
-import { selectNodePool, selectRequestPool } from "@/store/nodeSlice";
+import {
+  selectNodePool,
+  selectNumNodes,
+  selectNumRequests,
+  selectRequestPool,
+} from "@/store/nodeSlice";
 import { saveRequestMessages } from "@/hooks/useChatHistory";
 import {
   activateChannel,
@@ -19,6 +24,7 @@ import {
   clearActiveChannels,
   deactivateChannel,
   selectActiveChannels,
+  selectFocusChatID,
   selectMainChannelID,
   selectNumChannels,
   setMainChannelID,
@@ -35,13 +41,28 @@ const usePlannerCommands = () => {
   const requestPool = useAppSelector(selectRequestPool);
   const nodePool = useAppSelector(selectNodePool);
   const activeChannels = useAppSelector(selectActiveChannels);
+  const focusChatID = useAppSelector(selectFocusChatID);
 
-  const requestMemory = requestPool.filter(
-    (request) => request.channelID === mainChannelID,
-  );
-  const tutorialMemory = nodePool.filter(
-    (node) => requestPool[node.id].channelID === mainChannelID,
-  );
+  const requestMemory = useMemo(() => {
+    let requests = requestPool;
+    if (focusChatID !== -1) {
+      requests = requests.slice(0, focusChatID + 2);
+    }
+    return requests.filter((request) => request.channelID === mainChannelID);
+  }, [focusChatID]);
+
+  const tutorialMemory = useMemo(() => {
+    let nodes = nodePool;
+    if (focusChatID !== -1) {
+      const maxNodeIndex = nodePool.findIndex(
+        (node) => node.id === focusChatID,
+      );
+      nodes = nodes.slice(0, maxNodeIndex + 1);
+    }
+    return nodes.filter(
+      (node) => requestPool[node.id].channelID === mainChannelID,
+    );
+  }, [focusChatID]);
 
   const [planners] = usePlannerContext();
 
@@ -96,7 +117,7 @@ const usePlannerCommands = () => {
         if (node === undefined) return;
         const type = node.action.type;
         const codeRange = node.codeRange || [];
-        const key = `${type}-${codeRange}`
+        const key = `${type}-${codeRange}`;
 
         if (!voteMap.has(key)) voteMap.set(key, []);
         const group = voteMap.get(key);
@@ -109,7 +130,7 @@ const usePlannerCommands = () => {
         }
       });
 
-    console.log("[Vote]", voteMap, 'Best Group:', bestGroup);
+    console.log("[Vote]", voteMap, "Best Group:", bestGroup);
 
     return bestGroup[0];
   };
@@ -117,17 +138,17 @@ const usePlannerCommands = () => {
   const allChannelsDone = activeChannels.every((channel) => channel.isDone);
 
   useEffect(() => {
-    console.log( "[ActiveChannels]", activeChannels)
+    console.log("[ActiveChannels]", activeChannels);
   }, [activeChannels]);
-
 
   useEffect(() => {
     if (numRuns === 0 && runningState === "running") {
-      const bestResult = vote(activeChannels.filter((channel) => channel.isDone));
+      const bestResult = vote(
+        activeChannels.filter((channel) => channel.isDone),
+      );
       if (bestResult === undefined) {
         dispatch(setRunningState("stopped"));
-      }
-      else {
+      } else {
         dispatch(setMainChannelID(bestResult));
         dispatch(setRunningState("waited"));
         dispatch(setCommand("continue-next"));
