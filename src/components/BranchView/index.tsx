@@ -62,6 +62,7 @@ export const BranchView = () => {
   const nodes = treeNodes.map((node) => {
     // const request = requestPool[node.requestID[0] || 0];
     const chatNode = chatNodes.find((d) => d.id === node.requestID[0]);
+    const isActive = mainChannelChats.find((d) => d === chatNode?.id);
     return {
       id: node.treeID,
       parent: node.parentID,
@@ -69,6 +70,7 @@ export const BranchView = () => {
       range: node.label,
       summary: "block summary",
       content: chatNode?.thought || "",
+      isActive: isActive ? 1 : 0,
     };
   });
 
@@ -121,7 +123,7 @@ export const BranchView = () => {
     }
 
     const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
-    console.log("siblingNodes", siblingNodes);
+
     let xPositionListIndex = [0, 1, 2];
     switch (siblingNodes.length) {
       case 1:
@@ -180,7 +182,7 @@ export const BranchView = () => {
         y: y,
         width: w,
         height: h,
-        color: i == 1 ? "#C6EBD4" : "#f5f5f5",
+        color: nodes[d].isActive ? "#C6EBD4" : "#f5f5f5",
         range: nodes[d].range,
         text: nodes[d].summary,
         id: d,
@@ -313,14 +315,14 @@ export const BranchView = () => {
           )
           .on("click", (event, d) => {
             if (d.type === "parent") {
-              if (d.id !== 0) {
-                const newChildIndex = getIndexInChildren(d.id);
-                downAnimation(newChildIndex);
-                setChildIndex(newChildIndex);
-                setDirection(0);
-                // d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
-                // setParentNode(nodes[d.id].parent || 0);
-              }
+              // if (d.id !== 0) {
+              //   const newChildIndex = getIndexInChildren(d.id);
+              //   downAnimation(newChildIndex);
+              //   setChildIndex(newChildIndex);
+              //   setDirection(0);
+              //   // d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
+              //   // setParentNode(nodes[d.id].parent || 0);
+              // }
             } else {
               if (d.id !== previewNode) {
                 setPreviewNode(d.id);
