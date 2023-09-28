@@ -120,7 +120,7 @@ export const SpaceView = () => {
     if (contentArray.length == 0) return;
 
     const dotData = getCoordinates(contentArray, apiKey).then((res) => {
-      if (!res) {
+      if (!res || res.length == 0) {
         return;
       }
 

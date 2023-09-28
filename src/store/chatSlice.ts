@@ -21,6 +21,7 @@ type ChainNode = {
   range: number[];
   step: number;
   summary: string;
+  requestID: number;
 };
 
 interface ChatState {
@@ -110,7 +111,7 @@ export const chatSlice = createSlice({
     },
     setFocusChatID: (state, action: PayloadAction<number>) => {
       state.focusChatID = action.payload;
-    }
+    },
   },
 });
 
@@ -145,7 +146,6 @@ export const selectNumChannels = (state: RootState) => state.chat.numChannels;
 export const selectActiveChannels = (state: RootState) =>
   state.chat.activeChannels;
 
-export const selectFocusChatID = (state: RootState) =>
-  state.chat.focusChatID;
+export const selectFocusChatID = (state: RootState) => state.chat.focusChatID;
 
 export default chatSlice.reducer;

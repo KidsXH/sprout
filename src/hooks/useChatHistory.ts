@@ -134,8 +134,10 @@ const chat2node = (
     range: number[];
     step: number;
     summary: string;
+    requestID: number;
   }[] = [];
   let index = 0;
+  let indexInChain = 0;
   while (index + 1 < chats.length) {
     const assistant = pool[chats[index]].request;
     const functionCall = pool[chats[index + 1]].request;
@@ -162,16 +164,18 @@ const chat2node = (
     }
 
     const node = {
-      id: index,
+      id: indexInChain,
+
       text: `${codeRange[0]}-${codeRange[1]}`,
       color: palatte[nodeList.length],
       range: codeRange,
       step: nodeList.length,
       summary: "$summary",
+      requestID: chats[index],
     };
 
     nodeList.push(node);
-
+    indexInChain++;
     index += 2;
   }
 
