@@ -726,16 +726,6 @@ export const BranchView = () => {
           // handleBranchClick();
         }}
       >
-        <switch>
-          <foreignObject x="20" y="90" width="150" height="200">
-            <p>Text goes hereasasjdioajcads</p>
-          </foreignObject>
-        </switch>
-        <switch>
-          <foreignObject x="50" y="90" width="150" height="200">
-            <p>Text goes hereasasjdioajcads</p>
-          </foreignObject>
-        </switch>
         ;
       </svg>
     </div>
