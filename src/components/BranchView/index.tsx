@@ -1,10 +1,22 @@
 "use client";
 
-import { llmResults } from "@/server/mock";
-import { useEffect, useState } from "react";
+// import { llmResults } from "@/server/mock";
+import { useCallback, useEffect, useState } from "react";
 import nodes from "@/mocks/nodes";
 
 import * as d3 from "d3";
+import { isTreeNodeInActiveChain, useTreeNodes } from "../VisView/outline";
+// import { useAppSelector } from "@/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { selectNodePool, selectRequestPool } from "@/store/nodeSlice";
+// import { selectFocusChatID } from "@/store/chatSlice";
+import {
+  selectChatChannels,
+  selectFocusChatID,
+  selectMainChannelChats,
+  setFocusChatID,
+  setMainChannelID,
+} from "@/store/chatSlice";
 
 export const BranchView = () => {
   // const parentNode = 2;
@@ -23,10 +35,43 @@ export const BranchView = () => {
   const phase2 = 400;
   const phase3 = 1500;
   const textOffsetY = (bigRectHeight / 4) * 3;
-  const [parentNode, setParentNode] = useState(2);
+
+  const [parentNode, setParentNode] = useState<number>(-1);
   const [previewNode, setPreviewNode] = useState(4);
   const [childIndex, setChildIndex] = useState(-1); //0 for left,1 for middle,2 for right
   const [direction, setDirection] = useState(0); //0 for down,1 for up
+  const dispatch = useAppDispatch();
+  const mainChannelChats = useAppSelector(selectMainChannelChats);
+  const requestPool = useAppSelector(selectRequestPool);
+
+  const treeNodes = useTreeNodes();
+  const focusChatNodeID = useAppSelector(selectFocusChatID);
+  const chatNodes = useAppSelector(selectNodePool);
+
+  useEffect(() => {
+    console.log("[branch] focusChatNodeID", focusChatNodeID);
+    console.log("[branch] treeNodes", treeNodes);
+
+    const focusTreeNodeID = treeNodes.findIndex((d) =>
+      d.requestID.includes(focusChatNodeID),
+    );
+
+    setParentNode(focusTreeNodeID);
+  }, [treeNodes, focusChatNodeID]);
+
+  const nodes = treeNodes.map((node) => {
+    // const request = requestPool[node.requestID[0] || 0];
+    const chatNode = chatNodes.find((d) => d.id === node.requestID[0]);
+    return {
+      id: node.treeID,
+      parent: node.parentID,
+      children: node.childrenID,
+      range: node.label,
+      summary: "block summary",
+      content: chatNode?.thought || "",
+    };
+  });
+
   const xPosition = [
     {
       rectX: (-bigRectWidth / 2) * 3 - interval,
@@ -42,9 +87,41 @@ export const BranchView = () => {
     },
   ];
 
+  const clickNodeFn = useCallback(
+    (treeID: number) => {
+      if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
+        const requestID = treeNodes[treeID].requestID[0];
+        const channelID = requestPool[requestID].channelID;
+        dispatch(setMainChannelID(channelID));
+      }
+      dispatch(setFocusChatID(treeNodes[treeID].requestID[0]));
+    },
+    [dispatch, mainChannelChats, requestPool, treeNodes],
+  );
+
+  const clickLeafFn = useCallback(
+    (treeID: number) => {
+      const treeNode = treeNodes[treeID];
+      const channelID = requestPool[treeNode.requestID[0]].channelID;
+      dispatch(setMainChannelID(channelID));
+      dispatch(setFocusChatID(treeNode.requestID[0]));
+    },
+    [dispatch, treeNodes, requestPool],
+  );
+
   //TODO: set preview node after parent node change
   useEffect(() => {
+    //TODO:for video
+    if (nodes.length === 0 || parentNode === -1) {
+      // const svg = d3
+      //   .select("#ToT-branch")
+      //   .attr("preserveAspectRatio", "xMinYMin meet")
+      //   .attr("viewBox", `${-width / 2} -10 ${width} ${height + 10}`);
+      return;
+    }
+
     const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
+    console.log("siblingNodes", siblingNodes);
     let xPositionListIndex = [0, 1, 2];
     switch (siblingNodes.length) {
       case 1:
@@ -86,7 +163,7 @@ export const BranchView = () => {
         y1: bigRectHeight / 2,
         x2: xPosition[xPositionListIndex[i]].linkX,
         y2: (bigRectHeight / 2) * 3,
-        text: "This is the reason" + i.toString(),
+        text: nodes[d].content,
       };
     });
     //get sibling nodes
@@ -105,7 +182,7 @@ export const BranchView = () => {
         height: h,
         color: i == 1 ? "#C6EBD4" : "#f5f5f5",
         range: nodes[d].range,
-        text: nodes[d].content[nodes[d].contentID].summary,
+        text: nodes[d].summary,
         id: d,
         positonIndex: xPositionListIndex[i],
         type: "child",
@@ -119,7 +196,7 @@ export const BranchView = () => {
       height: bigRectHeight,
       color: "#DADBDB",
       range: nodes[parentNode].range,
-      text: nodes[parentNode].content[nodes[parentNode].contentID].summary,
+      text: nodes[parentNode].summary,
       id: parentNode,
       positonIndex: 3,
       type: "parent",
@@ -241,7 +318,8 @@ export const BranchView = () => {
                 downAnimation(newChildIndex);
                 setChildIndex(newChildIndex);
                 setDirection(0);
-                setParentNode(nodes[d.id].parent);
+                // d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
+                // setParentNode(nodes[d.id].parent || 0);
               }
             } else {
               if (d.id !== previewNode) {
@@ -249,7 +327,7 @@ export const BranchView = () => {
               } else {
                 upAnimation(d.positonIndex);
                 setDirection(1);
-                setParentNode(d.id);
+                // setParentNode(d.id);
               }
             }
           })
@@ -296,7 +374,8 @@ export const BranchView = () => {
           .attr("text-anchor", "start")
           .text(
             (d) =>
-              d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
+              // d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
+              d.range,
           )
           .style("opacity", (d, i) =>
             (d.type === "parent" && direction) ||
@@ -322,7 +401,7 @@ export const BranchView = () => {
           .attr("fill", "#000")
           .attr("font-size", "14px")
           .attr("text-anchor", "start")
-          .text((d) => d.text)
+          .text((d) => d.text.slice(0, 20) + "...")
           .style("opacity", 0)
           .transition()
           .duration(phase3)
@@ -333,7 +412,7 @@ export const BranchView = () => {
     );
 
     return () => {};
-  }, [parentNode]);
+  }, [parentNode, chatNodes]);
 
   useEffect(() => {
     const svg = d3.select("#ToT-branch");
@@ -344,7 +423,7 @@ export const BranchView = () => {
         if (d.id == previewNode) {
           upAnimation(d.positonIndex);
           setDirection(1);
-          setParentNode(d.id);
+          // setParentNode(d.id);
         } else {
           if (d.type !== "parent") {
             setPreviewNode(d.id);
@@ -353,7 +432,7 @@ export const BranchView = () => {
             downAnimation(newChildIndex);
             setChildIndex(newChildIndex);
             setDirection(0);
-            setParentNode(nodes[d.id].parent);
+            // setParentNode(nodes[d.id].parent || 0);
           }
         }
       })
@@ -563,7 +642,7 @@ export const BranchView = () => {
   };
 
   const getIndexInChildren = (originalParent: number) => {
-    const newParent = nodes[originalParent].parent;
+    const newParent = nodes[originalParent].parent || 0;
     const siblingNodes = newParent >= 0 ? nodes[newParent].children : [];
     let index = siblingNodes.indexOf(originalParent);
     switch (siblingNodes.length) {
