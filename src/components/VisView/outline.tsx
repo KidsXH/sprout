@@ -521,31 +521,13 @@ const calculateNodePosition = (
       }
 
       const x = leftBound + (rightBound - leftBound) * (j + 1) / (numChildren + 1);
-      node.x = x;
+      node.x = Number(x.toFixed(2));
 
       if (j === numChildren - 1) {
-        minX = x;
+        minX = node.x;
       }
     });
   });
-
-  // const offsetX = Array(data.length).fill(0); // the offset of each layer
-  //
-  // let maxDepth = 0;
-  // data.forEach((node) => {
-  //   node.requestID.forEach((id) => {
-  //     if (mainChannelChats.includes(id)) {
-  //       offsetX[node.depth] = 0 - node.x;
-  //       maxDepth = Math.max(maxDepth, node.depth);
-  //     }
-  //   });
-  // });
-  // data.forEach((node) => {
-  //   node.x += offsetX[node.depth];
-  //   if (node.depth > maxDepth) {
-  //     node.x += offsetX[maxDepth]
-  //   }
-  // });
 };
 
 export const isTreeNodeInActiveChain = (node: TreeNode, mainChannelChats: number[]) => {
