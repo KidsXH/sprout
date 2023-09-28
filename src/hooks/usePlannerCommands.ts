@@ -109,7 +109,7 @@ const usePlannerCommands = () => {
         }
       });
 
-    console.log("[Vote]", voteMap);
+    console.log("[Vote]", voteMap, 'Best Group:', bestGroup);
 
     return bestGroup[0];
   };
@@ -122,14 +122,16 @@ const usePlannerCommands = () => {
 
 
   useEffect(() => {
-    if (numRuns === 0 && runningState === "running" && allChannelsDone) {
-      const bestResult = vote(activeChannels);
+    if (numRuns === 0 && runningState === "running") {
+      const bestResult = vote(activeChannels.filter((channel) => channel.isDone));
       if (bestResult === undefined) {
         dispatch(setRunningState("stopped"));
       }
-      dispatch(setMainChannelID(bestResult));
-      dispatch(setRunningState("waited"));
-      dispatch(setCommand("continue-next"));
+      else {
+        dispatch(setMainChannelID(bestResult));
+        dispatch(setRunningState("waited"));
+        dispatch(setCommand("continue-next"));
+      }
     }
   }, [dispatch, numRuns, runningState, activeChannels, allChannelsDone]);
 
@@ -139,7 +141,7 @@ const usePlannerCommands = () => {
       return;
     }
 
-    if (command === "pause") {
+    if (command === "pause" && numRuns === 0) {
       dispatch(setRunningState("paused"));
     }
 
@@ -169,7 +171,7 @@ const usePlannerCommands = () => {
         dispatch(setCommand("none"));
       }
     }
-  }, [dispatch, command, runningState, sourceCode]);
+  }, [dispatch, command, runningState, sourceCode, numRuns]);
 };
 
 export default usePlannerCommands;

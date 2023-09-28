@@ -9,6 +9,7 @@ import {
   selectRequestPool,
 } from "@/store/nodeSlice";
 import {selectFocusChatID, selectMainChannelChats, setFocusChatID, setMainChannelID} from "@/store/chatSlice";
+import {clickNode} from "@/store/selectionSlice";
 
 export type TreeNode = {
   requestID: number[];
@@ -49,6 +50,7 @@ const OutlineView = () => {
       const requestID = treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]
       const channelID = requestPool[requestID].channelID;
       dispatch(setMainChannelID(channelID));
+      dispatch(clickNode());
     }
     dispatch(setFocusChatID(treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]));
   }, [dispatch, mainChannelChats, requestPool, treeNodes]);
@@ -59,6 +61,7 @@ const OutlineView = () => {
       const channelID = requestPool[treeNode.requestID[treeNodes[treeID].requestID.length - 1]].channelID;
       dispatch(setMainChannelID(channelID));
       dispatch(setFocusChatID(treeNode.requestID[treeNodes[treeID].requestID.length - 1]));
+      dispatch(clickNode());
     },
     [dispatch, treeNodes, requestPool],
   );
