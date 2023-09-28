@@ -55,8 +55,8 @@ export const BranchView = () => {
   const chainNodes = useAppSelector(selectChainNodes);
 
   useEffect(() => {
-    console.log("[branch] focusChatNodeID", focusChatNodeID);
-    console.log("[branch] treeNodes", treeNodes);
+    // console.log("[branch] focusChatNodeID", focusChatNodeID);
+    // console.log("[branch] treeNodes", treeNodes);
 
     const focusTreeNodeID = treeNodes.findIndex((d) =>
       d.requestID.includes(focusChatNodeID),
@@ -675,7 +675,7 @@ export const BranchView = () => {
     return index;
   };
   return (
-    <div className="flex w-[32rem] flex-col">
+    <div className="mr-3 flex w-[32rem] flex-col">
       <div className="flex h-12 select-none items-center p-1 text-xl font-bold text-neutral-600">
         Branches
       </div>
