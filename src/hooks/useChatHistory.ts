@@ -1,11 +1,14 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   addChat,
-  changeChannelStatus, ChannelStatus,
+  changeChannelStatus,
+  ChannelStatus,
   selectActiveChannels,
-  selectMainChannelChats, selectMainChannelID,
+  selectMainChannelChats,
+  selectMainChannelID,
   selectNumChats,
-  setChainNodes, setFocusChatID,
+  setChainNodes,
+  setFocusChatID,
   updateMainChannelChats,
 } from "@/store/chatSlice";
 import { useEffect } from "react";
@@ -78,7 +81,7 @@ export const useChatHistory = () => {
         isActive: true,
         isDone: true,
         lastChatNodeID: lastNodeID,
-      }
+      };
       dispatch(changeChannelStatus(newChannelStatus));
     }
     dispatch(setNumHandledRequests(numRequests));
@@ -128,8 +131,10 @@ const chat2node = (
     range: number[];
     step: number;
     summary: string;
+    requestID: number;
   }[] = [];
   let index = 0;
+  let indexInChain = 0;
   while (index + 1 < chats.length) {
     const assistant = pool[chats[index]].request;
     const functionCall = pool[chats[index + 1]].request;
@@ -156,16 +161,18 @@ const chat2node = (
     }
 
     const node = {
-      id: index,
+      id: indexInChain,
+
       text: `${codeRange[0]}-${codeRange[1]}`,
       color: palatte[nodeList.length],
       range: codeRange,
       step: nodeList.length,
       summary: "$summary",
+      requestID: chats[index],
     };
 
     nodeList.push(node);
-
+    indexInChain++;
     index += 2;
   }
 
