@@ -57,10 +57,12 @@ const ChainVis = () => {
     //     }, 1500);
     //   }
     // });
+    // console.log(focusChatID);
     chainNodes.forEach((element, index) => {
-      if (element.requestID == focusChatID && index !== 0) {
-        setSelectedNode(index - 1);
-        dispatch(updateHighlightNode(index - 1));
+      if (element.requestID == focusChatID) {
+        // console.log("index", index);
+        setSelectedNode(index);
+        dispatch(updateHighlightNode(index));
       }
     });
   }, [focusChatID, chainNodes]);
@@ -252,6 +254,7 @@ const ChainVis = () => {
     // console.log("block Height in first render", blockHeight);
     const rightY = blockY - svgMarginTop - margin.top;
 
+    if (Number.isNaN(rightY)) return;
     const links = [
       {
         x1: -width / 2,
