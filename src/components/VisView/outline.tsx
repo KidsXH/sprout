@@ -500,8 +500,6 @@ const calculateNodePosition = (
       return data[a.parentID].x - data[b.parentID].x;
     });
 
-    let width = nodes.length;
-
     // center the nodes relative to the parent
     let minX = -100000;
     nodes.forEach((node, j) => {
@@ -510,21 +508,21 @@ const calculateNodePosition = (
         return;
       }
       const parent = data[node.parentID];
+      const cid = parent.childrenID.findIndex((id) => id === node.treeID);
       const numChildren = parent.childrenID.length;
       const parentX = parent.x;
-      const width = numChildren * 1.4;
+      const width = (numChildren) * 1.2;
       let leftBound = parentX - width / 2;
-      let rightBound = parentX + width / 2;
 
       if (leftBound < minX) {
         leftBound = minX;
       }
 
-      const x = leftBound + (rightBound - leftBound) * (j + 1) / (numChildren + 1);
+      const x = leftBound + width * (cid + 1) / (numChildren + 1);
       node.x = Number(x.toFixed(2));
 
-      if (j === numChildren - 1) {
-        minX = node.x;
+      if (cid === numChildren - 1) {
+        minX = node.x + 0.2;
       }
     });
   });
