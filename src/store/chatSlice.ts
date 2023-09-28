@@ -91,6 +91,7 @@ export const chatSlice = createSlice({
       state.activeChannels.forEach((channel) => {
         if (channel.channelID === action.payload) {
           channel.isActive = false;
+          channel.isDone = true;
         }
       });
     },
