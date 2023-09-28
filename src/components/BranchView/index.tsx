@@ -365,7 +365,12 @@ export const BranchView = () => {
           .attr("text-anchor", "start")
           .attr("fill", "#000")
           .attr("font-size", "14px")
-          .text((d) => d.text)
+          .text((d) => {
+            const splitText = d.text.split(" ").slice(0, 3);
+            return d.text.length > 20
+              ? splitText[0] + " " + splitText[1] + " " + splitText[2]
+              : d.text;
+          })
           .style("opacity", (d, i) =>
             (d.type === "parent" && direction) ||
             (!direction && i === childIndex)
@@ -597,6 +602,7 @@ export const BranchView = () => {
             : d.y - bigRectHeight * 2 + textOffsetY,
         )
         .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
+
       svg
         .selectAll(".code-range-text")
         .transition()
