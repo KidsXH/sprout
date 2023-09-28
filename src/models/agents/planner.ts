@@ -115,6 +115,24 @@ export class Planner {
       id: this.id,
     };
   }
+
+  async nextWithPlan(planPrompt?: string) {
+    if (planPrompt === undefined) {
+      planPrompt = "You are supposed to explain the code `distances = {node: 32767 for node in graph}` in the next step. Please write the observation, thought, and action for the next step.";
+    }
+    this.llm.chatMessages.push({
+      role: "user",
+      content: planPrompt,
+    });
+    return await this.next();
+  }
+
+  planPrompt4CodeExplain(code: string, lineNumber: [number, number]) {
+    const [start, end] = lineNumber;
+    const codeLines = code.split("\n");
+    const codeSnippet = codeLines.slice(start - 1, end).join("\n");
+    return `You are supposed to explain the code \`\`\`${codeSnippet}\`\`\` in the next step. Please write the observation, thought, and action for the next step.`;
+  }
 }
 
 export const parseMessage = (

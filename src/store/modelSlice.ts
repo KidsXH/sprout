@@ -18,7 +18,7 @@ interface modelState {
     | "pause"
     | "continue"
     | "continue-next"
-    | "next"
+    | "next-plan"
     | "finish"
     | "none";
   modelName: string;

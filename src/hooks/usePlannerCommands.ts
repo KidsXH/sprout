@@ -24,7 +24,8 @@ import {
   clearActiveChannels,
   deactivateChannel,
   selectActiveChannels,
-  selectFocusChatID, selectMainChannelChats,
+  selectFocusChatID,
+  selectMainChannelChats,
   selectMainChannelID,
   selectNumChannels,
   setMainChannelID,
@@ -71,7 +72,9 @@ const usePlannerCommands = () => {
     numThoughts = numThoughts || 3;
     dispatch(setNumRuns(numThoughts));
     dispatch(clearActiveChannels());
-    const isLastChatNode = focusChatID === -1 || focusChatID === mainChannelChats[mainChannelChats.length - 2];
+    const isLastChatNode =
+      focusChatID === -1 ||
+      focusChatID === mainChannelChats[mainChannelChats.length - 2];
     for (let i = 0; i < numThoughts; i++) {
       const planner = planners[i];
       let channel = numChannels + i - 1;
@@ -97,6 +100,58 @@ const usePlannerCommands = () => {
       );
       planner
         .next()
+        .then((res) => {
+          const { hasNext, id } = res;
+          if (hasNext) {
+            saveRequestMessages(planners[id], requestPool, dispatch);
+          } else {
+            dispatch(deactivateChannel(planners[id].channel));
+          }
+          dispatch(decreaseNumRuns());
+        })
+        .catch((err) => {
+          console.log("[Planner Error]", err);
+          dispatch(decreaseNumRuns());
+          dispatch(setCommand("pause"));
+        });
+    }
+  };
+
+  const nextWithCodeRange = (
+    sourceCode: string,
+    codeRange: [number, number],
+    numThoughts?: number,
+  ) => {
+    numThoughts = numThoughts || 3;
+    dispatch(setNumRuns(numThoughts));
+    dispatch(clearActiveChannels());
+    const isLastChatNode =
+      focusChatID === -1 ||
+      focusChatID === mainChannelChats[mainChannelChats.length - 2];
+    for (let i = 0; i < numThoughts; i++) {
+      const planner = planners[i];
+      let channel = numChannels + i - 1;
+      if (i === 0) {
+        if (isLastChatNode) channel = mainChannelID;
+        else channel = numChannels + numThoughts - 1;
+      }
+
+      planner.initialize(sourceCode, channel);
+      planner.setMemory(
+        requestMemory.map((request) => request.request),
+        tutorialMemory.map((node) => node.action),
+      );
+      const planPrompt = planner.planPrompt4CodeExplain(sourceCode, codeRange);
+      dispatch(
+        activateChannel({
+          channelID: channel,
+          isActive: true,
+          isDone: false,
+          lastChatNodeID: -1,
+        }),
+      );
+      planner
+        .nextWithPlan(planPrompt)
         .then((res) => {
           const { hasNext, id } = res;
           if (hasNext) {
@@ -189,6 +244,14 @@ const usePlannerCommands = () => {
       if (runningState === "paused") {
         dispatch(setRunningState("running"));
         continue2next();
+        dispatch(setCommand("none"));
+      }
+    }
+
+    if (command === "next-plan") {
+      if (runningState === "paused") {
+        dispatch(setRunningState("running"));
+        nextWithCodeRange(sourceCode, [0, sourceCode.length]);
         dispatch(setCommand("none"));
       }
     }
