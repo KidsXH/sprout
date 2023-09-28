@@ -11,9 +11,11 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { selectNodePool, selectRequestPool } from "@/store/nodeSlice";
 // import { selectFocusChatID } from "@/store/chatSlice";
 import {
+  selectChainNodes,
   selectChatChannels,
   selectFocusChatID,
   selectMainChannelChats,
+  selectMainChannelID,
   setFocusChatID,
   setMainChannelID,
 } from "@/store/chatSlice";
@@ -31,8 +33,10 @@ export const BranchView = () => {
   const interval = 15;
   const codeRangeOffsetX = 15;
   const codeRangeOffsetY = 25;
-  const phase1 = 300;
-  const phase2 = 400;
+  // const phase1 = 300;
+  // const phase2 = 400;
+  const phase1 = 100;
+  const phase2 = 100;
   const phase3 = 1500;
   const textOffsetY = (bigRectHeight / 4) * 3;
 
@@ -43,10 +47,12 @@ export const BranchView = () => {
   const dispatch = useAppDispatch();
   const mainChannelChats = useAppSelector(selectMainChannelChats);
   const requestPool = useAppSelector(selectRequestPool);
+  const mainChannelID = useAppSelector(selectMainChannelID);
 
   const treeNodes = useTreeNodes();
   const focusChatNodeID = useAppSelector(selectFocusChatID);
   const chatNodes = useAppSelector(selectNodePool);
+  const chainNodes = useAppSelector(selectChainNodes);
 
   useEffect(() => {
     console.log("[branch] focusChatNodeID", focusChatNodeID);
@@ -55,20 +61,29 @@ export const BranchView = () => {
     const focusTreeNodeID = treeNodes.findIndex((d) =>
       d.requestID.includes(focusChatNodeID),
     );
+    if (focusTreeNodeID == -1) return;
+    if (
+      treeNodes[focusTreeNodeID].childrenID.length == 0 &&
+      focusTreeNodeID !== 0
+    )
+      return;
 
     setParentNode(focusTreeNodeID);
   }, [treeNodes, focusChatNodeID]);
 
   const nodes = treeNodes.map((node) => {
     // const request = requestPool[node.requestID[0] || 0];
+    // let isActive = false;
+
+    const isActive = isTreeNodeInActiveChain(node, mainChannelChats);
     const chatNode = chatNodes.find((d) => d.id === node.requestID[0]);
-    const isActive = mainChannelChats.find((d) => d === chatNode?.id);
+    // const isActive = mainChannelChats.find((d) => d === chatNode?.id);
     return {
       id: node.treeID,
       parent: node.parentID,
       children: node.childrenID,
       range: node.label,
-      summary: "block summary",
+      summary: chatNode?.action.summary || "Block Summary",
       content: chatNode?.thought || "",
       isActive: isActive ? 1 : 0,
     };
