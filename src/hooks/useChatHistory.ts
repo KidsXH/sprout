@@ -165,12 +165,11 @@ const chat2node = (
 
     const node = {
       id: indexInChain,
-
       text: `${codeRange[0]}-${codeRange[1]}`,
       color: palatte[nodeList.length],
       range: codeRange,
       step: nodeList.length,
-      summary: "$summary",
+      summary: functionArgs.summary || "",
       requestID: chats[index],
     };
 
@@ -200,6 +199,7 @@ const request2chatNode = (
           type: type,
           content: content,
           targetCode: functionArgs.code || "",
+          summary: functionArgs.summary || "",
         },
       } as ChatNodeType;
     }
