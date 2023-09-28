@@ -24,7 +24,7 @@ import {
   clearActiveChannels,
   deactivateChannel,
   selectActiveChannels,
-  selectFocusChatID,
+  selectFocusChatID, selectMainChannelChats,
   selectMainChannelID,
   selectNumChannels,
   setMainChannelID,
@@ -42,6 +42,7 @@ const usePlannerCommands = () => {
   const nodePool = useAppSelector(selectNodePool);
   const activeChannels = useAppSelector(selectActiveChannels);
   const focusChatID = useAppSelector(selectFocusChatID);
+  const mainChannelChats = useAppSelector(selectMainChannelChats);
 
   const requestMemory = useMemo(() => {
     let requests = requestPool;
@@ -70,9 +71,17 @@ const usePlannerCommands = () => {
     numThoughts = numThoughts || 3;
     dispatch(setNumRuns(numThoughts));
     dispatch(clearActiveChannels());
+    const isLastChatNode = focusChatID === -1 || focusChatID === mainChannelChats[mainChannelChats.length - 2];
     for (let i = 0; i < numThoughts; i++) {
       const planner = planners[i];
-      const channel = i === 0 ? mainChannelID : numChannels + i - 1;
+      let channel = numChannels + i - 1;
+
+      if (i === 0) {
+        // channel = mainChannelID;
+        if (isLastChatNode) channel = mainChannelID;
+        else channel = numChannels + numThoughts - 1;
+      }
+
       planner.initialize(sourceCode, channel);
       planner.setMemory(
         requestMemory.map((request) => request.request),
@@ -100,6 +109,7 @@ const usePlannerCommands = () => {
         .catch((err) => {
           console.log("[Planner Error]", err);
           dispatch(decreaseNumRuns());
+          dispatch(setCommand("pause"));
         });
     }
   };
@@ -142,7 +152,7 @@ const usePlannerCommands = () => {
   }, [activeChannels]);
 
   useEffect(() => {
-    if (numRuns === 0 && runningState === "running") {
+    if (numRuns === 0 && runningState === "running" && allChannelsDone) {
       const bestResult = vote(
         activeChannels.filter((channel) => channel.isDone),
       );
