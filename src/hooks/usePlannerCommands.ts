@@ -147,7 +147,7 @@ const usePlannerCommands = () => {
         activeChannels.filter((channel) => channel.isDone),
       );
       if (bestResult === undefined) {
-        dispatch(setRunningState("stopped"));
+        dispatch(setCommand("pause"));
       } else {
         dispatch(setMainChannelID(bestResult));
         dispatch(setRunningState("waited"));
@@ -164,6 +164,7 @@ const usePlannerCommands = () => {
 
     if (command === "pause" && numRuns === 0) {
       dispatch(setRunningState("paused"));
+      dispatch(setCommand("none"));
     }
 
     if (command === "start") {
