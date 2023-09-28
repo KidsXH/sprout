@@ -478,22 +478,71 @@ const calculateNodePosition = (
   data: TreeNode[],
   mainChannelChats: number[],
 ) => {
-  const offsetX = Array(data.length).fill(0); // the offset of each layer
-  let maxDepth = 0;
+  const layers: TreeNode[][] = []
   data.forEach((node) => {
-    node.requestID.forEach((id) => {
-      if (mainChannelChats.includes(id)) {
-        offsetX[node.depth] = 0 - node.x;
-        maxDepth = Math.max(maxDepth, node.depth);
+    while (layers[node.depth] === undefined) {
+      layers.push([]);
+    }
+    layers[node.depth].push(node);
+  });
+
+  layers.forEach((layer, i) => {
+    const nodes = layer.sort((a, b) => {
+      if (a.parentID === undefined || b.parentID === undefined) {
+        return a.treeID - b.treeID;
+      }
+      if (a.parentID === b.parentID) {
+        return a.treeID - b.treeID;
+      }
+      return data[a.parentID].x - data[b.parentID].x;
+    });
+
+    let width = nodes.length;
+
+    // center the nodes relative to the parent
+    let minX = -100000;
+    nodes.forEach((node, j) => {
+      if (node.parentID === undefined) {
+        node.x = 0;
+        return;
+      }
+      const parent = data[node.parentID];
+      const numChildren = parent.childrenID.length;
+      const parentX = parent.x;
+      const width = numChildren * 1.4;
+      let leftBound = parentX - width / 2;
+      let rightBound = parentX + width / 2;
+
+      if (leftBound < minX) {
+        leftBound = minX;
+      }
+
+      const x = leftBound + (rightBound - leftBound) * (j + 1) / (numChildren + 1);
+      node.x = x;
+
+      if (j === numChildren - 1) {
+        minX = x;
       }
     });
   });
-  data.forEach((node) => {
-    node.x += offsetX[node.depth];
-    if (node.depth > maxDepth) {
-      node.x += offsetX[maxDepth]
-    }
-  });
+
+  // const offsetX = Array(data.length).fill(0); // the offset of each layer
+  //
+  // let maxDepth = 0;
+  // data.forEach((node) => {
+  //   node.requestID.forEach((id) => {
+  //     if (mainChannelChats.includes(id)) {
+  //       offsetX[node.depth] = 0 - node.x;
+  //       maxDepth = Math.max(maxDepth, node.depth);
+  //     }
+  //   });
+  // });
+  // data.forEach((node) => {
+  //   node.x += offsetX[node.depth];
+  //   if (node.depth > maxDepth) {
+  //     node.x += offsetX[maxDepth]
+  //   }
+  // });
 };
 
 export const isTreeNodeInActiveChain = (node: TreeNode, mainChannelChats: number[]) => {
