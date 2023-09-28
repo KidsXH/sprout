@@ -10,6 +10,7 @@ export type TutorialContent = {
   type: "title" | "background" | "explanation" | "notification" | "summary";
   content: string;
   targetCode: string;
+  summary: string;
 };
 
 export class Writer {
@@ -25,6 +26,7 @@ export class Writer {
       type: "title",
       content: title,
       targetCode: "",
+      summary: "Title",
     });
     this.tutorial += `[Title] ${title}\n`;
     return `The title has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
@@ -35,6 +37,7 @@ export class Writer {
       type: "background",
       content: background,
       targetCode: "",
+      summary: "Background",
     });
     this.tutorial += `[Background] ${background}\n`;
     return `The background has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
@@ -44,15 +47,18 @@ export class Writer {
     stepNum,
     explanation,
     code,
+    summary,
   }: {
     stepNum: string;
     explanation: string;
     code: string;
+    summary: string;
   }) {
     this.tutorialContent.push({
       type: "explanation",
       content: explanation,
       targetCode: code,
+      summary: summary,
     });
     this.tutorial += `[STEP ${stepNum}] ${explanation}\n`;
     return `The explanation has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
@@ -69,6 +75,7 @@ export class Writer {
       type: "notification",
       content: notification,
       targetCode: code,
+      summary: "Common Mistakes",
     });
     this.tutorial += `[NOTE] ${notification}\n`;
     return `The notification has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;
@@ -79,6 +86,7 @@ export class Writer {
       type: "summary",
       content: summary,
       targetCode: "",
+      summary: "Summary",
     });
     this.tutorial += `[Summary] ${summary}\n`;
     return `The summary has been added to the tutorial.\nCurrent Tutorial:\n${this.tutorial}`;

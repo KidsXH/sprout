@@ -47,6 +47,10 @@ export const writeExplanation: ChatCompletionFunctions = {
         type: "string",
         description: "Text description for the code snippet",
       },
+      summary: {
+        type: "string",
+        description: "Summary for this step using one or two words.",
+      }
     },
   },
 };
