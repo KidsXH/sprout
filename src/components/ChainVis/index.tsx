@@ -39,25 +39,6 @@ const ChainVis = () => {
   // mainChannelChats.filter((chat:, i) => {if(chat.)})
 
   useEffect(() => {
-    // console.log(
-    //   "【highlight】",
-    //   "chatNodes",
-    //   chainNodes,
-    //   "focusChatID",
-    //   focusChatID,
-    //   // "treeNodes",
-    //   // treeNodes,
-    // );
-
-    // chainNodes.forEach((element, index) => {
-    //   if (element.requestID == focusChatID) {
-    //     setTimeout(() => {
-    //       setSelectedNode(index);
-    //       dispatch(updateHighlightNode(index));
-    //     }, 1500);
-    //   }
-    // });
-    // console.log(focusChatID);
     chainNodes.forEach((element, index) => {
       if (element.requestID == focusChatID) {
         // console.log("index", index);
@@ -65,6 +46,7 @@ const ChainVis = () => {
         // dispatch(updateHighlightNode(index));
       }
     });
+    // console.log("chain", focusChatID, chainNodes);
   }, [focusChatID, chainNodes]);
 
   const width = 258;
@@ -131,6 +113,7 @@ const ChainVis = () => {
     };
   }, [highlightNode]);
 
+  //render chain
   useEffect(() => {
     const rectData = d3.map(chainNodes, (d, i) => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
@@ -230,7 +213,7 @@ const ChainVis = () => {
         setSelectedNode(d.id);
       });
 
-    if (highlightNode === -1 || chainNodes.length == 0) return;
+    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
 
@@ -401,7 +384,7 @@ const ChainVis = () => {
       .duration(200)
       .delay(1300)
       .attr("width", (d) => d.width);
-  }, [highlightNode]);
+  }, [highlightNode, chainNodes]);
 
   //update left and right y position
   useEffect(() => {
@@ -456,8 +439,9 @@ const ChainVis = () => {
         id: i,
       };
     });
-    if (highlightNode === -1 && highlightNode < rectData.length) return;
+    if (highlightNode === -1 || highlightNode >= rectData.length) return;
     //todo:
+    // console.log("highlightNode", highlightNode, "rectData", rectData);
     const connectors = [
       {
         x: -width / 2,
@@ -505,7 +489,8 @@ const ChainVis = () => {
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    // if (highlightNode === -1 && highlightNode < hightlightBlocks.length) return;
+    if (highlightNode === -1 || highlightNode >= hightlightBlocks.length)
+      return;
     const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
     // const blockOffsetY = hightlightBlocks[highlightNode]?.scrollTop;
     const blockHeight =

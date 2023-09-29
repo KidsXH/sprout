@@ -19,7 +19,7 @@ function calcNodeRadius(
   minRadius: number = 5,
   maxRadius: number = 10,
 ): number {
-  console.log(contentString);
+  // console.log(contentString);
   if (contentString.length >= longestContentLength) {
     return maxRadius;
   } else if (contentString.length <= shortestContentLength) {
@@ -92,7 +92,7 @@ export const SpaceView = () => {
       }) || [];
 
     setMatchChatNodes(currentChatNodes.concat(otherChatNodes));
-    console.log("current", currentChatNodes, "other", otherChatNodes);
+    // console.log("current", currentChatNodes, "other", otherChatNodes);
   }, [focusChatID]);
 
   const width = 250;
@@ -223,7 +223,7 @@ export const SpaceView = () => {
     // .append("title")
     // .text((d) => d.content);
 
-    console.log("rerender");
+    // console.log("rerender");
   }),
     [dotCorData, dotID];
 

@@ -83,7 +83,10 @@ export const BranchView = () => {
       parent: node.parentID,
       children: node.childrenID,
       range: node.label,
-      summary: chatNode?.action.summary || "Block Summary",
+      summary:
+        chatNode?.action.summary ||
+        chatNode?.action.content.slice(0, 20) ||
+        "block",
       content: chatNode?.thought || "",
       isActive: isActive ? 1 : 0,
     };
@@ -137,8 +140,8 @@ export const BranchView = () => {
       return;
     }
 
-    const siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
-
+    let siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
+    if (siblingNodes.length > 3) siblingNodes = siblingNodes.slice(0, 3);
     let xPositionListIndex = [0, 1, 2];
     switch (siblingNodes.length) {
       case 1:
@@ -174,6 +177,7 @@ export const BranchView = () => {
         text: "start from first l...",
       },
     ];
+
     links = siblingNodes.map((d, i) => {
       return {
         x1: 0,

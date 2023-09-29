@@ -7,7 +7,6 @@ import { updateTextScrollTop } from "@/store/highlightSlice";
 import { useProgressRender } from "@/hooks/useProgressRender";
 import LLMController from "@/components/core/llmController";
 
-
 export const TextView = () => {
   const textRef = useRef<HTMLDivElement | null>(null);
   const [textScrollTop, setTextScrollTop] = useState<number>(0);
@@ -19,6 +18,14 @@ export const TextView = () => {
     const textElement = document.getElementById("text-editor");
     const scrollTop: number = textElement?.scrollTop || 0;
     setTextScrollTop(scrollTop);
+  };
+
+  const exportContent = () => {
+    let content = "";
+    renderedContent.forEach((item) => {
+      content += item.content + "\n";
+    });
+    console.log(content);
   };
 
   useEffect(() => {
@@ -41,7 +48,7 @@ export const TextView = () => {
   return (
     <div className="m-0.5 ml-0 mt-0 flex  w-3/5 flex-col bg-white p-1 pt-0">
       <div className="flex h-12 select-none items-center p-1 pt-0 text-xl font-bold text-green-900">
-        <div>Document</div>
+        <div onClick={exportContent}>Document</div>
         <div className="ml-auto mr-4">
           <LLMController />
         </div>
