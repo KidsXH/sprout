@@ -43,6 +43,7 @@ export const SpaceView = () => {
       stroke: string;
       fill: string;
       content: string;
+      id: number;
     }[]
   >([]);
   const focusChatID = useAppSelector(selectFocusChatID);
@@ -58,6 +59,8 @@ export const SpaceView = () => {
     }[]
   >([]);
   const [dotContent, setDotContent] = useState<string>("");
+  const [dotID, setDotID] = useState<number>(-1);
+  const [transform, setTransform] = useState<any>(undefined);
 
   useEffect(() => {
     const curContent =
@@ -144,11 +147,13 @@ export const SpaceView = () => {
               ? "#C6EBD4"
               : "#FBE1B9",
           content: value,
+          id: index,
         };
       });
 
       // setLoading(false);
       setDotCorData(dotData);
+      setDotID(0);
       return dotData;
     });
   }, [matchChatNodes]);
@@ -195,6 +200,7 @@ export const SpaceView = () => {
 
     const g = svg
       .append("g")
+      .attr("transform", transform || "")
       .selectAll("circle")
       .data(dotCorData)
       .join("circle")
@@ -202,19 +208,24 @@ export const SpaceView = () => {
       .attr("cy", (d) => d.y)
       .attr("r", (d) => d.r)
       .attr("fill", (d) => d.fill)
-      .attr("stroke", (d) => d.stroke)
+      .attr("stroke", (d, i) => (i === dotID ? "#8BBD9E" : d.stroke))
       .attr("stroke-width", 1)
+      .attr("stroke-width", transform ? 1 / transform.k : 1)
+      .attr("r", (d: any) => (transform ? d.r / transform.k : d.r))
       .on("click", (e, d) => {
         // console.log(d.content);
+        // const dot = this as SVGCircleElement;
+        // console.log(e);
+        // d3.select(this).style("fill", "magenta");
+        setDotID(d.id);
         setDotContent(d.content);
-        // this.style("fill", "red");
       });
     // .append("title")
     // .text((d) => d.content);
 
     console.log("rerender");
   }),
-    [dotCorData];
+    [dotCorData, dotID];
 
   useEffect(() => {
     const svg = d3.select("#ToT-space");
@@ -232,11 +243,12 @@ export const SpaceView = () => {
     );
     // @ts-ignore
     function zoomed({ transform }) {
-      console.log("zoom");
+      // console.log("zoom");
       const g = svg.select("g");
       g.attr("transform", transform);
       g.selectAll("circle").attr("stroke-width", 1 / transform.k);
       g.selectAll("circle").attr("r", (d: any) => d.r / transform.k);
+      setTransform(transform);
     }
   }, []);
 
