@@ -62,7 +62,7 @@ const ChainVis = () => {
       if (element.requestID == focusChatID) {
         // console.log("index", index);
         setSelectedNode(index);
-        dispatch(updateHighlightNode(index));
+        // dispatch(updateHighlightNode(index));
       }
     });
   }, [focusChatID, chainNodes]);
@@ -117,7 +117,7 @@ const ChainVis = () => {
   useEffect(() => {
     if (highlightNode === -1) return;
     const textBlocks = document.getElementsByClassName("text-block");
-    if (textBlocks.length !== 0) {
+    if (textBlocks.length !== 0 && highlightNode < textBlocks.length) {
       setTimeout(() => {
         textBlocks[highlightNode].classList.add("text-block-highlight");
       }, 1600);
@@ -125,7 +125,7 @@ const ChainVis = () => {
 
     return () => {
       if (highlightNode === -1) return;
-      if (textBlocks.length !== 0) {
+      if (textBlocks.length !== 0 && highlightNode < textBlocks.length) {
         textBlocks[highlightNode].classList.remove("text-block-highlight");
       }
     };
@@ -432,7 +432,7 @@ const ChainVis = () => {
     setRightY(rightY);
     setCodeSnippetHeight(codeSnippetHeight);
     setBlockHeight(blockHeight);
-  }, [codeScrollTop, textScrollTop, highlightNode]);
+  }, [codeScrollTop, textScrollTop, highlightNode, focusChatID]);
 
   // update connector
   useEffect(() => {
@@ -456,8 +456,8 @@ const ChainVis = () => {
         id: i,
       };
     });
-    if (highlightNode === -1) return;
-
+    if (highlightNode === -1 && highlightNode < rectData.length) return;
+    //todo:
     const connectors = [
       {
         x: -width / 2,
@@ -505,8 +505,9 @@ const ChainVis = () => {
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
+    // if (highlightNode === -1 && highlightNode < hightlightBlocks.length) return;
     const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
-    const blockOffsetY = hightlightBlocks[highlightNode]?.scrollTop;
+    // const blockOffsetY = hightlightBlocks[highlightNode]?.scrollTop;
     const blockHeight =
       hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
 
