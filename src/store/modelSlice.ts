@@ -30,7 +30,7 @@ const initialState: modelState = {
   sourceCode: DIJKSTRA_CODE,
   runningState: "stopped",
   command: "none",
-  modelName: "gpt-3.5-turbo",
+  modelName: "gpt-3.5-turbo-16k",
   apiKey: DEFAULT_API_KEY,
   numRuns: 0,
 };
@@ -70,7 +70,7 @@ export const modelSlice = createSlice({
     },
     decreaseNumRuns: (state) => {
       state.numRuns -= 1;
-    }
+    },
   },
 });
 

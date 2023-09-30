@@ -52,7 +52,7 @@ export const BranchView = () => {
   const treeNodes = useTreeNodes();
   const focusChatNodeID = useAppSelector(selectFocusChatID);
   const chatNodes = useAppSelector(selectNodePool);
-  const chainNodes = useAppSelector(selectChainNodes);
+  // const chainNodes = useAppSelector(selectChainNodes);
 
   useEffect(() => {
     // console.log("[branch] focusChatNodeID", focusChatNodeID);
@@ -307,7 +307,7 @@ export const BranchView = () => {
               ? 1
               : 0,
           )
-          .on("click", (event, d) => {})
+          // .on("click", (event, d) => {})
           .transition()
           .duration(phase3 / 2)
           .ease(d3.easeLinear)
@@ -343,13 +343,16 @@ export const BranchView = () => {
               //   // setParentNode(nodes[d.id].parent || 0);
               // }
             } else {
-              if (d.id !== previewNode) {
-                setPreviewNode(d.id);
-              } else {
-                upAnimation(d.positonIndex);
-                setDirection(1);
-                // setParentNode(d.id);
-              }
+              // if (d.id !== previewNode) {
+              //   setPreviewNode(d.id);
+              // } else {
+              //   upAnimation(d.positonIndex);
+              //   setDirection(1);
+              //   // setParentNode(d.id);
+              // }
+              upAnimation(d.positonIndex);
+              setDirection(1);
+              setParentNode(d.id);
             }
           })
           .transition()

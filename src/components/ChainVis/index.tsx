@@ -115,6 +115,7 @@ const ChainVis = () => {
 
   //render chain
   useEffect(() => {
+    console.log("chain", highlightNode, chainNodes);
     const rectData = d3.map(chainNodes, (d, i) => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
       const h = i === highlightNode ? bigRectHeight : rectHeight;
@@ -388,7 +389,7 @@ const ChainVis = () => {
 
   //update left and right y position
   useEffect(() => {
-    if (highlightNode === -1) return;
+    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
     const svg = d3.select("#chain-svg");
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
@@ -419,7 +420,7 @@ const ChainVis = () => {
 
   // update connector
   useEffect(() => {
-    if (highlightNode === -1) return;
+    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
     const svg = d3.select("#chain-svg");
 
     const nodeData = chainNodes;
@@ -470,7 +471,7 @@ const ChainVis = () => {
 
   //update links
   useEffect(() => {
-    if (highlightNode === -1) return;
+    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
     const svg = d3.select("#chain-svg");
 
     const svgElement = document.getElementById("chain-svg");

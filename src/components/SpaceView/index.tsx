@@ -255,7 +255,7 @@ export const SpaceView = () => {
   return (
     <div className="flex w-[31.5rem] flex-col">
       <div className="flex h-12 w-full select-none items-center p-1 text-xl font-bold text-neutral-600">
-        Context
+        Node Space
       </div>
       <div className="flex h-full w-full">
         <div className="flex flex-col">
