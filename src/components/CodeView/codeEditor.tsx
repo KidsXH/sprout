@@ -47,7 +47,7 @@ function CodeEditor() {
     return () => {
       setHighlightCodeRange([]);
     };
-  }, [highlightNodeId]);
+  }, [highlightNodeId, chainNodes]);
 
   return (
     <CodeMirror

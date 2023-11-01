@@ -15,6 +15,11 @@ import {
   setMainChannelID,
 } from "@/store/chatSlice";
 import { clickNode } from "@/store/selectionSlice";
+import React from "react";
+import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { StyledMenu } from "./styleMenu";
 
 export type TreeNode = {
   requestID: number[];
@@ -39,6 +44,15 @@ const OutlineView = () => {
 
   const treeNodes = useTreeNodes();
 
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   useEffect(() => {
     calculateNodePosition(treeNodes, mainChannelChats);
   }, [treeNodes, mainChannelChats]);
@@ -51,7 +65,9 @@ const OutlineView = () => {
   };
 
   const clickNodeFn = useCallback(
-    (treeID: number) => {
+    (treeID: number, event: any) => {
+      setAnchorEl(event.currentTarget);
+      console.log("event", event);
       if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
         const requestID =
           treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1];
@@ -112,6 +128,38 @@ const OutlineView = () => {
   return (
     <>
       <svg className="h-[20rem] w-[32rem]" id="outline-svg" ref={measuredRef} />
+      <div>
+        {/* <Button
+        id="demo-customized-button"
+        aria-controls={open ? "demo-customized-menu" : undefined}
+        aria-haspopup="true"
+        aria-expanded={open ? "true" : undefined}
+        variant="contained"
+        disableElevation
+        onClick={handleClick}
+        endIcon={<KeyboardArrowDownIcon />}
+      >
+        Options
+      </Button> */}
+        <StyledMenu
+          id="demo-customized-menu"
+          MenuListProps={{
+            "aria-labelledby": "demo-customized-button",
+          }}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={handleClose} disableRipple>
+            {/* <EditIcon /> */}
+            Split
+          </MenuItem>
+          <MenuItem onClick={handleClose} disableRipple>
+            {/* <FileCopyIcon /> */}
+            Trim
+          </MenuItem>
+        </StyledMenu>
+      </div>
     </>
   );
 };
@@ -156,7 +204,7 @@ const updateSVG = (
   data: TreeNode[],
   mainChannelChats: number[],
   focusChatID: number,
-  clickNodeFn: (treeID: number) => void,
+  clickNodeFn: (treeID: number, event: any) => void,
   clickLeafFn: (treeID: number) => void,
 ) => {
   const svg = d3.selectAll("#outline-svg");
@@ -222,7 +270,9 @@ const updateSVG = (
       .attr("x", (d: any) => d.x - 24)
       .attr("y", (d: any) => d.y)
       .on("click", (event: any, d: any) => {
-        d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
+        d.childrenID.length > 0
+          ? clickNodeFn(d.treeID, event)
+          : clickLeafFn(d.treeID);
       });
   };
 
@@ -246,7 +296,9 @@ const updateSVG = (
       .attr("text-anchor", "middle")
       .text((d: any) => d.text)
       .on("click", (event: any, d: any) => {
-        d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
+        d.childrenID.length > 0
+          ? clickNodeFn(d.treeID, event)
+          : clickLeafFn(d.treeID);
       });
   };
 
@@ -560,6 +612,13 @@ const calculateNodePosition = (
     });
   });
 };
+
+// function CustomizedMenus() {
+
+//   return (
+
+//   );
+// }
 
 export const isTreeNodeInActiveChain = (
   node: TreeNode,

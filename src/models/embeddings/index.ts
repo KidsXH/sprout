@@ -36,7 +36,7 @@ export async function getCoordinates(
         return value.embedding;
       });
 
-      console.log("embeddings: ", embeddings);
+      // console.log("embeddings: ", embeddings);
 
       const umap = new UMAP({
         nComponents: 2,
