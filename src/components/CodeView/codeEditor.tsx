@@ -43,7 +43,7 @@ function CodeEditor() {
       setHighlightCodeRange(
         highlightNodeId === -1 ? [] : chainNodes[highlightNodeId].range,
       );
-    }, 1400);
+    }, 0);
     return () => {
       setHighlightCodeRange([]);
     };

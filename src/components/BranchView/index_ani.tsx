@@ -279,11 +279,11 @@ export const BranchView = () => {
 
             d3.select(path)
               .attr("stroke-dasharray", pathLength + " " + pathLength)
-              // .attr("stroke-dashoffset", pathLength)
-              // .transition()
-              // .delay(500)
-              // .duration(500)
-              // .ease(d3.easeLinear)
+              .attr("stroke-dashoffset", pathLength)
+              .transition()
+              .delay(500)
+              .duration(500)
+              .ease(d3.easeLinear)
               .attr("stroke-dashoffset", 0);
           });
 
@@ -301,16 +301,16 @@ export const BranchView = () => {
           .attr("fill", (d) => d.color)
           .attr("rx", 16)
           .attr("ry", 16)
-          // .style("opacity", (d, i) =>
-          //   (d.type === "parent" && direction) ||
-          //   (!direction && d.positonIndex === childIndex)
-          //     ? 1
-          //     : 0,
-          // )
+          .style("opacity", (d, i) =>
+            (d.type === "parent" && direction) ||
+            (!direction && d.positonIndex === childIndex)
+              ? 1
+              : 0,
+          )
           // .on("click", (event, d) => {})
-          // .transition()
-          // .duration(phase3 / 2)
-          // .ease(d3.easeLinear)
+          .transition()
+          .duration(phase3 / 2)
+          .ease(d3.easeLinear)
           .style("opacity", 1);
 
         svg
@@ -326,12 +326,12 @@ export const BranchView = () => {
           .attr("fill", "#f5f5f5")
           .attr("rx", 14)
           .attr("ry", 14)
-          // .style("opacity", (d, i) =>
-          //   (d.type === "parent" && direction === 1) ||
-          //   (!direction && d.positonIndex === childIndex)
-          //     ? 1
-          //     : 0,
-          // )
+          .style("opacity", (d, i) =>
+            (d.type === "parent" && direction === 1) ||
+            (!direction && d.positonIndex === childIndex)
+              ? 1
+              : 0,
+          )
           .on("click", (event, d) => {
             if (d.type === "parent") {
               // if (d.id !== 0) {
@@ -350,14 +350,14 @@ export const BranchView = () => {
               //   setDirection(1);
               //   // setParentNode(d.id);
               // }
-              // upAnimation(d.positonIndex);
+              upAnimation(d.positonIndex);
               setDirection(1);
               setParentNode(d.id);
             }
           })
-          // .transition()
-          // .duration(phase3 / 2)
-          // .ease(d3.easeLinear)
+          .transition()
+          .duration(phase3 / 2)
+          .ease(d3.easeLinear)
           .style("opacity", 1);
 
         //render branch node text
@@ -378,15 +378,15 @@ export const BranchView = () => {
               ? splitText[0] + " " + splitText[1] + " " + splitText[2]
               : d.text;
           })
-          // .style("opacity", (d, i) =>
-          //   (d.type === "parent" && direction) ||
-          //   (!direction && i === childIndex)
-          //     ? 1
-          //     : 0,
-          // )
-          // .transition()
-          // .duration(phase3)
-          // .ease(d3.easeLinear)
+          .style("opacity", (d, i) =>
+            (d.type === "parent" && direction) ||
+            (!direction && i === childIndex)
+              ? 1
+              : 0,
+          )
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
           .style("opacity", 1);
 
         //render code range
@@ -406,15 +406,15 @@ export const BranchView = () => {
               // d.range[0] + (d.range[0] === d.range[1] ? "" : "-" + d.range[1]),
               d.range,
           )
-          // .style("opacity", (d, i) =>
-          //   (d.type === "parent" && direction) ||
-          //   (!direction && i === childIndex)
-          //     ? 1
-          //     : 0,
-          // )
-          // .transition()
-          // .duration(phase3)
-          // .ease(d3.easeLinear)
+          .style("opacity", (d, i) =>
+            (d.type === "parent" && direction) ||
+            (!direction && i === childIndex)
+              ? 1
+              : 0,
+          )
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
           .style("opacity", 1);
 
         //render reasoning text
@@ -471,10 +471,10 @@ export const BranchView = () => {
           // .append("title")
           // .text((d) => d.text)
           // .text((d) => d.text.slice(0, 20) + "...")
-          // .style("opacity", 0)
-          // .transition()
-          // .duration(phase3)
-          // .ease(d3.easeLinear)
+          .style("opacity", 0)
+          .transition()
+          .duration(phase3)
+          .ease(d3.easeLinear)
           .style("opacity", 1);
       },
       phase1 + 2 * phase2,
@@ -490,7 +490,7 @@ export const BranchView = () => {
       .selectAll(".branch-node")
       .on("click", (event, d: any) => {
         if (d.id == previewNode) {
-          // upAnimation(d.positonIndex);
+          upAnimation(d.positonIndex);
           setDirection(1);
           // setParentNode(d.id);
         } else {
@@ -498,7 +498,7 @@ export const BranchView = () => {
             setPreviewNode(d.id);
           } else {
             const newChildIndex = getIndexInChildren(d.id);
-            // downAnimation(newChildIndex);
+            downAnimation(newChildIndex);
             setChildIndex(newChildIndex);
             setDirection(0);
             // setParentNode(nodes[d.id].parent || 0);
@@ -516,200 +516,200 @@ export const BranchView = () => {
       });
   }, [previewNode]);
 
-  // const upAnimation = (index: number) => {
-  //   //remove elements
-  //   const svg = d3.select("#ToT-branch");
+  const upAnimation = (index: number) => {
+    //remove elements
+    const svg = d3.select("#ToT-branch");
 
-  //   svg.selectAll(".branch-node").each(function (d: any, i) {
-  //     if (d.positonIndex === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
-  //   svg.selectAll(".branch-node-shadow").each(function (d: any, i) {
-  //     if (d.positonIndex === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
+    svg.selectAll(".branch-node").each(function (d: any, i) {
+      if (d.positonIndex === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
+    svg.selectAll(".branch-node-shadow").each(function (d: any, i) {
+      if (d.positonIndex === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
 
-  //   svg.selectAll(".branch-node-link").each(function (d, i) {
-  //     if (i % 3 === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
+    svg.selectAll(".branch-node-link").each(function (d, i) {
+      if (i % 3 === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
 
-  //   svg.selectAll(".reason-text").each(function (d, i) {
-  //     if (i % 3 === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
+    svg.selectAll(".reason-text").each(function (d, i) {
+      if (i % 3 === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
 
-  //   svg.selectAll(".branch-node-text").each(function (d: any, i) {
-  //     if (d.positonIndex === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
+    svg.selectAll(".branch-node-text").each(function (d: any, i) {
+      if (d.positonIndex === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
 
-  //   svg.selectAll(".code-range-text").each(function (d: any, i) {
-  //     if (d.positonIndex === index) return;
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(phase1)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //   });
+    svg.selectAll(".code-range-text").each(function (d: any, i) {
+      if (d.positonIndex === index) return;
+      d3.select(this)
+        .transition()
+        .duration(phase1)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+    });
 
-  //   setTimeout(() => {
-  //     svg
-  //       .selectAll(".branch-node-link,.reason-text")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .style("opacity", 0);
-  //     svg
-  //       .selectAll(".branch-node,.branch-node-shadow")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) => d.y - bigRectHeight)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) =>
-  //         d.positonIndex == index ? 0 : 0 - bigRectHeight * 2,
-  //       )
-  //       .attr("x", (d: any) => 0 - bigRectWidth / 2);
+    setTimeout(() => {
+      svg
+        .selectAll(".branch-node-link,.reason-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .style("opacity", 0);
+      svg
+        .selectAll(".branch-node,.branch-node-shadow")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.positonIndex == index ? 0 : 0 - bigRectHeight * 2,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2);
 
-  //     svg
-  //       .selectAll(".branch-node-text")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) => d.y - bigRectHeight + textOffsetY)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) =>
-  //         d.positonIndex == index
-  //           ? 0 + textOffsetY
-  //           : d.y - bigRectHeight * 2 + textOffsetY,
-  //       )
-  //       .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
+      svg
+        .selectAll(".branch-node-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight + textOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.positonIndex == index
+            ? 0 + textOffsetY
+            : d.y - bigRectHeight * 2 + textOffsetY,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
 
-  //     svg
-  //       .selectAll(".code-range-text")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) => d.y - bigRectHeight + codeRangeOffsetY)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", (d: any) =>
-  //         d.positonIndex === index
-  //           ? 0 + codeRangeOffsetY
-  //           : d.y - bigRectHeight * 2 + codeRangeOffsetY,
-  //       )
-  //       .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
-  //   }, phase1);
+      svg
+        .selectAll(".code-range-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) => d.y - bigRectHeight + codeRangeOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", (d: any) =>
+          d.positonIndex === index
+            ? 0 + codeRangeOffsetY
+            : d.y - bigRectHeight * 2 + codeRangeOffsetY,
+        )
+        .attr("x", (d: any) => 0 - bigRectWidth / 2 + codeRangeOffsetX);
+    }, phase1);
 
-  //   // svg.selectAll("text").remove();
-  // };
+    // svg.selectAll("text").remove();
+  };
 
-  // const downAnimation = (indexInChildren: number) => {
-  //   const svg = d3.select("#ToT-branch");
-  //   svg
-  //     .selectAll(".reason-text,.branch-node-link")
-  //     .transition()
-  //     .duration(phase1)
-  //     .ease(d3.easeLinear)
-  //     .style("opacity", 0);
+  const downAnimation = (indexInChildren: number) => {
+    const svg = d3.select("#ToT-branch");
+    svg
+      .selectAll(".reason-text,.branch-node-link")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeLinear)
+      .style("opacity", 0);
 
-  //   svg
-  //     .selectAll(".branch-node,.branch-node-shadow")
-  //     .transition()
-  //     .duration(phase1)
-  //     .ease(d3.easeLinear)
-  //     .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
-  //   svg
-  //     .selectAll(".branch-node-text,.code-range-text")
-  //     .transition()
-  //     .duration(phase1)
-  //     .ease(d3.easeLinear)
-  //     .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
+    svg
+      .selectAll(".branch-node,.branch-node-shadow")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeLinear)
+      .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
+    svg
+      .selectAll(".branch-node-text,.code-range-text")
+      .transition()
+      .duration(phase1)
+      .ease(d3.easeLinear)
+      .style("opacity", (d: any) => (d.type === "parent" ? 1 : 0));
 
-  //   setTimeout(() => {
-  //     svg
-  //       .selectAll(".branch-node,.branch-node-shadow")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr(
-  //         "x",
-  //         (d: any) =>
-  //           (-bigRectWidth / 2) * 3 -
-  //           interval +
-  //           indexInChildren * (bigRectWidth + interval),
-  //       )
-  //       .attr("y", (d: any) => (bigRectHeight / 2) * 3)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", childBranchNodeY);
+    setTimeout(() => {
+      svg
+        .selectAll(".branch-node,.branch-node-shadow")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr(
+          "x",
+          (d: any) =>
+            (-bigRectWidth / 2) * 3 -
+            interval +
+            indexInChildren * (bigRectWidth + interval),
+        )
+        .attr("y", (d: any) => (bigRectHeight / 2) * 3)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY);
 
-  //     svg
-  //       .selectAll(".branch-node-text")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr(
-  //         "x",
-  //         (d: any) =>
-  //           (-bigRectWidth / 2) * 3 -
-  //           interval +
-  //           indexInChildren * (bigRectWidth + interval) +
-  //           codeRangeOffsetX,
-  //       )
-  //       .attr("y", (d: any) => (bigRectHeight / 2) * 3 + textOffsetY)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", childBranchNodeY + textOffsetY);
+      svg
+        .selectAll(".branch-node-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr(
+          "x",
+          (d: any) =>
+            (-bigRectWidth / 2) * 3 -
+            interval +
+            indexInChildren * (bigRectWidth + interval) +
+            codeRangeOffsetX,
+        )
+        .attr("y", (d: any) => (bigRectHeight / 2) * 3 + textOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY + textOffsetY);
 
-  //     svg
-  //       .selectAll(".code-range-text")
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr(
-  //         "x",
-  //         (d: any) =>
-  //           (-bigRectWidth / 2) * 3 -
-  //           interval +
-  //           indexInChildren * (bigRectWidth + interval) +
-  //           codeRangeOffsetX,
-  //       )
-  //       .attr("y", (d: any) => (bigRectHeight / 2) * 3 + codeRangeOffsetY)
-  //       .transition()
-  //       .duration(phase2)
-  //       .ease(d3.easeLinear)
-  //       .attr("y", childBranchNodeY + codeRangeOffsetY);
-  //   }, 0);
-  // };
+      svg
+        .selectAll(".code-range-text")
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr(
+          "x",
+          (d: any) =>
+            (-bigRectWidth / 2) * 3 -
+            interval +
+            indexInChildren * (bigRectWidth + interval) +
+            codeRangeOffsetX,
+        )
+        .attr("y", (d: any) => (bigRectHeight / 2) * 3 + codeRangeOffsetY)
+        .transition()
+        .duration(phase2)
+        .ease(d3.easeLinear)
+        .attr("y", childBranchNodeY + codeRangeOffsetY);
+    }, phase1);
+  };
 
   const getIndexInChildren = (originalParent: number) => {
     const newParent = nodes[originalParent].parent || 0;

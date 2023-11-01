@@ -57,3 +57,10 @@ body {
 .MuiFormControl-root .MuiSvgIcon-root {
   font-size: 12px !important;
 }
+.reason-p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  color: #4a5568;
+}

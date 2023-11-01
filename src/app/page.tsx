@@ -5,15 +5,20 @@ import TextView from "@/components/TextView";
 import VisView from "@/components/VisView";
 import ChainVis from "@/components/ChainVis";
 import Core from "../components/core";
-import svgfile from "../asset/SPROUT.svg";
+import TitleSVG from "../asset/Sprout.svg";
 
 export default function Home() {
   return (
     <main className=" flex h-screen w-max flex-col  p-4 2xl:w-full 2xl:items-center">
       <div className="flex w-[96rem] flex-row ">
-        <div className="flex items-center  px-2 pb-4 pt-9 font-mono text-3xl font-black italic text-green-900 drop-shadow-lg">
+        <div className="flex items-center   px-2 pb-4 pt-9 font-mono text-3xl font-black italic text-green-900 drop-shadow-lg">
           {/* <img src={"../asset/SPROUT.png"} alt="some file" /> */}
-          SPROUT
+          {/* SPROUT */}
+          {/* {svgfile} */}
+          {/* <svgfile/> */}
+          <svg width={141} height={32}>
+            <image xlinkHref={TitleSVG} />
+          </svg>
         </div>
         <div className="flex w-[96rem] items-center justify-end pb-4 2xl:mt-12">
           <Core />

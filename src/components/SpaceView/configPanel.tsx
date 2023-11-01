@@ -4,13 +4,21 @@ import * as d3 from "d3";
 import Slider from "@mui/material/Slider";
 import { styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "@/hooks/redux";
-import { setCommand } from "@/store/modelSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { selectApiKey, selectModelName, setCommand } from "@/store/modelSlice";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
+import {
+  ChatCompletionFunctions,
+  ChatCompletionRequestMessage,
+  Configuration,
+  OpenAIApi,
+} from "openai";
+import { BaseModel } from "@/models/api";
+
 const styles = ["Academic", "Humorous", "Objective", "Other"];
 
 const PrettoSlider = styled(Slider)({
@@ -69,6 +77,8 @@ export const ConfigPanel = (props: { content: string }) => {
     text: "node",
   };
   const dispatch = useAppDispatch();
+  const apiKey = useAppSelector(selectApiKey);
+  const model = useAppSelector(selectModelName);
 
   const handleClick = () => {
     // setTimeout(() => {
@@ -77,6 +87,25 @@ export const ConfigPanel = (props: { content: string }) => {
     //   // set polish style
     // }, 200);
   };
+
+  const openai = new OpenAIApi(
+    new Configuration({
+      apiKey: apiKey,
+    }),
+  );
+
+  // async function polish() {
+  //   const completion = await openai.createChatCompletion({
+  //     model: model,
+  //     messages: fullMessages,
+
+  //     stream: true,
+  //   });
+
+  //   for await (const chunk of completion) {
+  //     console.log(chunk.choices[0].delta.content);
+  //   }
+  // }
 
   useEffect(() => {
     const svg = d3.select("#node-space");
@@ -162,7 +191,7 @@ export const ConfigPanel = (props: { content: string }) => {
             Explanation
           </div>
         </div> */}
-        <div className="mb-2 flex h-[4.5rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3 pt-2  text-xs leading-5 hover:border-neutral-200 hover:shadow">
+        <div className="text-space mb-2 flex h-[4.5rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow">
           {props.content}
         </div>
       </div>

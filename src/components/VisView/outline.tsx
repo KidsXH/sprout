@@ -8,8 +8,13 @@ import {
   selectNodePool,
   selectRequestPool,
 } from "@/store/nodeSlice";
-import {selectFocusChatID, selectMainChannelChats, setFocusChatID, setMainChannelID} from "@/store/chatSlice";
-import {clickNode} from "@/store/selectionSlice";
+import {
+  selectFocusChatID,
+  selectMainChannelChats,
+  setFocusChatID,
+  setMainChannelID,
+} from "@/store/chatSlice";
+import { clickNode } from "@/store/selectionSlice";
 
 export type TreeNode = {
   requestID: number[];
@@ -45,22 +50,36 @@ const OutlineView = () => {
     }
   };
 
-  const clickNodeFn = useCallback((treeID: number) => {
-    if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
-      const requestID = treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]
-      const channelID = requestPool[requestID].channelID;
-      dispatch(setMainChannelID(channelID));
-      dispatch(clickNode());
-    }
-    dispatch(setFocusChatID(treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1]));
-  }, [dispatch, mainChannelChats, requestPool, treeNodes]);
+  const clickNodeFn = useCallback(
+    (treeID: number) => {
+      if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
+        const requestID =
+          treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1];
+        const channelID = requestPool[requestID].channelID;
+        dispatch(setMainChannelID(channelID));
+        dispatch(clickNode());
+      }
+      dispatch(
+        setFocusChatID(
+          treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1],
+        ),
+      );
+    },
+    [dispatch, mainChannelChats, requestPool, treeNodes],
+  );
 
   const clickLeafFn = useCallback(
     (treeID: number) => {
       const treeNode = treeNodes[treeID];
-      const channelID = requestPool[treeNode.requestID[treeNodes[treeID].requestID.length - 1]].channelID;
+      const channelID =
+        requestPool[treeNode.requestID[treeNodes[treeID].requestID.length - 1]]
+          .channelID;
       dispatch(setMainChannelID(channelID));
-      dispatch(setFocusChatID(treeNode.requestID[treeNodes[treeID].requestID.length - 1]));
+      dispatch(
+        setFocusChatID(
+          treeNode.requestID[treeNodes[treeID].requestID.length - 1],
+        ),
+      );
       dispatch(clickNode());
     },
     [dispatch, treeNodes, requestPool],
@@ -80,7 +99,15 @@ const OutlineView = () => {
       clickNodeFn,
       clickLeafFn,
     );
-  }, [width, height, mainChannelChats, focusChatID, clickNodeFn, treeNodes, clickLeafFn]);
+  }, [
+    width,
+    height,
+    mainChannelChats,
+    focusChatID,
+    clickNodeFn,
+    treeNodes,
+    clickLeafFn,
+  ]);
 
   return (
     <>
@@ -106,12 +133,19 @@ const createSVG = () => {
   createLinearGradient(svg, "linkGradient", "#C6EBD4");
   renderLegend(svg);
   // @ts-ignore
-  svg.call(d3.zoom()
-    .extent([[0, 0], [width, height]])
-    .scaleExtent([0.1, 8])
-    .on("zoom", zoomed));
+  svg.call(
+    // @ts-ignore
+    d3
+      .zoom()
+      .extent([
+        [0, 0],
+        [width, height],
+      ])
+      .scaleExtent([0.1, 8])
+      .on("zoom", zoomed),
+  );
   // @ts-ignore
-  function zoomed({transform}) {
+  function zoomed({ transform }) {
     g.attr("transform", transform);
   }
 };
@@ -148,10 +182,7 @@ const updateSVG = (
     };
   });
 
-  const focusNode =
-data.find((n) =>
-          n.requestID.includes(focusChatID),
-        );
+  const focusNode = data.find((n) => n.requestID.includes(focusChatID));
 
   let highlightNodeData = focusNode
     ? d3.map(
@@ -235,8 +266,10 @@ data.find((n) =>
   const updateTreeLinks = (linkData: any) =>
     linkData.map((d: any) => {
       const highlighted =
-        mainChannelChats.find((n) => data[d.source].requestID.includes(n)) !== undefined &&
-        mainChannelChats.find((n) => data[d.target].requestID.includes(n)) !== undefined;
+        mainChannelChats.find((n) => data[d.source].requestID.includes(n)) !==
+          undefined &&
+        mainChannelChats.find((n) => data[d.target].requestID.includes(n)) !==
+          undefined;
 
       const source = nodeData.find((n) => n.treeID === d.source);
       const target = nodeData.find((n) => n.treeID === d.target);
@@ -330,7 +363,7 @@ const renderLegend = (svg: any) => {
     .append("rect")
     .attr("width", 36)
     .attr("height", 24)
-    .attr("fill", "#CCFFDD")
+    .attr("fill", "#C8F4D1")
     .attr("x", 5)
     .attr("y", 5)
     .attr("rx", 10)
@@ -400,11 +433,11 @@ const renderLegend = (svg: any) => {
 export const useTreeNodes = () => {
   const nodeData = useAppSelector(selectNodePool);
   const requestPool = useAppSelector(selectRequestPool);
-  return useMemo(() => calculateTreeNode(nodeData, requestPool), [
-    nodeData,
-    requestPool,
-  ]);
-}
+  return useMemo(
+    () => calculateTreeNode(nodeData, requestPool),
+    [nodeData, requestPool],
+  );
+};
 
 const calculateTreeNode = (
   nodeData: ChatNodeWithID[],
@@ -481,7 +514,7 @@ const calculateNodePosition = (
   data: TreeNode[],
   mainChannelChats: number[],
 ) => {
-  const layers: TreeNode[][] = []
+  const layers: TreeNode[][] = [];
   data.forEach((node) => {
     while (layers[node.depth] === undefined) {
       layers.push([]);
@@ -511,14 +544,14 @@ const calculateNodePosition = (
       const cid = parent.childrenID.findIndex((id) => id === node.treeID);
       const numChildren = parent.childrenID.length;
       const parentX = parent.x;
-      const width = (numChildren) * 1.2;
+      const width = numChildren * 1.2;
       let leftBound = parentX - width / 2;
 
       if (leftBound < minX) {
         leftBound = minX;
       }
 
-      const x = leftBound + width * (cid + 1) / (numChildren + 1);
+      const x = leftBound + (width * (cid + 1)) / (numChildren + 1);
       node.x = Number(x.toFixed(2));
 
       if (cid === numChildren - 1) {
@@ -528,6 +561,9 @@ const calculateNodePosition = (
   });
 };
 
-export const isTreeNodeInActiveChain = (node: TreeNode, mainChannelChats: number[]) => {
+export const isTreeNodeInActiveChain = (
+  node: TreeNode,
+  mainChannelChats: number[],
+) => {
   return mainChannelChats.find((n) => node.requestID.includes(n)) !== undefined;
-}
+};

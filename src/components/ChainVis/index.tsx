@@ -100,9 +100,10 @@ const ChainVis = () => {
     if (highlightNode === -1) return;
     const textBlocks = document.getElementsByClassName("text-block");
     if (textBlocks.length !== 0 && highlightNode < textBlocks.length) {
-      setTimeout(() => {
-        textBlocks[highlightNode].classList.add("text-block-highlight");
-      }, 1600);
+      textBlocks[highlightNode].classList.add("text-block-highlight");
+      // setTimeout(() => {
+
+      // }, 0);
     }
 
     return () => {
@@ -115,7 +116,7 @@ const ChainVis = () => {
 
   //render chain
   useEffect(() => {
-    console.log("chain", highlightNode, chainNodes);
+    // console.log("chain", highlightNode, chainNodes);
     const rectData = d3.map(chainNodes, (d, i) => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
       const h = i === highlightNode ? bigRectHeight : rectHeight;
@@ -126,7 +127,8 @@ const ChainVis = () => {
         y: y,
         width: w,
         height: h,
-        color: d.color,
+        // color: d.color,
+        color: "#C8F4D1",
         text: d.text,
         id: i,
       };
@@ -159,16 +161,16 @@ const ChainVis = () => {
       .data(rectData)
       .join("rect")
       .attr("class", "chain-node-shadow")
-      .attr("x", () => -rectWidth / 2)
-      .attr("y", (d, i) => i * interval)
-      .attr("width", rectWidth)
-      .attr("height", rectHeight)
+      // .attr("x", () => -rectWidth / 2)
+      // .attr("y", (d, i) => i * interval)
+      // .attr("width", rectWidth)
+      // .attr("height", rectHeight)
       .attr("fill", (d) => d.color)
       .attr("rx", 16)
       .attr("ry", 16)
-      .transition()
-      .duration(1000)
-      .ease(d3.easeCircle)
+      // .transition()
+      // .duration(1000)
+      // .ease(d3.easeCircle)
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
       .attr("width", (d) => d.width)
@@ -180,19 +182,19 @@ const ChainVis = () => {
       .data(rectData)
       .join("rect")
       .attr("class", "chain-node")
-      .attr("x", () => -rectWidth / 2)
-      .attr("y", (d, i) => i * interval)
-      .attr("width", rectWidth)
-      .attr("height", rectHeight - 5)
+      // .attr("x", () => -rectWidth / 2)
+      // .attr("y", (d, i) => i * interval)
+      // .attr("width", rectWidth)
+      // .attr("height", rectHeight - 5)
       .attr("fill", "#f5f5f5")
       .attr("rx", 14)
       .attr("ry", 14)
       .on("click", function (event, d) {
         setSelectedNode(d.id);
       })
-      .transition()
-      .duration(800)
-      .ease(d3.easeCircle)
+      // .transition()
+      // .duration(800)
+      // .ease(d3.easeCircle)
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
       .attr("width", (d) => d.width)
@@ -361,11 +363,11 @@ const ChainVis = () => {
 
         d3.select(path)
           .attr("stroke-dasharray", pathLength + " " + pathLength)
-          .attr("stroke-dashoffset", pathLength * d.direction)
-          .transition()
-          .duration(500)
-          .delay(800)
-          .ease(d3.easeLinear)
+          // .attr("stroke-dashoffset", pathLength * d.direction)
+          // .transition()
+          // .duration(500)
+          // .delay(800)
+          // .ease(d3.easeLinear)
           .attr("stroke-dashoffset", 0);
       });
 
@@ -378,12 +380,12 @@ const ChainVis = () => {
       .attr("class", "chain-connector")
       .attr("x", (d) => (d.side == "left" ? d.x : d.x - d.width))
       .attr("y", (d) => d.y)
-      .attr("width", (d) => 0)
+      // .attr("width", (d) => 0)
       .attr("height", (d) => d.height)
       .attr("fill", (d) => d.color)
-      .transition()
-      .duration(200)
-      .delay(1300)
+      // .transition()
+      // .duration(200)
+      // .delay(1300)
       .attr("width", (d) => d.width);
   }, [highlightNode, chainNodes]);
 
