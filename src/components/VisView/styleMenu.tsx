@@ -23,7 +23,7 @@ export const StyledMenu = styled((props: MenuProps) => (
     minWidth: 70,
     color:
       theme.palette.mode === "light"
-        ? "rgb(55, 65, 81)"
+        ? "#848484"
         : // " rgba(200,244,209)"
           "theme.palette.grey[300]",
     boxShadow:

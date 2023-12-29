@@ -53,6 +53,9 @@ const OutlineView = () => {
     setAnchorEl(null);
   };
 
+  const handleSplit = () => {};
+  const handleTrim = () => {};
+
   useEffect(() => {
     calculateNodePosition(treeNodes, mainChannelChats);
   }, [treeNodes, mainChannelChats]);
@@ -66,8 +69,6 @@ const OutlineView = () => {
 
   const clickNodeFn = useCallback(
     (treeID: number, event: any) => {
-      setAnchorEl(event.currentTarget);
-      console.log("event", event);
       if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
         const requestID =
           treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1];
@@ -99,6 +100,26 @@ const OutlineView = () => {
       dispatch(clickNode());
     },
     [dispatch, treeNodes, requestPool],
+  );
+
+  const clickNodeRight = useCallback(
+    (treeID: number, event: any) => {
+      setAnchorEl(event.currentTarget);
+
+      // if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
+      //   const requestID =
+      //     treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1];
+      //   const channelID = requestPool[requestID].channelID;
+      //   dispatch(setMainChannelID(channelID));
+      //   dispatch(clickNode());
+      // }
+      // dispatch(
+      //   setFocusChatID(
+      //     treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1],
+      //   ),
+      // );
+    },
+    [dispatch, mainChannelChats, requestPool, treeNodes],
   );
 
   useEffect(() => {
@@ -273,6 +294,11 @@ const updateSVG = (
         d.childrenID.length > 0
           ? clickNodeFn(d.treeID, event)
           : clickLeafFn(d.treeID);
+      })
+      .on("contextmenu", (event: any, d: any) => {
+        console.log(event);
+        // d3.event.preventDefault();
+        // clickNodeRight(d.treeID, event);
       });
   };
 

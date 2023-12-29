@@ -1,44 +1,65 @@
 import {
-  ChatCompletionFunctions,
-  ChatCompletionRequestMessage,
-  Configuration,
-  OpenAIApi,
+  // ChatCompletionFunctions,
+  // ChatCompletionRequestMessage,
+  // Configuration,
+  OpenAI,
 } from "openai";
+// import {
+//   ChatCompletionTool,
+//   // ChatCompletionMessageParam,
+// } from "openai/resources";
+import {
+  ChatCompletionMessageParam,
+  ChatCompletionSystemMessageParam,
+  ChatCompletionTool,
+} from "openai/resources";
 
 export class BaseModel {
-  openai: OpenAIApi;
+  openai: OpenAI;
   model: string;
-  systemMessage?: ChatCompletionRequestMessage;
-  chatMessages: ChatCompletionRequestMessage[] = [];
-  functions?: Array<ChatCompletionFunctions>;
+  systemMessage?: ChatCompletionSystemMessageParam;
+  chatMessages: ChatCompletionMessageParam[] = [];
+  functions?: Array<ChatCompletionTool>;
   temperature = 1.0;
   stop = ["\n1.Observation"];
 
   constructor(apiKey: string, modelName: string) {
-    const configuration = new Configuration({
+    // const configuration = new Configuration({
+    //   apiKey: apiKey,
+    // });
+    this.openai = new OpenAI({
       apiKey: apiKey,
+      dangerouslyAllowBrowser: true,
     });
-    this.openai = new OpenAIApi(configuration);
     this.model = modelName;
   }
 
-  async chatComplete(messages: ChatCompletionRequestMessage[]) {
+  async chatComplete(messages: ChatCompletionMessageParam[]) {
     const fullMessages = this.systemMessage
       ? [this.systemMessage, ...messages]
       : messages;
     console.log("[Request]", {
       model: this.model,
       messages: fullMessages,
-      functions: this.functions,
-      function_call: "auto",
+      tools: this.functions,
+      tool_choice: "auto",
       temperature: this.temperature,
       stop: this.stop,
     });
-    return await this.openai.createChatCompletion({
-      model: this.model,
+    // return await this.openai.createChatCompletion({
+    //   model: this.model,
+    //   messages: fullMessages,
+    //   functions: this.functions,
+    //   function_call: "auto",
+    //   temperature: this.temperature,
+    //   stop: this.stop,
+    // });
+
+    return await this.openai.chat.completions.create({
       messages: fullMessages,
-      functions: this.functions,
-      function_call: "auto",
+      model: this.model,
+      tools: this.functions,
+      tool_choice: "auto",
       temperature: this.temperature,
       stop: this.stop,
     });
@@ -46,25 +67,29 @@ export class BaseModel {
 
   async call() {
     const chatCompletion = await this.chatComplete(this.chatMessages);
-    return chatCompletion.data.choices[0].message;
+    console.log("[Response]", chatCompletion);
+    return chatCompletion.choices[0].message;
   }
 }
 
 export class EmbeddingModel {
-  openai: OpenAIApi;
+  openai: OpenAI;
   model: string;
   user?: string;
 
   constructor(apiKey: string, modelName: string) {
-    const configuration = new Configuration({
+    // const configuration = new Configuration({
+    // apiKey: apiKey,
+    // });
+    this.openai = new OpenAI({
       apiKey: apiKey,
+      dangerouslyAllowBrowser: true,
     });
-    this.openai = new OpenAIApi(configuration);
     this.model = modelName;
   }
 
   async getEmbeddings(inputs: string[]) {
-    const embeddings = await this.openai.createEmbedding({
+    const embeddings = await this.openai.embeddings.create({
       model: this.model,
       input: inputs,
     });

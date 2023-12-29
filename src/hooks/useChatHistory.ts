@@ -113,6 +113,8 @@ export const saveRequestMessages = (
 ) => {
   const chatMessages = planner.llm.chatMessages;
   const channelID = planner.channel;
+
+  console.log("msg", chatMessages, "pool", requestPool);
   const chatChannel = requestPool.filter(
     (request) => request.channelID === channelID,
   );
@@ -142,14 +144,23 @@ const chat2node = (
     const assistant = pool[chats[index]].request;
     const functionCall = pool[chats[index + 1]].request;
 
-    if (assistant.role !== "assistant" || functionCall.role !== "function") {
+    console.log("assistant", assistant);
+    console.log("functionCall", functionCall);
+
+    if (assistant.role !== "assistant" || functionCall.role !== "tool") {
       index++;
       continue;
     }
 
     const message = parseMessage(assistant);
-    const functionName = assistant.function_call?.name || "";
-    const functionArgs = JSON.parse(assistant.function_call?.arguments || "{}");
+    if (assistant.tool_calls) {
+    }
+    const functionName = assistant.tool_calls
+      ? assistant.tool_calls[0].function.name
+      : "";
+    const functionArgs = JSON.parse(
+      assistant.tool_calls ? assistant.tool_calls[0].function.arguments : "{}",
+    );
 
     const text =
       functionName === "writeExplanation"
@@ -187,8 +198,12 @@ const request2chatNode = (
   const { channelID, request } = requestWithChannelID;
   const msg = parseMessage(request);
   if (msg && request.role === "assistant") {
-    const functionName = request.function_call?.name || "";
-    const functionArgs = JSON.parse(request.function_call?.arguments || "{}");
+    const functionName = request.tool_calls
+      ? request.tool_calls[0].function.name
+      : "";
+    const functionArgs = JSON.parse(
+      request.tool_calls ? request.tool_calls[0].function.arguments : "{}",
+    );
     const type = functionName.replace("write", "").toLowerCase();
     const content = functionArgs[type];
     if (TutorialContentTypes.includes(type)) {

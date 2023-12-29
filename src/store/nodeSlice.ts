@@ -2,8 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store/index";
 import { TutorialContent } from "@/models/agents/writer";
-import { ChatCompletionRequestMessage } from "openai";
+import { OpenAI } from "openai";
 import { matchCode } from "@/utils/matchCode";
+import { ChatCompletionMessageParam } from "openai/resources";
 
 export type ChatNodeType = {
   observation: string;
@@ -16,7 +17,7 @@ export type ChatNodeWithID = ChatNodeType & { id: number };
 
 export type RequestWithChannelID = {
   channelID: number;
-  request: ChatCompletionRequestMessage;
+  request: ChatCompletionMessageParam;
 };
 
 interface NodeState {
@@ -41,7 +42,7 @@ export const nodeSlice = createSlice({
   reducers: {
     addRequest: (
       state,
-      action: PayloadAction<[number, ChatCompletionRequestMessage]>,
+      action: PayloadAction<[number, ChatCompletionMessageParam]>,
     ) => {
       const [channelID, request] = action.payload;
       state.requestPool.push({ channelID, request });
@@ -69,12 +70,17 @@ export const nodeSlice = createSlice({
     },
     setNumHandledRequests: (state, action: PayloadAction<number>) => {
       state.numHandledRequests = action.payload;
-    }
+    },
   },
 });
 
-export const { addNode, addRequest, updateNodePool, updateCodeRange , setNumHandledRequests} =
-  nodeSlice.actions;
+export const {
+  addNode,
+  addRequest,
+  updateNodePool,
+  updateCodeRange,
+  setNumHandledRequests,
+} = nodeSlice.actions;
 
 export const selectNodePool = (state: RootState) => state.node.nodePool;
 
@@ -84,6 +90,7 @@ export const selectNumNodes = (state: RootState) => state.node.numNodes;
 
 export const selectNumRequests = (state: RootState) => state.node.numRequests;
 
-export const selectNumHandledRequests = (state: RootState) => state.node.numHandledRequests;
+export const selectNumHandledRequests = (state: RootState) =>
+  state.node.numHandledRequests;
 
 export default nodeSlice.reducer;

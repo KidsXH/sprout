@@ -32,6 +32,7 @@ const ChainVis = () => {
   );
 
   const chainNodes = useAppSelector(selectChainNodes);
+  console.log("chainNodes", chainNodes);
   // const treeNodes = useTreeNodes();
   const focusChatID = useAppSelector(selectFocusChatID);
   // const mainChannelChats = useAppSelector(selectMainChannelChats);
@@ -240,6 +241,9 @@ const ChainVis = () => {
     // console.log("block Height in first render", blockHeight);
     const rightY = blockY - svgMarginTop - margin.top;
 
+    console.log("rightY", rightY);
+    console.log("blkY", blockY);
+
     if (Number.isNaN(rightY)) return;
     const links = [
       {
@@ -414,6 +418,8 @@ const ChainVis = () => {
 
     const rightY = blockY - svgMarginTop - margin.top;
 
+    console.log("blockY", blockY);
+    console.log("rightY", rightY);
     setLeftY(leftY);
     setRightY(rightY);
     setCodeSnippetHeight(codeSnippetHeight);
@@ -443,8 +449,7 @@ const ChainVis = () => {
       };
     });
     if (highlightNode === -1 || highlightNode >= rectData.length) return;
-    //todo:
-    // console.log("highlightNode", highlightNode, "rectData", rectData);
+
     const connectors = [
       {
         x: -width / 2,
@@ -463,7 +468,7 @@ const ChainVis = () => {
         side: "right",
       },
     ];
-    // console.log("rightY", rightY);
+
     //connectors
     svg
       .selectAll("rect.chain-connector")

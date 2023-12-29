@@ -11,12 +11,11 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import {
-  ChatCompletionFunctions,
-  ChatCompletionRequestMessage,
-  Configuration,
-  OpenAIApi,
-} from "openai";
+import // ChatCompletionFunctions,
+// ChatCompletionRequestMessage,
+// Configuration,
+// OpenAIApi,
+"openai";
 import { BaseModel } from "@/models/api";
 
 const styles = ["Academic", "Humorous", "Objective", "Other"];
@@ -88,11 +87,11 @@ export const ConfigPanel = (props: { content: string }) => {
     // }, 200);
   };
 
-  const openai = new OpenAIApi(
-    new Configuration({
-      apiKey: apiKey,
-    }),
-  );
+  // const openai = new OpenAIApi(
+  //   new Configuration({
+  //     apiKey: apiKey,
+  //   }),
+  // );
 
   // async function polish() {
   //   const completion = await openai.createChatCompletion({

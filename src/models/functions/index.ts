@@ -1,8 +1,8 @@
-import { ChatCompletionFunctions } from "openai";
+import { OpenAI } from "openai";
 
 import * as writer from "@/models/functions/writer";
 
-export const functions: Array<ChatCompletionFunctions> = [
+export const functions: Array<OpenAI.Chat.Completions.ChatCompletionTool> = [
   writer.writeTitle,
   writer.writeBackground,
   writer.writeExplanation,

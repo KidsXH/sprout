@@ -1,9 +1,14 @@
-import { ChatCompletionRequestMessage } from "openai";
+// import { ChatCompletionRequestMessage } from "openai";
 import { BaseModel } from "@/models/api";
 import { TutorialContent, Writer } from "@/models/agents/writer";
 import plannerPrompt from "@/models/prompts/planner-v2.txt";
 import plannerPromptGpt4 from "@/models/prompts/planner-gpt4.txt";
 import functions from "@/models/functions";
+import {
+  ChatCompletionMessageParam,
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionToolMessageParam,
+} from "openai/resources";
 
 export class Planner {
   llm: BaseModel;
@@ -38,7 +43,7 @@ export class Planner {
   }
 
   setMemory(
-    requestMemory: ChatCompletionRequestMessage[],
+    requestMemory: ChatCompletionMessageParam[],
     tutorialMemory: TutorialContent[],
   ) {
     if (requestMemory.length > 0) {
@@ -82,20 +87,22 @@ export class Planner {
     }
 
     this.llm.chatMessages.push(responseMessage);
+    console.log("[Planner] responseMessage", responseMessage);
 
-    if (responseMessage.function_call) {
-      const functionName = responseMessage.function_call.name || "";
+    if (responseMessage.tool_calls) {
+      const functionName = responseMessage.tool_calls[0].function.name || "";
       const functionArgs = JSON.parse(
-        responseMessage.function_call.arguments || "{}",
+        responseMessage.tool_calls[0].function.arguments || "{}",
       );
       const functionResult = await this.writer.callFunction(
         functionName,
         functionArgs,
       );
 
-      const functionResponse: ChatCompletionRequestMessage = {
-        role: "function",
-        name: functionName,
+      const functionResponse: ChatCompletionToolMessageParam = {
+        tool_call_id: responseMessage.tool_calls[0].id,
+        role: "tool",
+        // name: functionName,
         content: functionResult,
       };
 
@@ -118,7 +125,8 @@ export class Planner {
 
   async nextWithPlan(planPrompt?: string) {
     if (planPrompt === undefined) {
-      planPrompt = "You are supposed to explain the code `distances = {node: 32767 for node in graph}` in the next step. Please write the observation, thought, and action for the next step.";
+      planPrompt =
+        "You are supposed to explain the code `distances = {node: 32767 for node in graph}` in the next step. Please write the observation, thought, and action for the next step.";
     }
     this.llm.chatMessages.push({
       role: "user",
@@ -136,15 +144,17 @@ export class Planner {
 }
 
 export const parseMessage = (
-  message: ChatCompletionRequestMessage | undefined,
+  message: ChatCompletionMessageParam | undefined,
 ) => {
   if (!message || !message.content) {
     return;
   }
 
-  const matchObservation = message.content.match(/Observation: (.*)\n/);
-  const matchThought = message.content.match(/Thought: (.*)\n/);
-  const matchAction = message.content.match(/Action: (.*)/);
+  const matchObservation = (message.content as string).match(
+    /Observation: (.*)\n/,
+  );
+  const matchThought = (message.content as string).match(/Thought: (.*)\n/);
+  const matchAction = (message.content as string).match(/Action: (.*)/);
 
   if (!matchObservation || !matchThought || !matchAction) {
     return;
