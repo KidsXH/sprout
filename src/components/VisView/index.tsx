@@ -15,7 +15,7 @@ export const VisView = () => {
           <OutlineView />
         </div>
         <BranchView />
-        {/* <SpaceView /> */}
+        <SpaceView />
         {/* 
         <div className="flex flex-col w-[32rem]">
           <div className="flex text-xl font-bold p-1 h-12 text-neutral-600 items-center select-none">
