@@ -131,7 +131,7 @@ export const SpaceView = () => {
 
     if (contentArray.length == 0) return;
 
-    const dotData = getCoordinates(contentArray, apiKey).then((res) => {
+    getCoordinates(contentArray, apiKey).then((res) => {
       if (!res || res.length == 0) {
         return;
       }
@@ -139,8 +139,8 @@ export const SpaceView = () => {
       const dotData = contentArray.map((value, index) => {
         return {
           r: calcNodeRadius(value, 10, 125),
-          x: width / 2 + margin + res[index][0],
-          y: width / 2 + margin + res[index][1],
+          x: width  / 2 + margin + res[index][0] * width / 2,
+          y: height / 2 + margin + res[index][1] * height / 2,
           stroke: matchChatNodes[index].type == "current" ? "#8BBD9E" : "#fff",
           fill:
             matchChatNodes[index].type == "alterInCurrent"
@@ -151,7 +151,6 @@ export const SpaceView = () => {
         };
       });
 
-      // setLoading(false);
       setDotCorData(dotData);
       setDotID(0);
       return dotData;
