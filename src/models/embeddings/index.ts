@@ -2,6 +2,24 @@ import { CreateEmbeddingResponse } from "openai";
 import { EmbeddingModel } from "@/models/api";
 import { UMAP } from "umap-js";
 
+export function normalizeCoordinates(coords: number[][]) {
+  let maxX = 0;
+  let maxY = 0;
+
+  // Find the maximum absolute values for each dimension
+  for (const [x, y] of coords) {
+      if (Math.abs(x) > maxX) {
+          maxX = Math.abs(x);
+      }
+      if (Math.abs(y) > maxY) {
+          maxY = Math.abs(y);
+      }
+  }
+
+  // Normalize each coordinate
+  return coords.map(([x, y]) => [x / maxX, y / maxY]);
+}
+
 export async function getCoordinates(
   inputs: string[],
   apiKey: string,
@@ -36,18 +54,18 @@ export async function getCoordinates(
         return value.embedding;
       });
 
-      // console.log("embeddings: ", embeddings);
-
       const umap = new UMAP({
         nComponents: 2,
-        nNeighbors: 1,
+        nNeighbors: 2,
       });
-      if (embeddings.length <= 1) {
-        const umapResult = umap.fit(embeddings.concat(embeddings));
-        return umapResult;
+
+      if (embeddings.length == 1) {
+        return [[0], [0]]
       }
-      const umapResult = umap.fit(embeddings);
-      return umapResult;
+
+      const coords = normalizeCoordinates(umap.fit(embeddings));
+
+      return coords;
     });
 
   return embeddingsResponse;

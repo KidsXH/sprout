@@ -95,9 +95,9 @@ export const SpaceView = () => {
     // console.log("current", currentChatNodes, "other", otherChatNodes);
   }, [focusChatID]);
 
-  const width = 250;
-  const height = 250;
-  const margin = 10;
+  const width = 400;
+  const height = 400;
+  const margin = (width + height) / 20;
 
   // const nodes = useAppSelector(selectNodePool);
   const apiKey = useAppSelector(selectApiKey);
@@ -136,17 +136,17 @@ export const SpaceView = () => {
         return;
       }
 
-      const dotData = contentArray.map((value, index) => {
+      const dotData = res.map((value, index) => {
         return {
-          r: calcNodeRadius(value, 10, 125),
-          x: width  / 2 + margin + res[index][0] * width / 2,
-          y: height / 2 + margin + res[index][1] * height / 2,
+          r: calcNodeRadius(matchChatNodes[index]["content"], 20, 150),
+          x: (value[0] * (width - margin) / 2) + (width  / 2),
+          y: (value[1] * (height - margin) / 2) + (height / 2),
           stroke: matchChatNodes[index].type == "current" ? "#8BBD9E" : "#fff",
           fill:
             matchChatNodes[index].type == "alterInCurrent"
               ? "#C6EBD4"
               : "#FBE1B9",
-          content: value,
+          content: matchChatNodes[index].content,
           id: index,
         };
       });
