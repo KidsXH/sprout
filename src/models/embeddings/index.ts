@@ -54,14 +54,19 @@ export async function getCoordinates(
         return value.embedding;
       });
 
-      const umap = new UMAP({
+      const umapConfig = {
         nComponents: 2,
-        nNeighbors: 2,
-      });
-
-      if (embeddings.length == 1) {
-        return [[0], [0]]
+        nNeighbors: 3,
       }
+      if (embeddings.length <= 1) {
+        return [[0], [0]]
+      } else if (embeddings.length <= 3) {
+        umapConfig.nNeighbors = 1
+      } else {
+        umapConfig.nNeighbors = 2
+      }
+
+      const umap = new UMAP(umapConfig);
 
       const coords = normalizeCoordinates(umap.fit(embeddings));
 
