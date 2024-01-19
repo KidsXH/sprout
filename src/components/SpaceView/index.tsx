@@ -63,6 +63,7 @@ export const SpaceView = () => {
   const [transform, setTransform] = useState<any>(undefined);
 
   useEffect(() => {
+    console.log("[space view]focusChatID", focusChatID);
     const curContent =
       chatNodes.find((node) => node.id === focusChatID)?.action.content || "";
     setDotContent(curContent);
@@ -95,8 +96,8 @@ export const SpaceView = () => {
     // console.log("current", currentChatNodes, "other", otherChatNodes);
   }, [focusChatID]);
 
-  const width = 400;
-  const height = 400;
+  const width = 240;
+  const height = 240;
   const margin = (width + height) / 20;
 
   // const nodes = useAppSelector(selectNodePool);
@@ -132,15 +133,16 @@ export const SpaceView = () => {
     if (contentArray.length == 0) return;
 
     getCoordinates(contentArray, apiKey).then((res) => {
+      console.log("[space view]res", res);
       if (!res || res.length == 0) {
         return;
       }
-
+      // console.log("[space view]res", res);
       const dotData = res.map((value, index) => {
         return {
           r: calcNodeRadius(matchChatNodes[index]["content"], 20, 150),
-          x: (value[0] * (width - margin) / 2) + (width  / 2),
-          y: (value[1] * (height - margin) / 2) + (height / 2),
+          x: (value[0] * (width - margin)) / 2 + width / 2,
+          y: (value[1] * (height - margin)) / 2 + height / 2,
           stroke: matchChatNodes[index].type == "current" ? "#8BBD9E" : "#fff",
           fill:
             matchChatNodes[index].type == "alterInCurrent"
@@ -177,7 +179,7 @@ export const SpaceView = () => {
       .attr("preserveAspectRatio", "xMinYMin meet")
 
       // .attr("viewBox", `${-width / 2} -10 ${width} ${height + 10}`);
-      .attr("viewBox", `0 0 256 256`);
+      .attr("viewBox", `0 0 ` + width + ` ` + height);
 
     svg.selectAll("*").remove();
 
