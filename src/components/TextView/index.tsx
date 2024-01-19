@@ -1,7 +1,7 @@
 "use client";
 import TextBlock from "@/components/TextBlock";
 
-import { useAppDispatch } from "@/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useState, useEffect, useRef } from "react";
 import { updateTextScrollTop } from "@/store/highlightSlice";
 import { useProgressRender } from "@/hooks/useProgressRender";
@@ -11,6 +11,9 @@ export const TextView = () => {
   const textRef = useRef<HTMLDivElement | null>(null);
   const [textScrollTop, setTextScrollTop] = useState<number>(0);
   const dispatch = useAppDispatch();
+  const highlightNode = useAppSelector(
+    (state) => state.highlight.highlightNode,
+  );
 
   const renderedContent = useProgressRender();
 
@@ -41,6 +44,30 @@ export const TextView = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let elementsArray = document.getElementsByClassName("text-block");
+
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const newHeight = entry.contentRect.height;
+        console.log(
+          `[chain view]Block at index ${highlightNode} height changed to: ${newHeight}`,
+        );
+        // console.log(first)
+      }
+    });
+    const targetElement = elementsArray[highlightNode];
+    console.log("[chain view] target", targetElement);
+    if (targetElement) {
+      observer.observe(targetElement);
+    }
+
+    return () => {
+      if (targetElement) {
+        observer.unobserve(targetElement);
+      }
+    };
+  }, [highlightNode]);
   useEffect(() => {
     dispatch(updateTextScrollTop(textScrollTop));
   }, [textScrollTop]);

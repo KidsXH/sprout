@@ -32,7 +32,7 @@ const ChainVis = () => {
   );
 
   const chainNodes = useAppSelector(selectChainNodes);
-  console.log("chainNodes", chainNodes);
+  // console.log("chainNodes", chainNodes);
   // const treeNodes = useTreeNodes();
   const focusChatID = useAppSelector(selectFocusChatID);
   // const mainChannelChats = useAppSelector(selectMainChannelChats);
@@ -53,15 +53,18 @@ const ChainVis = () => {
   const width = 258;
   const height = 450;
   const margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  const rectWidth = 48;
-  const rectHeight = 34;
+  // const rectWidth = 48;
+  // const rectHeight = 34;
+
+  const rectWidth = 120;
+  const rectHeight = 54;
 
   const bigRectWidth = 120;
   const bigRectHeight = 54;
 
   const innerHeight = height - margin.top - margin.bottom;
   const interval =
-    chainNodes.length < 7 ? innerHeight / chainNodes.length : innerHeight / 7;
+    chainNodes.length < 5 ? innerHeight / chainNodes.length : innerHeight / 5;
   const upperHeight = (chainNodes.length + 1) * interval - height;
 
   const handleWheelEvent = (event: any) => {
@@ -122,7 +125,8 @@ const ChainVis = () => {
       const w = i === highlightNode ? bigRectWidth : rectWidth;
       const h = i === highlightNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
-      const y = i === highlightNode ? i * interval - 10 : i * interval;
+      // const y = i === highlightNode ? i * interval - 10 : i * interval;
+      const y = i * interval - 10;
       return {
         x: x,
         y: y,
@@ -131,6 +135,7 @@ const ChainVis = () => {
         // color: d.color,
         color: "#C8F4D1",
         text: d.text,
+        sum: d.summary,
         id: i,
       };
     });
@@ -207,12 +212,28 @@ const ChainVis = () => {
       .data(rectData)
       .join("text")
       .attr("class", "chain-node-text select-none")
-      .attr("x", 0)
-      .attr("y", (d, i) => i * interval + 20)
-      .attr("text-anchor", "middle")
+      .attr("x", -45)
+      .attr("y", (d, i) => i * interval + 10)
+      .attr("text-anchor", "start")
       .attr("fill", "#000")
-      .attr("font-size", "14px")
+      .attr("font-size", "12px")
       .text((d) => d.text)
+      .on("click", function (event, d) {
+        setSelectedNode(d.id);
+      });
+
+    svg
+      .append("g")
+      .selectAll("summary")
+      .data(rectData)
+      .join("text")
+      .attr("class", "chain-node-text select-none")
+      .attr("x", -45)
+      .attr("y", (d, i) => i * interval + 30)
+      .attr("text-anchor", "start")
+      .attr("fill", "#000")
+      .attr("font-size", "12px")
+      .text((d) => d.sum)
       .on("click", function (event, d) {
         setSelectedNode(d.id);
       });
@@ -241,8 +262,8 @@ const ChainVis = () => {
     // console.log("block Height in first render", blockHeight);
     const rightY = blockY - svgMarginTop - margin.top;
 
-    console.log("rightY", rightY);
-    console.log("blkY", blockY);
+    // console.log("rightY", rightY);
+    // console.log("blkY", blockY);
 
     if (Number.isNaN(rightY)) return;
     const links = [
@@ -250,14 +271,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + interval * highlightNode,
+        y2: rectHeight / 2 + interval * highlightNode - 10,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + interval * highlightNode,
+        y1: rectHeight / 2 + interval * highlightNode - 10,
         x2: width / 2,
         y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
@@ -418,8 +439,8 @@ const ChainVis = () => {
 
     const rightY = blockY - svgMarginTop - margin.top;
 
-    console.log("blockY", blockY);
-    console.log("rightY", rightY);
+    // console.log("blockY", blockY);
+    // console.log("rightY", rightY);
     setLeftY(leftY);
     setRightY(rightY);
     setCodeSnippetHeight(codeSnippetHeight);
@@ -553,7 +574,7 @@ const ChainVis = () => {
 
   return (
     <div
-      className="mb-4 ml-px mr-px w-[20rem] pt-12"
+      className="mb-4 ml-px mr-px w-[20rem] pt-[2.5rem]"
       onWheel={handleWheelEvent}
       id="chainVis"
     >

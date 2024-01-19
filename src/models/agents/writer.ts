@@ -122,6 +122,7 @@ export class Writer {
         index: index,
         type: item.type,
         content: item.content,
+        summary: item.summary,
       };
     });
   }

@@ -114,7 +114,7 @@ export const saveRequestMessages = (
   const chatMessages = planner.llm.chatMessages;
   const channelID = planner.channel;
 
-  console.log("msg", chatMessages, "pool", requestPool);
+  // console.log("msg", chatMessages, "pool", requestPool);
   const chatChannel = requestPool.filter(
     (request) => request.channelID === channelID,
   );
@@ -144,8 +144,8 @@ const chat2node = (
     const assistant = pool[chats[index]].request;
     const functionCall = pool[chats[index + 1]].request;
 
-    console.log("assistant", assistant);
-    console.log("functionCall", functionCall);
+    // console.log("assistant", assistant);
+    // console.log("functionCall", functionCall);
 
     if (assistant.role !== "assistant" || functionCall.role !== "tool") {
       index++;
@@ -161,6 +161,8 @@ const chat2node = (
     const functionArgs = JSON.parse(
       assistant.tool_calls ? assistant.tool_calls[0].function.arguments : "{}",
     );
+
+    console.log("[useChatHis]functionArgs", functionArgs);
 
     const text =
       functionName === "writeExplanation"
@@ -180,7 +182,8 @@ const chat2node = (
       color: palatte[nodeList.length],
       range: codeRange,
       step: nodeList.length,
-      summary: functionArgs.summary || "",
+      summary:
+        functionArgs.summary || (functionArgs.title ? "Title" : "Backgroud"),
       requestID: chats[index],
     };
 
