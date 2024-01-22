@@ -175,6 +175,8 @@ const chat2node = (
     if (functionArgs.code !== undefined) {
       codeRange = matchCode(functionArgs.code, sourceCode);
     }
+    if (functionArgs.summary !== undefined) {
+    }
 
     const node = {
       id: indexInChain,
@@ -183,7 +185,12 @@ const chat2node = (
       range: codeRange,
       step: nodeList.length,
       summary:
-        functionArgs.summary || (functionArgs.title ? "Title" : "Backgroud"),
+        functionArgs.summary ||
+        (functionArgs.title
+          ? "Title"
+          : functionArgs.background
+          ? "Backgroud"
+          : "summary"),
       requestID: chats[index],
     };
 

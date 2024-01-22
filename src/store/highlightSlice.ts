@@ -7,6 +7,7 @@ interface HighlightState {
   previewNode: number;
   codeScrollTop: number;
   textScrollTop: number;
+  highlightBlockHeight: number;
 }
 
 const initialState: HighlightState = {
@@ -14,6 +15,7 @@ const initialState: HighlightState = {
   previewNode: -1,
   codeScrollTop: 0,
   textScrollTop: 0,
+  highlightBlockHeight: 0,
 };
 
 export const highlightSlice = createSlice({
@@ -29,11 +31,18 @@ export const highlightSlice = createSlice({
     updateTextScrollTop: (state, action: PayloadAction<number>) => {
       state.textScrollTop = action.payload;
     },
+    updateHighlightBlockHeight: (state, action: PayloadAction<number>) => {
+      state.highlightBlockHeight = action.payload;
+    },
   },
 });
 
-export const { updateHighlightNode, updateCodeScrollTop, updateTextScrollTop } =
-  highlightSlice.actions;
+export const {
+  updateHighlightNode,
+  updateCodeScrollTop,
+  updateTextScrollTop,
+  updateHighlightBlockHeight,
+} = highlightSlice.actions;
 
 export const selectHighlightNode = (state: RootState) =>
   state.highlight.highlightNode;
@@ -41,4 +50,6 @@ export const selectCodeScrollTop = (state: RootState) =>
   state.highlight.codeScrollTop;
 export const selectTextScrollTop = (state: RootState) =>
   state.highlight.textScrollTop;
+export const selectHighlightBlockHeight = (state: RootState) =>
+  state.highlight.highlightBlockHeight;
 export default highlightSlice.reducer;

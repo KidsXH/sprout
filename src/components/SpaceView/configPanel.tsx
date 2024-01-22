@@ -16,7 +16,7 @@ import // ChatCompletionFunctions,
 // Configuration,
 // OpenAIApi,
 "openai";
-import { BaseModel } from "@/models/api";
+import { BaseModel, RefineModel } from "@/models/api";
 
 const PrettoSlider = styled(Slider)({
   color: "#52af77",
@@ -58,7 +58,9 @@ const PrettoSlider = styled(Slider)({
 });
 
 export const ConfigPanel = (props: { content: string }) => {
-  const [promptRefinementString, setPromptRefinementString] = useState("");
+  const [promptRefinementString, setPromptRefinementString] = useState(
+    "please make it more humorous",
+  );
 
   const focusChatID = useAppSelector(selectFocusChatID);
   const treeNodes = useTreeNodes();
@@ -84,9 +86,11 @@ export const ConfigPanel = (props: { content: string }) => {
   const dispatch = useAppDispatch();
   const apiKey = useAppSelector(selectApiKey);
   const model = useAppSelector(selectModelName);
+  const refineModel = new RefineModel(apiKey, model);
 
   const handleConfirm = () => {
     // TODO
+    refineModel.retriveRefinedContent(promptRefinementString, props.content);
   };
 
   const handleReset = () => {

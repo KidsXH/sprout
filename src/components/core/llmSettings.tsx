@@ -47,7 +47,7 @@ const LLMSettings = () => {
       <Tooltip title={"LLM Settings"} placement={"top-end"} enterDelay={1000}>
         <div
           className={
-            "h-9 w-44 cursor-pointer rounded-md border-2 py-1 pl-9 pr-4 text-center transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50 " +
+            "w-45 h-9 cursor-pointer rounded-md border-2 py-1 pl-9 pr-4 text-center text-sm transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50" +
             (isOpen ? "border-gray-50 bg-gray-50" : "")
           }
           onClick={() => {

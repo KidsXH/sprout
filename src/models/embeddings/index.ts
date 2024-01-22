@@ -1,4 +1,4 @@
-import { CreateEmbeddingResponse } from "openai";
+// import { CreateEmbeddingResponse } from "openai";
 import { EmbeddingModel } from "@/models/api";
 import { UMAP } from "umap-js";
 
@@ -8,12 +8,12 @@ export function normalizeCoordinates(coords: number[][]) {
 
   // Find the maximum absolute values for each dimension
   for (const [x, y] of coords) {
-      if (Math.abs(x) > maxX) {
-          maxX = Math.abs(x);
-      }
-      if (Math.abs(y) > maxY) {
-          maxY = Math.abs(y);
-      }
+    if (Math.abs(x) > maxX) {
+      maxX = Math.abs(x);
+    }
+    if (Math.abs(y) > maxY) {
+      maxY = Math.abs(y);
+    }
   }
 
   // Normalize each coordinate
@@ -44,7 +44,7 @@ export async function getCoordinates(
         "Error while retrieving node embeddings from OpenAI: " + err,
       );
     })
-    .then((res: CreateEmbeddingResponse | void) => {
+    .then((res: any | void) => {
       if (!res) {
         return;
       }
@@ -57,13 +57,13 @@ export async function getCoordinates(
       const umapConfig = {
         nComponents: 2,
         nNeighbors: 3,
-      }
+      };
       if (embeddings.length <= 1) {
-        return [[0], [0]]
+        return [[0], [0]];
       } else if (embeddings.length <= 3) {
-        umapConfig.nNeighbors = 1
+        umapConfig.nNeighbors = 1;
       } else {
-        umapConfig.nNeighbors = 2
+        umapConfig.nNeighbors = 2;
       }
 
       const umap = new UMAP(umapConfig);

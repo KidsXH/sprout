@@ -57,7 +57,7 @@ export const writeExplanation: ChatCompletionTool = {
         },
         summary: {
           type: "string",
-          description: "Summary for this step using one or two words.",
+          description: "Summary for this step using 1 or 2 words.",
         },
       },
     },

@@ -3,7 +3,10 @@ import TextBlock from "@/components/TextBlock";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useState, useEffect, useRef } from "react";
-import { updateTextScrollTop } from "@/store/highlightSlice";
+import {
+  updateHighlightBlockHeight,
+  updateTextScrollTop,
+} from "@/store/highlightSlice";
 import { useProgressRender } from "@/hooks/useProgressRender";
 import LLMController from "@/components/core/llmController";
 
@@ -50,6 +53,7 @@ export const TextView = () => {
     const observer = new ResizeObserver((entries) => {
       for (let entry of entries) {
         const newHeight = entry.contentRect.height;
+        dispatch(updateHighlightBlockHeight(newHeight));
         console.log(
           `[chain view]Block at index ${highlightNode} height changed to: ${newHeight}`,
         );
@@ -68,6 +72,7 @@ export const TextView = () => {
       }
     };
   }, [highlightNode]);
+
   useEffect(() => {
     dispatch(updateTextScrollTop(textScrollTop));
   }, [textScrollTop]);

@@ -27,10 +27,13 @@ const ChainVis = () => {
   const [chainScrollTop, setChainScrollTop] = useState<number>(0);
   const [codeSnippetHeight, setCodeSnippetHeight] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
+  const [focusHeight, setFocusHeight] = useState<number>(0);
   const highlightNode = useAppSelector(
     (state) => state.highlight.highlightNode,
   );
-
+  const highlightBlockHeight = useAppSelector(
+    (state) => state.highlight.highlightBlockHeight,
+  );
   const chainNodes = useAppSelector(selectChainNodes);
   // console.log("chainNodes", chainNodes);
   // const treeNodes = useTreeNodes();
@@ -42,7 +45,6 @@ const ChainVis = () => {
   useEffect(() => {
     chainNodes.forEach((element, index) => {
       if (element.requestID == focusChatID) {
-        // console.log("index", index);
         setSelectedNode(index);
         // dispatch(updateHighlightNode(index));
       }
@@ -262,9 +264,6 @@ const ChainVis = () => {
     // console.log("block Height in first render", blockHeight);
     const rightY = blockY - svgMarginTop - margin.top;
 
-    // console.log("rightY", rightY);
-    // console.log("blkY", blockY);
-
     if (Number.isNaN(rightY)) return;
     const links = [
       {
@@ -471,6 +470,10 @@ const ChainVis = () => {
     });
     if (highlightNode === -1 || highlightNode >= rectData.length) return;
 
+    const hightlightBlocks = document.getElementsByClassName("text-block");
+    const blockHeight =
+      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
+
     const connectors = [
       {
         x: -width / 2,
@@ -495,7 +498,7 @@ const ChainVis = () => {
       .selectAll("rect.chain-connector")
       .data(connectors)
       .attr("y", (d) => d.y);
-  }, [leftY, rightY, chainScrollTop]);
+  }, [leftY, rightY, chainScrollTop, focusHeight]);
 
   //update links
   useEffect(() => {
@@ -571,6 +574,32 @@ const ChainVis = () => {
       .attr("d", (d) => d.d)
       .attr("stroke-dasharray", "none");
   }, [codeScrollTop, textScrollTop, chainScrollTop]);
+
+  useEffect(() => {
+    let elementsArray = document.getElementsByClassName("text-block");
+
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const newHeight = entry.contentRect.height;
+        setFocusHeight(newHeight);
+        console.log(
+          `[chain view]Block at index ${highlightNode} height changed to: ${newHeight}`,
+        );
+        // console.log(first)
+      }
+    });
+    const targetElement = elementsArray[highlightNode];
+    console.log("[chain view] target", targetElement);
+    if (targetElement) {
+      observer.observe(targetElement);
+    }
+
+    return () => {
+      if (targetElement) {
+        observer.unobserve(targetElement);
+      }
+    };
+  }, [highlightNode]);
 
   return (
     <div

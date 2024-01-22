@@ -105,19 +105,6 @@ const OutlineView = () => {
   const clickNodeRight = useCallback(
     (treeID: number, event: any) => {
       setAnchorEl(event.currentTarget);
-
-      // if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
-      //   const requestID =
-      //     treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1];
-      //   const channelID = requestPool[requestID].channelID;
-      //   dispatch(setMainChannelID(channelID));
-      //   dispatch(clickNode());
-      // }
-      // dispatch(
-      //   setFocusChatID(
-      //     treeNodes[treeID].requestID[treeNodes[treeID].requestID.length - 1],
-      //   ),
-      // );
     },
     [dispatch, mainChannelChats, requestPool, treeNodes],
   );
@@ -135,6 +122,7 @@ const OutlineView = () => {
       focusChatID,
       clickNodeFn,
       clickLeafFn,
+      clickNodeRight,
     );
   }, [
     width,
@@ -144,11 +132,20 @@ const OutlineView = () => {
     clickNodeFn,
     treeNodes,
     clickLeafFn,
+    clickNodeRight,
   ]);
 
   return (
     <>
-      <svg className="h-[20rem] w-[32rem]" id="outline-svg" ref={measuredRef} />
+      <svg
+        className="h-[20rem] w-[32rem]"
+        id="outline-svg"
+        ref={measuredRef}
+        onContextMenu={(e) => {
+          e.preventDefault(); // prevent the default behaviour when right clicked
+          console.log("Right Click");
+        }}
+      />
       <div>
         {/* <Button
         id="demo-customized-button"
@@ -171,11 +168,11 @@ const OutlineView = () => {
           open={open}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleClose} disableRipple>
+          <MenuItem onClick={handleSplit} disableRipple>
             {/* <EditIcon /> */}
             Split
           </MenuItem>
-          <MenuItem onClick={handleClose} disableRipple>
+          <MenuItem onClick={handleTrim} disableRipple>
             {/* <FileCopyIcon /> */}
             Trim
           </MenuItem>
@@ -227,6 +224,7 @@ const updateSVG = (
   focusChatID: number,
   clickNodeFn: (treeID: number, event: any) => void,
   clickLeafFn: (treeID: number) => void,
+  clickNodeRight: (treeID: number, event: any) => void,
 ) => {
   const svg = d3.selectAll("#outline-svg");
   svg.attr("viewBox", `0 0 ${width} ${height}`);
@@ -298,7 +296,7 @@ const updateSVG = (
       .on("contextmenu", (event: any, d: any) => {
         console.log(event);
         // d3.event.preventDefault();
-        // clickNodeRight(d.treeID, event);
+        clickNodeRight(d.treeID, event);
       });
   };
 

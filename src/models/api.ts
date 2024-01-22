@@ -72,6 +72,82 @@ export class BaseModel {
   }
 }
 
+export class RefineModel {
+  openai: OpenAI;
+  model: string;
+  systemMessage?: ChatCompletionSystemMessageParam;
+  chatMessages: ChatCompletionMessageParam[] = [];
+  functions?: Array<ChatCompletionTool>;
+  temperature = 1.0;
+  stop = ["\n1.Observation"];
+
+  constructor(apiKey: string, modelName: string) {
+    this.openai = new OpenAI({
+      apiKey: apiKey,
+      dangerouslyAllowBrowser: true,
+    });
+    this.model = modelName;
+  }
+
+  async retriveRefinedContent(prompt: string, content: string) {
+    const completion = await this.openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant.Your job is to help developers refine programming tutorials content according to developer's requirements.\n This is the content needed to be refined: \n" +
+            content,
+        },
+        { role: "user", content: prompt },
+      ],
+      model: "gpt-3.5-turbo",
+      // response_format: { type: "json_object" },
+    });
+
+    console.log("[api.ts] res", completion.choices[0]);
+  }
+}
+
+export class VotingModel {
+  openai: OpenAI;
+  model: string;
+  systemMessage?: ChatCompletionSystemMessageParam;
+  chatMessages: ChatCompletionMessageParam[] = [];
+  functions?: Array<ChatCompletionTool>;
+  temperature = 1.0;
+  stop = ["\n1.Observation"];
+
+  constructor(apiKey: string, modelName: string) {
+    this.openai = new OpenAI({
+      apiKey: apiKey,
+      dangerouslyAllowBrowser: true,
+    });
+    this.model = modelName;
+  }
+
+  async vote(choices: { id: number; content: string }[]) {
+    let choice_content = "";
+    choices.forEach((choice) => {
+      choice_content += "choice" + choice.id + ": " + choice.content + "\n";
+    });
+    const completion = await this.openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "Given an instruction and several choices, decide which choice is most promising. Analyze each choice in detail, then conclude in the last line 'The best choice is {s}', where s the integer id of the choice.\n choices: \n" +
+            choice_content,
+        },
+        // { role: "user", content: prompt },
+      ],
+      model: "gpt-3.5-turbo",
+      // response_format: { type: "json_object" },
+    });
+
+    console.log("[api.ts] voting", completion.choices[0]);
+  }
+}
+
 export class EmbeddingModel {
   openai: OpenAI;
   model: string;
