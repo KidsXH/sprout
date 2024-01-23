@@ -44,6 +44,7 @@ export const SpaceView = () => {
       fill: string;
       content: string;
       id: number;
+      type: string;
     }[]
   >([]);
   const focusChatID = useAppSelector(selectFocusChatID);
@@ -56,9 +57,11 @@ export const SpaceView = () => {
     {
       content: string;
       type: string;
+      // category?: string;
     }[]
   >([]);
   const [dotContent, setDotContent] = useState<string>("");
+  const [dotType, setDotType] = useState<string>("Explaination");
   const [dotID, setDotID] = useState<number>(-1);
   const [transform, setTransform] = useState<any>(undefined);
 
@@ -150,6 +153,7 @@ export const SpaceView = () => {
               : "#FBE1B9",
           content: matchChatNodes[index].content,
           id: index,
+          type: matchChatNodes[index].type,
         };
       });
 
@@ -220,6 +224,7 @@ export const SpaceView = () => {
         // d3.select(this).style("fill", "magenta");
         setDotID(d.id);
         setDotContent(d.content);
+        setDotType(d.type);
       });
     // .append("title")
     // .text((d) => d.content);
@@ -305,7 +310,7 @@ export const SpaceView = () => {
         </div>
 
         {/* <div className="flex h-full  flex-col">config panel</div> */}
-        <ConfigPanel content={dotContent} />
+        <ConfigPanel content={dotContent} type={dotType} />
       </div>
     </div>
   );

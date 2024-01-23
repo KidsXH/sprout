@@ -89,22 +89,35 @@ export class RefineModel {
     this.model = modelName;
   }
 
-  async retriveRefinedContent(prompt: string, content: string) {
+  async retriveRefinedContent(prompt: string, content: string, type: string) {
     const completion = await this.openai.chat.completions.create({
       messages: [
         {
           role: "system",
           content:
-            "You are a helpful assistant.Your job is to help developers refine programming tutorials content according to developer's requirements.\n This is the content needed to be refined: \n" +
-            content,
+            "You are a helpful assistant.Your job is to help developers refine programming tutorials content according to developer's requirements. return the refined content directly, do not add other words. \n ",
+        },
+        {
+          role: "system",
+          content:
+            "\n Now refine the " +
+            "title" +
+            ", which is a part of the tutorial: \n",
+        },
+        {
+          role: "system",
+          content: "\n This is the content needed to be refined: \n" + content,
         },
         { role: "user", content: prompt },
       ],
-      model: "gpt-3.5-turbo",
+      model: "gpt-3.5-turbo-1106",
+      stream: true,
       // response_format: { type: "json_object" },
     });
 
-    console.log("[api.ts] res", completion.choices[0]);
+    console.log("[api.ts] res", completion);
+
+    return completion;
   }
 }
 

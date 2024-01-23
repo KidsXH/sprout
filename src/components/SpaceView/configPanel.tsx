@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useCallback } from "react";
 import * as d3 from "d3";
 import Button from "@mui/material-next/Button";
 import InputBase from "@mui/material/InputBase";
@@ -57,7 +57,7 @@ const PrettoSlider = styled(Slider)({
   },
 });
 
-export const ConfigPanel = (props: { content: string }) => {
+export const ConfigPanel = (props: { content: string; type: string }) => {
   const [promptRefinementString, setPromptRefinementString] = useState(
     "please make it more humorous",
   );
@@ -75,6 +75,7 @@ export const ConfigPanel = (props: { content: string }) => {
     range: [0, 0],
     text: "node",
   };
+  const [blockContent, setBlockContent] = useState(props.content);
 
   useEffect(() => {
     const currentTreeNode = treeNodes.find((node) =>
@@ -83,15 +84,47 @@ export const ConfigPanel = (props: { content: string }) => {
     // TODO: populate node data;
   }, [focusChatID, treeNodes]);
 
+  useEffect(() => {
+    setBlockContent(props.content);
+  }, [props.content]);
+
   const dispatch = useAppDispatch();
   const apiKey = useAppSelector(selectApiKey);
   const model = useAppSelector(selectModelName);
   const refineModel = new RefineModel(apiKey, model);
 
-  const handleConfirm = () => {
-    // TODO
-    refineModel.retriveRefinedContent(promptRefinementString, props.content);
+  const getRefinedMsg = async (
+    prompt: string,
+    content: string,
+    type: string,
+  ) => {
+    const message = await refineModel.retriveRefinedContent(
+      prompt,
+      content,
+      type,
+    );
+    return message;
   };
+
+  const handleConfirm = useCallback(async () => {
+    setBlockContent("");
+    console.log("[config]", promptRefinementString, props.content, props.type);
+    const refinedMsg = await getRefinedMsg(
+      promptRefinementString,
+      props.content,
+      props.type,
+    );
+
+    for await (const chunk of refinedMsg) {
+      const msg = chunk.choices[0]?.delta?.content;
+      console.log("[config] msg", msg);
+      if (msg !== undefined && msg !== null) {
+        // const content = JSON.parse(msg);
+        // console.log("[config] parsed", content);
+        setBlockContent((blockContent) => blockContent.concat(msg));
+      }
+    }
+  }, [promptRefinementString, props.content]);
 
   const handleReset = () => {
     setPromptRefinementString("");
@@ -101,91 +134,11 @@ export const ConfigPanel = (props: { content: string }) => {
     // TODO
   };
 
-  // const openai = new OpenAIApi(
-  //   new Configuration({
-  //     apiKey: apiKey,
-  //   }),
-  // );
-
-  // async function polish() {
-  //   const completion = await openai.createChatCompletion({
-  //     model: model,
-  //     messages: fullMessages,
-
-  //     stream: true,
-  //   });
-
-  //   for await (const chunk of completion) {
-  //     console.log(chunk.choices[0].delta.content);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   const svg = d3.select("#node-space");
-  //   svg.selectAll("*").remove();
-  //   svg
-
-  //     .append("rect")
-  //     .attr("class", "branch-node-shadow")
-  //     .attr("x", (d) => 0)
-  //     .attr("y", (d, i) => 0)
-  //     .attr("width", (d) => bigRectWidth)
-  //     .attr("height", (d) => bigRectHeight)
-  //     .attr("fill", (d) => nodeRectData.color)
-  //     .attr("rx", 16)
-  //     .attr("ry", 16);
-
-  //   svg
-
-  //     .append("rect")
-  //     .attr("class", "branch-node")
-  //     .attr("x", (d) => 0)
-  //     .attr("y", (d) => 0)
-  //     .attr("width", (d) => bigRectWidth)
-  //     .attr("height", (d) => bigRectHeight - 5)
-  //     .attr("fill", "#f5f5f5")
-  //     .attr("rx", 14)
-  //     .attr("ry", 14);
-
-  //   //render branch node text
-  //   svg
-
-  //     .append("rect")
-  //     .attr("class", "branch-node-text select-none")
-  //     .attr("x", (d) => 0 + 15)
-  //     .attr("y", (d, i) => 0 + textOffsetY)
-  //     .attr("text-anchor", "start")
-  //     .attr("fill", "#000")
-  //     .attr("font-size", "14px")
-  //     .text((d) => nodeRectData.text);
-
-  //   //render code range
-  //   svg
-
-  //     .append("text")
-  //     .attr("class", "code-range-text select-none")
-  //     .attr("x", (d) => 0 + codeRangeOffsetX)
-  //     .attr("y", (d, i) => 0 + codeRangeOffsetY)
-  //     .attr("fill", "#000")
-  //     .attr("font-size", "14px")
-  //     .attr("text-anchor", "start")
-  //     .text((d) =>
-  //       //empty string if branch uninitialised
-  //       nodeRectData.range[0] == 0
-  //         ? ""
-  //         : //construct if initialised
-  //           nodeRectData.range[0] +
-  //           (nodeRectData.range[0] === nodeRectData.range[1]
-  //             ? ""
-  //             : "-" + nodeRectData.range[1]),
-  //     );
-  // }, []);
-
   return (
     <div className="configPanel ml-3 mt-0 flex w-full flex-col">
       <div className="text-space mb-2 flex h-[10.7rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow">
         {/* <div className="text-space mb-2 flex h-[10rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow"> */}
-        {props.content}
+        {blockContent || props.content}
         {/* </div> */}
       </div>
       <div className="h-[6rem] w-full">
