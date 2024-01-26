@@ -16,9 +16,7 @@ import {
 } from "@/store/chatSlice";
 import { clickNode } from "@/store/selectionSlice";
 import React from "react";
-import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { StyledMenu } from "./styleMenu";
 
 export type TreeNode = {
@@ -44,8 +42,15 @@ const OutlineView = () => {
 
   const treeNodes = useTreeNodes();
 
+  const focusTreeNodeID = useMemo(
+    () => treeNodes.findIndex((node) => node.requestID.includes(focusChatID)),
+    [treeNodes, focusChatID],
+  );
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const [rightClickNodeID, setRightClickNodeID] = useState(-1);
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -53,8 +58,20 @@ const OutlineView = () => {
     setAnchorEl(null);
   };
 
-  const handleSplit = () => {};
-  const handleTrim = () => {};
+  const handleSplit = (treeNodeID: number) => {
+    const node = treeNodes[treeNodeID];
+    const parentID = node.parentID;
+    if (parentID === undefined) {
+      return;
+    }
+    dispatch(
+      setFocusChatID(
+        treeNodes[parentID].requestID[treeNodes[parentID].requestID.length - 1],
+      ),
+    );
+    handleClose();
+  };
+  const handleTrim = (treeNodeID: number) => {};
 
   useEffect(() => {
     calculateNodePosition(treeNodes, mainChannelChats);
@@ -105,6 +122,7 @@ const OutlineView = () => {
   const clickNodeRight = useCallback(
     (treeID: number, event: any) => {
       setAnchorEl(event.currentTarget);
+      setRightClickNodeID(treeID);
     },
     [dispatch, mainChannelChats, requestPool, treeNodes],
   );
@@ -159,24 +177,14 @@ const OutlineView = () => {
       >
         Options
       </Button> */}
-        <StyledMenu
-          id="demo-customized-menu"
-          MenuListProps={{
-            "aria-labelledby": "demo-customized-button",
-          }}
-          anchorEl={anchorEl}
+        <ContextMenu
+          targetTreeID={rightClickNodeID}
           open={open}
-          onClose={handleClose}
-        >
-          <MenuItem onClick={handleSplit} disableRipple>
-            {/* <EditIcon /> */}
-            Split
-          </MenuItem>
-          <MenuItem onClick={handleTrim} disableRipple>
-            {/* <FileCopyIcon /> */}
-            Trim
-          </MenuItem>
-        </StyledMenu>
+          handleClose={handleClose}
+          handleSplit={handleSplit}
+          handleTrim={handleTrim}
+          anchorEl={anchorEl}
+        />
       </div>
     </>
   );
@@ -210,6 +218,7 @@ const createSVG = () => {
       .scaleExtent([0.1, 8])
       .on("zoom", zoomed),
   );
+
   // @ts-ignore
   function zoomed({ transform }) {
     g.attr("transform", transform);
@@ -294,7 +303,7 @@ const updateSVG = (
           : clickLeafFn(d.treeID);
       })
       .on("contextmenu", (event: any, d: any) => {
-        console.log(event);
+        // console.log(event);
         // d3.event.preventDefault();
         clickNodeRight(d.treeID, event);
       });
@@ -649,4 +658,49 @@ export const isTreeNodeInActiveChain = (
   mainChannelChats: number[],
 ) => {
   return mainChannelChats.find((n) => node.requestID.includes(n)) !== undefined;
+};
+
+const ContextMenu = ({
+  open,
+  targetTreeID,
+  handleClose,
+  handleSplit,
+  handleTrim,
+  anchorEl,
+}: {
+  open: boolean;
+  targetTreeID: number;
+  handleClose: () => void;
+  handleSplit: (id: number) => void;
+  handleTrim: (id: number) => void;
+  anchorEl: HTMLElement | null;
+}) => {
+  return (
+    <StyledMenu
+      id="demo-customized-menu"
+      MenuListProps={{
+        "aria-labelledby": "demo-customized-button",
+      }}
+      anchorEl={anchorEl}
+      open={open}
+      onClose={handleClose}
+    >
+      <MenuItem
+        onClick={() => {
+          handleSplit(targetTreeID);
+        }}
+        disableRipple
+      >
+        Split
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleTrim(targetTreeID);
+        }}
+        disableRipple
+      >
+        Trim
+      </MenuItem>
+    </StyledMenu>
+  );
 };
