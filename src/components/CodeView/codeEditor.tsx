@@ -92,7 +92,6 @@ export const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
 
       while nodes:
           nodes.sort(key=lambda node: distances[node])
-
           current_node = nodes[0]
 
           if current_node == end:
@@ -106,5 +105,4 @@ export const DIJKSTRA_CODE = `def dijkstra(graph, start, end):
 
           nodes.remove(current_node)
       
-      return distances[end]
-`;
+      return distances[end]`;

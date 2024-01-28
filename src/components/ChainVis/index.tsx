@@ -28,6 +28,7 @@ const ChainVis = () => {
   const [codeSnippetHeight, setCodeSnippetHeight] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
   const [focusHeight, setFocusHeight] = useState<number>(0);
+  const [clickedNode, setClickedNode] = useState<number>(-1);
   const highlightNode = useAppSelector(
     (state) => state.highlight.highlightNode,
   );
@@ -100,6 +101,12 @@ const ChainVis = () => {
       dispatch(updateHighlightNode(selectedNode));
     }
   }, [selectedNode]);
+
+  useEffect(() => {
+    if (clickedNode !== -1) {
+      dispatch(updateHighlightNode(clickedNode));
+    }
+  }, [clickedNode]);
 
   //block highlight
   useEffect(() => {
@@ -198,7 +205,7 @@ const ChainVis = () => {
       .attr("rx", 14)
       .attr("ry", 14)
       .on("click", function (event, d) {
-        setSelectedNode(d.id);
+        setClickedNode(d.id);
       })
       // .transition()
       // .duration(800)
@@ -221,7 +228,7 @@ const ChainVis = () => {
       .attr("font-size", "12px")
       .text((d) => d.text)
       .on("click", function (event, d) {
-        setSelectedNode(d.id);
+        setClickedNode(d.id);
       });
 
     svg
@@ -237,16 +244,42 @@ const ChainVis = () => {
       .attr("font-size", "12px")
       .text((d) => d.sum)
       .on("click", function (event, d) {
-        setSelectedNode(d.id);
+        setClickedNode(d.id);
       });
+  }, [chainNodes]);
 
-    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
+  //render connector
+  useEffect(() => {
+    if (clickedNode === -1 || clickedNode >= chainNodes.length) return;
+    const svg = d3.select("#chain-svg");
+
+    const nodeData = chainNodes;
+
+    const rectData = d3.map(nodeData, (d, i) => {
+      const w = i === clickedNode ? bigRectWidth : rectWidth;
+      const h = i === clickedNode ? bigRectHeight : rectHeight;
+      const x = -w / 2;
+      const y = i === clickedNode ? i * interval - 10 : i * interval;
+      return {
+        x: x,
+        y: y,
+        width: w,
+        height: h,
+        color: "#C8F4D1",
+        text: d.text,
+        id: i,
+      };
+    });
+
+    console.log("[connector] rectData", rectData);
+
     const svgElement = document.getElementById("chain-svg");
+
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
 
     // get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chainNodes[highlightNode].range;
+    const codeRange = chainNodes[clickedNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
@@ -257,9 +290,9 @@ const ChainVis = () => {
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
+    const blockY = hightlightBlocks[clickedNode]?.getBoundingClientRect().top;
     const blockHeight =
-      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
+      hightlightBlocks[clickedNode]?.getBoundingClientRect().height;
 
     // console.log("block Height in first render", blockHeight);
     const rightY = blockY - svgMarginTop - margin.top;
@@ -270,14 +303,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + interval * highlightNode - 10,
+        y2: rectHeight / 2 + interval * clickedNode - 10,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + interval * highlightNode - 10,
+        y1: rectHeight / 2 + interval * clickedNode - 10,
         x2: width / 2,
         y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
@@ -308,23 +341,25 @@ const ChainVis = () => {
     const connectors = [
       {
         x: -width / 2,
-        y: leftY,
+        y: leftY + chainScrollTop,
         width: 4,
         height: codeSnippetHeight,
-        color: rectData[highlightNode].color,
+        color: rectData[clickedNode].color,
         side: "left",
       },
       {
         x: width / 2,
-        y: rightY,
+        y: rightY + chainScrollTop,
         width: 4,
         height: blockHeight,
-        color: rectData[highlightNode].color,
+        color: rectData[clickedNode].color,
         side: "right",
       },
     ];
 
     let defs = svg.append("defs");
+
+    console.log("[connector] defs", defs);
 
     let gradient = defs
       .append("linearGradient")
@@ -338,7 +373,7 @@ const ChainVis = () => {
       .append("stop")
       .attr("class", "start")
       .attr("offset", "0%")
-      .attr("stop-color", rectData[highlightNode].color)
+      .attr("stop-color", rectData[clickedNode].color)
       .attr("stop-opacity", 1);
 
     gradient
@@ -367,7 +402,7 @@ const ChainVis = () => {
       .append("stop")
       .attr("class", "end")
       .attr("offset", "100%")
-      .attr("stop-color", rectData[highlightNode].color)
+      .attr("stop-color", rectData[clickedNode].color)
       .attr("stop-opacity", 1);
 
     //new path
@@ -411,53 +446,59 @@ const ChainVis = () => {
       // .duration(200)
       // .delay(1300)
       .attr("width", (d) => d.width);
-  }, [highlightNode, chainNodes]);
 
-  //update left and right y position
-  useEffect(() => {
-    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
-    const svg = d3.select("#chain-svg");
-    const svgElement = document.getElementById("chain-svg");
-    const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
-    //get code highlight position
-    const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chainNodes[highlightNode].range;
-    const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
-    const codeSnippetY =
-      codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
+    return () => {
+      svg.selectAll(".chain-connector").remove();
+      svg.selectAll(".chain-node-link").remove();
+      setClickedNode(-1);
+    };
+  }, [clickedNode, chainNodes]);
 
-    const codeSnippetHeight =
-      (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
-    const leftY = codeSnippetY - svgMarginTop - margin.top;
+  // update left and right y position
+  // useEffect(() => {
+  //   if (clickedNode === -1 || clickedNode >= chainNodes.length) return;
+  //   const svg = d3.select("#chain-svg");
+  //   const svgElement = document.getElementById("chain-svg");
+  //   const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
+  //   //get code highlight position
+  //   const codeLines = document.getElementsByClassName("cm-line");
+  //   const codeRange = chainNodes[clickedNode].range;
+  //   const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
+  //   const codeSnippetY =
+  //     codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
 
-    //get block heighlight position
-    const hightlightBlocks = document.getElementsByClassName("text-block");
-    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
-    const blockHeight =
-      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
+  //   const codeSnippetHeight =
+  //     (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
+  //   const leftY = codeSnippetY - svgMarginTop - margin.top;
 
-    const rightY = blockY - svgMarginTop - margin.top;
+  //   //get block heighlight position
+  //   const hightlightBlocks = document.getElementsByClassName("text-block");
+  //   const blockY = hightlightBlocks[clickedNode]?.getBoundingClientRect().top;
+  //   const blockHeight =
+  //     hightlightBlocks[clickedNode]?.getBoundingClientRect().height;
 
-    // console.log("blockY", blockY);
-    // console.log("rightY", rightY);
-    setLeftY(leftY);
-    setRightY(rightY);
-    setCodeSnippetHeight(codeSnippetHeight);
-    setBlockHeight(blockHeight);
-  }, [codeScrollTop, textScrollTop, highlightNode, focusChatID]);
+  //   const rightY = blockY - svgMarginTop - margin.top;
+
+  //   // console.log("blockY", blockY);
+  //   // console.log("rightY", rightY);
+  //   setLeftY(leftY);
+  //   setRightY(rightY);
+  //   setCodeSnippetHeight(codeSnippetHeight);
+  //   setBlockHeight(blockHeight);
+  // }, [codeScrollTop, textScrollTop, clickedNode]);
 
   // update connector
   useEffect(() => {
-    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
+    if (clickedNode === -1 || clickedNode >= chainNodes.length) return;
     const svg = d3.select("#chain-svg");
 
     const nodeData = chainNodes;
 
     const rectData = d3.map(nodeData, (d, i) => {
-      const w = i === highlightNode ? bigRectWidth : rectWidth;
-      const h = i === highlightNode ? bigRectHeight : rectHeight;
+      const w = i === clickedNode ? bigRectWidth : rectWidth;
+      const h = i === clickedNode ? bigRectHeight : rectHeight;
       const x = -w / 2;
-      const y = i === highlightNode ? i * interval - 10 : i * interval;
+      const y = i === clickedNode ? i * interval - 10 : i * interval;
       return {
         x: x,
         y: y,
@@ -468,11 +509,27 @@ const ChainVis = () => {
         id: i,
       };
     });
-    if (highlightNode === -1 || highlightNode >= rectData.length) return;
 
+    const svgElement = document.getElementById("chain-svg");
+    const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
+    //get code highlight position
+    const codeLines = document.getElementsByClassName("cm-line");
+    const codeRange = chainNodes[clickedNode].range;
+    const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
+    const codeSnippetY =
+      codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
+
+    const codeSnippetHeight =
+      (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
+    const leftY = codeSnippetY - svgMarginTop - margin.top;
+
+    //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
     const blockHeight =
-      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
+      hightlightBlocks[clickedNode]?.getBoundingClientRect().height;
+    const blockY = hightlightBlocks[clickedNode]?.getBoundingClientRect().top;
+
+    const rightY = blockY - svgMarginTop - margin.top;
 
     const connectors = [
       {
@@ -480,7 +537,7 @@ const ChainVis = () => {
         y: leftY + chainScrollTop,
         width: 4,
         height: codeSnippetHeight,
-        color: rectData[highlightNode].color,
+        color: rectData[clickedNode].color,
         side: "left",
       },
       {
@@ -488,7 +545,7 @@ const ChainVis = () => {
         y: rightY + chainScrollTop,
         width: 4,
         height: blockHeight,
-        color: rectData[highlightNode].color,
+        color: rectData[clickedNode].color,
         side: "right",
       },
     ];
@@ -498,35 +555,34 @@ const ChainVis = () => {
       .selectAll("rect.chain-connector")
       .data(connectors)
       .attr("y", (d) => d.y);
-  }, [leftY, rightY, chainScrollTop, focusHeight]);
+  }, [codeScrollTop, textScrollTop, chainScrollTop]);
 
-  //update links
+  // update links
   useEffect(() => {
-    if (highlightNode === -1 || highlightNode >= chainNodes.length) return;
+    if (clickedNode === -1 || clickedNode >= chainNodes.length) return;
     const svg = d3.select("#chain-svg");
 
     const svgElement = document.getElementById("chain-svg");
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
     //get code highlight position
     const codeLines = document.getElementsByClassName("cm-line");
-    const codeRange = chainNodes[highlightNode].range;
+    const codeRange = chainNodes[clickedNode].range;
     const codeLineHeight = codeLines[0]?.getBoundingClientRect().height || 1;
 
     const codeSnippetY =
       codeLines[codeRange[0] - 1]?.getBoundingClientRect().y || 0;
-    const codeOffsetY = codeLines[highlightNode]?.scrollTop;
+    const codeOffsetY = codeLines[clickedNode]?.scrollTop;
     const codeSnippetHeight =
       (codeRange[1] - codeRange[0] + 1) * codeLineHeight;
     const leftY = codeSnippetY - svgMarginTop - margin.top;
 
     //get block heighlight position
     const hightlightBlocks = document.getElementsByClassName("text-block");
-    if (highlightNode === -1 || highlightNode >= hightlightBlocks.length)
-      return;
-    const blockY = hightlightBlocks[highlightNode]?.getBoundingClientRect().top;
+    if (clickedNode === -1 || clickedNode >= hightlightBlocks.length) return;
+    const blockY = hightlightBlocks[clickedNode]?.getBoundingClientRect().top;
     // const blockOffsetY = hightlightBlocks[highlightNode]?.scrollTop;
     const blockHeight =
-      hightlightBlocks[highlightNode]?.getBoundingClientRect().height;
+      hightlightBlocks[clickedNode]?.getBoundingClientRect().height;
 
     const rightY = blockY - svgMarginTop - margin.top;
     const links = [
@@ -534,14 +590,14 @@ const ChainVis = () => {
         x1: -width / 2,
         y1: codeSnippetHeight / 2 + leftY + chainScrollTop,
         x2: -bigRectWidth / 2,
-        y2: rectHeight / 2 + interval * highlightNode,
+        y2: rectHeight / 2 + interval * clickedNode,
         dx: 40,
         dy: 5,
         side: "left",
       },
       {
         x1: bigRectWidth / 2,
-        y1: rectHeight / 2 + interval * highlightNode,
+        y1: rectHeight / 2 + interval * clickedNode,
         x2: width / 2,
         y2: blockHeight / 2 + rightY + chainScrollTop,
         dx: 40,
@@ -575,31 +631,31 @@ const ChainVis = () => {
       .attr("stroke-dasharray", "none");
   }, [codeScrollTop, textScrollTop, chainScrollTop]);
 
-  useEffect(() => {
-    let elementsArray = document.getElementsByClassName("text-block");
+  // useEffect(() => {
+  //   let elementsArray = document.getElementsByClassName("text-block");
 
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const newHeight = entry.contentRect.height;
-        setFocusHeight(newHeight);
-        console.log(
-          `[chain view]Block at index ${highlightNode} height changed to: ${newHeight}`,
-        );
-        // console.log(first)
-      }
-    });
-    const targetElement = elementsArray[highlightNode];
-    console.log("[chain view] target", targetElement);
-    if (targetElement) {
-      observer.observe(targetElement);
-    }
+  //   const observer = new ResizeObserver((entries) => {
+  //     for (let entry of entries) {
+  //       const newHeight = entry.contentRect.height;
+  //       setFocusHeight(newHeight);
+  //       console.log(
+  //         `[chain view]Block at index ${highlightNode} height changed to: ${newHeight}`,
+  //       );
+  //       // console.log(first)
+  //     }
+  //   });
+  //   const targetElement = elementsArray[highlightNode];
+  //   console.log("[chain view] target", targetElement);
+  //   if (targetElement) {
+  //     observer.observe(targetElement);
+  //   }
 
-    return () => {
-      if (targetElement) {
-        observer.unobserve(targetElement);
-      }
-    };
-  }, [highlightNode]);
+  //   return () => {
+  //     if (targetElement) {
+  //       observer.unobserve(targetElement);
+  //     }
+  //   };
+  // }, [highlightNode]);
 
   return (
     <div

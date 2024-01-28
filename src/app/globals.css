@@ -31,7 +31,7 @@ body {
     background-color: #ccd7da50 !important;
   }
   .text-block-highlight {
-    box-shadow: 2px 2px 2px gray;
+    box-shadow: 3px 3px 2px gray;
   }
   .preview-branch-node {
     -webkit-filter: drop-shadow(3px -3px 2px #c6ebd480);
