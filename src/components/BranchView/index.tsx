@@ -66,10 +66,7 @@ export const BranchView = () => {
       parent: node.parentID,
       children: node.childrenID,
       range: node.label,
-      summary:
-        chatNode?.action.summary ||
-        chatNode?.action.content.slice(0, 20) ||
-        "block",
+      summary: chatNode?.action.summary || "no summary",
       content: chatNode?.thought || "",
       isActive: isActive ? 1 : 0,
     };
