@@ -54,23 +54,6 @@ export const BranchView = () => {
   const chatNodes = useAppSelector(selectNodePool);
   // const chainNodes = useAppSelector(selectChainNodes);
 
-  useEffect(() => {
-    // console.log("[branch] focusChatNodeID", focusChatNodeID);
-    // console.log("[branch] treeNodes", treeNodes);
-
-    const focusTreeNodeID = treeNodes.findIndex((d) =>
-      d.requestID.includes(focusChatNodeID),
-    );
-    if (focusTreeNodeID == -1) return;
-    if (
-      treeNodes[focusTreeNodeID].childrenID.length == 0 &&
-      focusTreeNodeID !== 0
-    )
-      return;
-
-    setParentNode(focusTreeNodeID);
-  }, [treeNodes, focusChatNodeID]);
-
   const nodes = treeNodes.map((node) => {
     // const request = requestPool[node.requestID[0] || 0];
     // let isActive = false;
@@ -91,6 +74,28 @@ export const BranchView = () => {
       isActive: isActive ? 1 : 0,
     };
   });
+
+  useEffect(() => {
+    // console.log("[branch] focusChatNodeID", focusChatNodeID);
+    // console.log("[branch] treeNodes", treeNodes);
+
+    const focusTreeNodeID = treeNodes.findIndex((d) =>
+      d.requestID.includes(focusChatNodeID),
+    );
+    if (focusTreeNodeID == -1) return;
+    if (
+      treeNodes[focusTreeNodeID].childrenID.length == 0 &&
+      focusTreeNodeID !== 0
+    ) {
+      const parentTreeNodeID = treeNodes[focusTreeNodeID].parentID;
+      if (parentTreeNodeID !== undefined) {
+        setParentNode(parentTreeNodeID);
+      }
+    } else {
+      setParentNode(focusTreeNodeID);
+    }
+    // return;
+  }, [treeNodes, focusChatNodeID]);
 
   const xPosition = [
     {
@@ -115,6 +120,19 @@ export const BranchView = () => {
         dispatch(setMainChannelID(channelID));
       }
       dispatch(setFocusChatID(treeNodes[treeID].requestID[0]));
+    },
+    [dispatch, mainChannelChats, requestPool, treeNodes],
+  );
+
+  const clickParentNodeFn = useCallback(
+    (treeID: number) => {
+      // if (!isTreeNodeInActiveChain(treeNodes[treeID], mainChannelChats)) {
+      //   const requestID = treeNodes[treeID].requestID[0];
+      //   const channelID = requestPool[requestID].channelID;
+      //   dispatch(setMainChannelID(channelID));
+      // }
+      // dispatch(setFocusChatID(treeNodes[treeID].requestID[0]));
+      console.log("[branch] clickParentNodeFn", treeID);
     },
     [dispatch, mainChannelChats, requestPool, treeNodes],
   );
@@ -207,6 +225,7 @@ export const BranchView = () => {
         id: d,
         positonIndex: xPositionListIndex[i],
         type: "child",
+        parent: nodes[d].parent,
       };
     });
 
@@ -221,6 +240,7 @@ export const BranchView = () => {
       id: parentNode,
       positonIndex: 3,
       type: "parent",
+      parent: nodes[parentNode].parent,
     });
 
     //branch node link data
@@ -342,6 +362,10 @@ export const BranchView = () => {
               //   // d.childrenID.length > 0 ? clickNodeFn(d.treeID) : clickLeafFn(d.treeID);
               //   // setParentNode(nodes[d.id].parent || 0);
               // }
+              console.log("[branch] clickParentNodeFn", d);
+              if (d.parent !== undefined) {
+                setParentNode(d.parent);
+              }
             } else {
               // if (d.id !== previewNode) {
               //   setPreviewNode(d.id);
@@ -353,6 +377,7 @@ export const BranchView = () => {
               // upAnimation(d.positonIndex);
               setDirection(1);
               setParentNode(d.id);
+              clickNodeFn(d.id);
             }
           })
           // .transition()

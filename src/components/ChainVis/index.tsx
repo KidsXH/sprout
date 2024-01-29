@@ -271,8 +271,6 @@ const ChainVis = () => {
       };
     });
 
-    console.log("[connector] rectData", rectData);
-
     const svgElement = document.getElementById("chain-svg");
 
     const svgMarginTop = svgElement?.getBoundingClientRect().y || 0;
@@ -358,8 +356,6 @@ const ChainVis = () => {
     ];
 
     let defs = svg.append("defs");
-
-    console.log("[connector] defs", defs);
 
     let gradient = defs
       .append("linearGradient")
