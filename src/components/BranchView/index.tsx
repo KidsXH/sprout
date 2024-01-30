@@ -382,34 +382,49 @@ export const BranchView = () => {
           // .ease(d3.easeLinear)
           .style("opacity", 1);
 
-        //render branch node text
         svg
           .append("g")
-          .selectAll("text")
+          .selectAll("switch")
           .data(rectData)
-          .join("text")
+          .join("switch")
+          .append("foreignObject")
+          .attr("x", (d) => d.x + 10)
+          .attr("y", (d, i) => d.y + textOffsetY - 22)
+          .attr("width", reasonBoxWidth - 10)
+          .attr("height", reasonBoxHeight)
           .attr("class", "branch-node-text select-none")
-          .attr("x", (d) => d.x + 15)
-          .attr("y", (d, i) => d.y + textOffsetY)
-          .attr("text-anchor", "start")
-          .attr("fill", "#000")
-          .attr("font-size", "14px")
-          .text((d) => {
-            const splitText = d.text.split(" ").slice(0, 3);
-            return d.text.length > 20
-              ? splitText[0] + " " + splitText[1] + " " + splitText[2]
-              : d.text;
-          })
-          // .style("opacity", (d, i) =>
-          //   (d.type === "parent" && direction) ||
-          //   (!direction && i === childIndex)
-          //     ? 1
-          //     : 0,
-          // )
-          // .transition()
-          // .duration(phase3)
-          // .ease(d3.easeLinear)
-          .style("opacity", 1);
+          .append("xhtml:body")
+          .style("font", "14px 'Helvetica Neue'")
+          .style("line-height", "1.2")
+          // .style("color", "#848484")
+          .style("overflow", "scroll")
+          .html(
+            (d) =>
+              "<p className='reason-p'>" +
+              (d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text) +
+              "</p>",
+            // "<p className='reason-p'>" + d.text + "</p>",
+          );
+
+        //render branch node text
+        // svg
+        //   .append("g")
+        //   .selectAll("text")
+        //   .data(rectData)
+        //   .join("text")
+        //   .attr("class", "branch-node-text select-none")
+        //   .attr("x", (d) => d.x + 15)
+        //   .attr("y", (d, i) => d.y + textOffsetY)
+        //   .attr("text-anchor", "start")
+        //   .attr("fill", "#000")
+        //   .attr("font-size", "14px")
+        //   .text((d) => {
+        //     const splitText = d.text.split(" ").slice(0, 3);
+        //     return d.text.length > 20
+        //       ? splitText[0] + " " + splitText[1] + " " + splitText[2]
+        //       : d.text;
+        //   })
+        //   .style("opacity", 1);
 
         //render code range
         svg
@@ -418,7 +433,7 @@ export const BranchView = () => {
           .data(rectData)
           .join("text")
           .attr("class", "code-range-text select-none")
-          .attr("x", (d) => d.x + codeRangeOffsetX)
+          .attr("x", (d) => d.x + codeRangeOffsetX - 5)
           .attr("y", (d, i) => d.y + codeRangeOffsetY)
           .attr("fill", "#000")
           .attr("font-size", "14px")
@@ -464,7 +479,6 @@ export const BranchView = () => {
         svg
           .append("g")
           .selectAll("switch")
-
           .data(reasonBoxData)
           .join("switch")
           .append("foreignObject")
@@ -490,13 +504,7 @@ export const BranchView = () => {
               "</p>",
             // "<p className='reason-p'>" + d.text + "</p>",
           )
-          // .append("title")
-          // .text((d) => d.text)
-          // .text((d) => d.text.slice(0, 20) + "...")
-          // .style("opacity", 0)
-          // .transition()
-          // .duration(phase3)
-          // .ease(d3.easeLinear)
+
           .style("opacity", 1);
       },
       phase1 + 2 * phase2,

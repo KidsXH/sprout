@@ -60,10 +60,10 @@ const ChainVis = () => {
   // const rectHeight = 34;
 
   const rectWidth = 120;
-  const rectHeight = 54;
+  const rectHeight = 60;
 
   const bigRectWidth = 120;
-  const bigRectHeight = 54;
+  const bigRectHeight = 60;
 
   const innerHeight = height - margin.top - margin.bottom;
   const interval =
@@ -231,21 +231,47 @@ const ChainVis = () => {
         setClickedNode(d.id);
       });
 
+    // svg
+    //   .append("g")
+    //   .selectAll("summary")
+    //   .data(rectData)
+    //   .join("text")
+    //   .attr("class", "chain-node-text select-none")
+    //   .attr("x", -45)
+    //   .attr("y", (d, i) => i * interval + 30)
+    //   .attr("text-anchor", "start")
+    //   .attr("fill", "#000")
+    //   .attr("font-size", "12px")
+    //   .text((d) => d.sum)
+    //   .on("click", function (event, d) {
+    //     setClickedNode(d.id);
+    //   });
+
     svg
       .append("g")
-      .selectAll("summary")
+      .selectAll("switch")
       .data(rectData)
-      .join("text")
+      .join("switch")
+      .append("foreignObject")
+      .attr("x", (d) => -45)
+      .attr("y", (d, i) =>
+        d.sum.length > 20 ? i * interval + 15 : i * interval + 20,
+      )
+      .attr("width", bigRectWidth)
+      .attr("height", bigRectHeight)
       .attr("class", "chain-node-text select-none")
-      .attr("x", -45)
-      .attr("y", (d, i) => i * interval + 30)
-      .attr("text-anchor", "start")
-      .attr("fill", "#000")
-      .attr("font-size", "12px")
-      .text((d) => d.sum)
-      .on("click", function (event, d) {
-        setClickedNode(d.id);
-      });
+      .append("xhtml:body")
+      .style("font", "12px 'Helvetica Neue'")
+      .style("line-height", "1.2")
+      // .style("color", "#848484")
+      .style("overflow", "scroll")
+      .html(
+        (d) =>
+          "<p className='reason-p'>" +
+          (d.sum.length > 35 ? d.sum.slice(0, 35) + "..." : d.sum) +
+          "</p>",
+        // "<p className='reason-p'>" + d.text + "</p>",
+      );
   }, [chainNodes]);
 
   //render connector
