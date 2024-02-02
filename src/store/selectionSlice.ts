@@ -6,12 +6,14 @@ interface SelectionState {
   chainNodes: number[]; // The id of the nodes in the chain
   clickNodeTrigger: boolean;
   selectedCodeRange: [number, number];
+  selectedCodeRangeOnTree: [number, number];
 }
 
 const initialState: SelectionState = {
   chainNodes: [],
   clickNodeTrigger: false,
   selectedCodeRange: [0, 0],
+  selectedCodeRangeOnTree: [0, 0],
 };
 
 export const selectionSlice = createSlice({
@@ -30,10 +32,16 @@ export const selectionSlice = createSlice({
     ) => {
       state.selectedCodeRange = [...action.payload];
     },
+    updateSelectedCodeRangeOnTree: (
+      state,
+      action: PayloadAction<[number, number]>,
+    ) => {
+      state.selectedCodeRangeOnTree = [...action.payload];
+    },
   },
 });
 
-export const { pickChain, clickNode, updateSelectedCodeRange } =
+export const { pickChain, clickNode, updateSelectedCodeRange, updateSelectedCodeRangeOnTree } =
   selectionSlice.actions;
 
 export const selectChainNodes = (state: RootState) =>
@@ -44,5 +52,8 @@ export const selectClickNodeTrigger = (state: RootState) =>
 
 export const selectSelectedCodeRange = (state: RootState) =>
   state.selection.selectedCodeRange;
+
+export const selectSelectedCodeRangeOnTree = (state: RootState) =>
+  state.selection.selectedCodeRangeOnTree;
 
 export default selectionSlice.reducer;

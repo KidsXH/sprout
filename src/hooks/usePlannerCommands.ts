@@ -13,8 +13,6 @@ import { useEffect, useMemo } from "react";
 import { usePlannerContext } from "@/providers/Planner";
 import {
   selectNodePool,
-  selectNumNodes,
-  selectNumRequests,
   selectRequestPool,
 } from "@/store/nodeSlice";
 import { saveRequestMessages } from "@/hooks/useChatHistory";
@@ -27,10 +25,13 @@ import {
   selectFocusChatID,
   selectMainChannelChats,
   selectMainChannelID,
-  selectNumChannels,
+  selectNumChannels, setFocusChatID,
   setMainChannelID,
 } from "@/store/chatSlice";
-import { selectSelectedCodeRange } from "@/store/selectionSlice";
+import {
+  selectSelectedCodeRange,
+  selectSelectedCodeRangeOnTree,
+} from "@/store/selectionSlice";
 
 const usePlannerCommands = () => {
   const dispatch = useAppDispatch();
@@ -46,6 +47,7 @@ const usePlannerCommands = () => {
   const focusChatID = useAppSelector(selectFocusChatID);
   const mainChannelChats = useAppSelector(selectMainChannelChats);
   const selectedCodeRange = useAppSelector(selectSelectedCodeRange);
+  const selectedCodeRangeOnTree = useAppSelector(selectSelectedCodeRangeOnTree);
 
   const requestMemory = useMemo(() => {
     let requests = requestPool;
@@ -53,7 +55,7 @@ const usePlannerCommands = () => {
       requests = requests.slice(0, focusChatID + 2);
     }
     return requests.filter((request) => request.channelID === mainChannelID);
-  }, [focusChatID]);
+  }, [focusChatID, mainChannelID, requestPool]);
 
   const tutorialMemory = useMemo(() => {
     let nodes = nodePool;
@@ -66,25 +68,25 @@ const usePlannerCommands = () => {
     return nodes.filter(
       (node) => requestPool[node.id].channelID === mainChannelID,
     );
-  }, [focusChatID]);
+  }, [focusChatID, mainChannelID, nodePool, requestPool]);
 
   const [planners] = usePlannerContext();
 
   const continue2next = (numThoughts?: number) => {
+    console.log('[Memory]', requestMemory, tutorialMemory);
     numThoughts = numThoughts || 3;
     dispatch(setNumRuns(numThoughts));
     dispatch(clearActiveChannels());
-    const isLastChatNode =
-      focusChatID === -1 ||
-      focusChatID === mainChannelChats[mainChannelChats.length - 2];
+
+    let newChannelID = numChannels;
+
     for (let i = 0; i < numThoughts; i++) {
       const planner = planners[i];
-      let channel = numChannels + i - 1;
+      let channel = mainChannelID;
 
-      if (i === 0) {
-        // channel = mainChannelID;
-        if (isLastChatNode) channel = mainChannelID;
-        else channel = numChannels + numThoughts - 1;
+      if (i > 0) {
+        channel = newChannelID;
+        newChannelID += 1;
       }
 
       planner.initialize(sourceCode, channel);
@@ -171,6 +173,48 @@ const usePlannerCommands = () => {
     }
   };
 
+  const nextSplit = () => {
+    console.log('[Memory]', requestMemory, tutorialMemory);
+    const numThoughts = 1;
+    dispatch(setNumRuns(numThoughts));
+    dispatch(clearActiveChannels());
+    const planner = planners[0];
+    const channel = numChannels;
+    planner.initialize(sourceCode, channel);
+    planner.setMemory(
+      requestMemory.map((request) => request.request),
+      tutorialMemory.map((node) => node.action),
+    );
+    const planPrompt = planner.planPrompt4Split(
+      sourceCode,
+      selectedCodeRangeOnTree,
+    );
+    dispatch(
+      activateChannel({
+        channelID: channel,
+        isActive: true,
+        isDone: false,
+        lastChatNodeID: -1,
+      }),
+    );
+    planner
+      .nextWithPlan(planPrompt)
+      .then((res) => {
+        const { hasNext, id } = res;
+        if (hasNext) {
+          saveRequestMessages(planners[id], requestPool, dispatch);
+        } else {
+          dispatch(deactivateChannel(planners[id].channel));
+        }
+        dispatch(decreaseNumRuns());
+      })
+      .catch((err) => {
+        console.log("[Planner Error]", err);
+        dispatch(decreaseNumRuns());
+        dispatch(setCommand("pause"));
+      });
+  };
+
   const vote = (channels: ChannelStatus[]) => {
     const voteMap: Map<string, number[]> = new Map();
     let maxVotes = 0;
@@ -213,10 +257,17 @@ const usePlannerCommands = () => {
       const bestResult = vote(
         activeChannels.filter((channel) => channel.isDone),
       );
+      const bestIdx = activeChannels.findIndex(
+        (channel) => channel.channelID === bestResult,
+      );
       if (bestResult === undefined) {
         dispatch(setCommand("pause"));
       } else {
+        const newChatNode = nodePool.find(
+          (node) => node.id === activeChannels[bestIdx].lastChatNodeID,
+        );
         dispatch(setMainChannelID(bestResult));
+        dispatch(setFocusChatID(newChatNode?.id || -1));
         dispatch(setRunningState("waited"));
         dispatch(setCommand("continue-next"));
       }
@@ -254,6 +305,14 @@ const usePlannerCommands = () => {
       if (runningState === "paused") {
         dispatch(setRunningState("running"));
         nextWithCodeRange(sourceCode, selectedCodeRange);
+        dispatch(setCommand("none"));
+      }
+    }
+
+    if (command === "next-split") {
+      if (runningState === "paused") {
+        dispatch(setRunningState("running"));
+        nextSplit();
         dispatch(setCommand("none"));
       }
     }

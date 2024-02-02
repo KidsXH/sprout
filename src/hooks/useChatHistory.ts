@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   addChat,
   changeChannelStatus,
-  ChannelStatus,
+  ChannelStatus, selectFocusChatID,
   selectMainChannelChats,
   selectMainChannelID,
   selectNumChats,
@@ -41,6 +41,7 @@ export const useChatHistory = () => {
   const numNodes = useAppSelector(selectNumNodes);
   const numHandledRequests = useAppSelector(selectNumHandledRequests);
   const mainChannelID = useAppSelector(selectMainChannelID);
+  const focusChatID = useAppSelector(selectFocusChatID);
 
   useEffect(() => {
     if (requestPool.length > numChats) {
@@ -90,20 +91,37 @@ export const useChatHistory = () => {
     dispatch(updateCodeRange(sourceCode));
   }, [sourceCode, nodePool, numNodes, numRequests, dispatch]);
 
-  const numRuns = useAppSelector(selectNumRuns);
+  // const numRuns = useAppSelector(selectNumRuns);
+  // useEffect(() => {
+  //   if (numRuns > 0 || nodePool.length === 0) return;
+  //
+  //
+  //   let latestNode = nodePool[0];
+  //
+  //   nodePool.forEach((node) => {
+  //     const requestID = node.id;
+  //     if (requestPool[requestID].channelID === mainChannelID) {
+  //       latestNode = node;
+  //     }
+  //   });
+  //
+  //   console.log("[useChatHis] Update FocusChatID", mainChannelID, nodePool, latestNode)
+  //
+  //   if (latestNode) dispatch(setFocusChatID(latestNode.id));
+  // }, [numNodes, nodePool, numRuns, dispatch, requestPool, mainChannelID]);
+
   useEffect(() => {
-    if (numRuns > 0 || nodePool.length === 0) return;
-    let latestNode = nodePool[0];
-
-    nodePool.forEach((node) => {
-      const requestID = node.id;
-      if (requestPool[requestID].channelID === mainChannelID) {
-        latestNode = node;
+    // When the main channel is changed, update the focus chat ID
+    if (requestPool[focusChatID]?.channelID !== mainChannelID) {
+      const nodes = nodePool.filter(
+        (node) => requestPool[node.id].channelID === mainChannelID,
+      );
+      if (nodes.length > 0) {
+        const lastNode = nodes[nodes.length - 1];
+        dispatch(setFocusChatID(lastNode.id));
       }
-    });
-
-    if (latestNode) dispatch(setFocusChatID(latestNode.id));
-  }, [numNodes, nodePool, numRuns, dispatch, requestPool, mainChannelID]);
+    }
+  }, [mainChannelID]);
 };
 
 export const saveRequestMessages = (
@@ -162,7 +180,7 @@ const chat2node = (
       assistant.tool_calls ? assistant.tool_calls[0].function.arguments : "{}",
     );
 
-    console.log("[useChatHis]functionArgs", functionArgs);
+    // console.log("[useChatHis]functionArgs", functionArgs);
 
     const text =
       functionName === "writeExplanation"

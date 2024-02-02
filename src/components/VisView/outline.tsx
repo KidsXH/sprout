@@ -14,10 +14,14 @@ import {
   setFocusChatID,
   setMainChannelID,
 } from "@/store/chatSlice";
-import { clickNode } from "@/store/selectionSlice";
+import {
+  clickNode,
+  updateSelectedCodeRangeOnTree,
+} from "@/store/selectionSlice";
 import React from "react";
 import MenuItem from "@mui/material/MenuItem";
 import { StyledMenu } from "./styleMenu";
+import { setCommand } from "@/store/modelSlice";
 
 export type TreeNode = {
   requestID: number[];
@@ -64,11 +68,13 @@ const OutlineView = () => {
     if (parentID === undefined) {
       return;
     }
-    dispatch(
-      setFocusChatID(
-        treeNodes[parentID].requestID[treeNodes[parentID].requestID.length - 1],
-      ),
-    );
+    const parentRequestID =
+      treeNodes[parentID].requestID[treeNodes[parentID].requestID.length - 1];
+    const codeRange = node.label.split("-").map((n) => Number(n));
+    dispatch(setMainChannelID(requestPool[parentRequestID].channelID));
+    dispatch(setFocusChatID(parentRequestID));
+    dispatch(updateSelectedCodeRangeOnTree([codeRange[0], codeRange[1]]));
+    dispatch(setCommand("next-split"));
     handleClose();
   };
   const handleTrim = (treeNodeID: number) => {};
