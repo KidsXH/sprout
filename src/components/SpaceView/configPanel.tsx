@@ -3,8 +3,11 @@ import React, { useCallback } from "react";
 import * as d3 from "d3";
 import Button from "@mui/material-next/Button";
 import InputBase from "@mui/material/InputBase";
-import Slider from "@mui/material/Slider";
-import { styled } from "@mui/material/styles";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel, { formControlLabelClasses } from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
+import { createStyles, makeStyles, styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { selectApiKey, selectModelName, setCommand } from "@/store/modelSlice";
@@ -18,49 +21,18 @@ import // ChatCompletionFunctions,
 "openai";
 import { BaseModel, RefineModel } from "@/models/api";
 
-const PrettoSlider = styled(Slider)({
-  color: "#52af77",
-  height: 6,
-  "& .MuiSlider-track": {
-    border: "none",
-  },
-  "& .MuiSlider-thumb": {
-    height: 12,
-    width: 12,
-    backgroundColor: "#fff",
-    border: "2px solid currentColor",
-    "&:focus, &:hover, &.Mui-active, &.Mui-focusVisible": {
-      boxShadow: "inherit",
-    },
-    "&:before": {
-      display: "none",
-    },
-  },
-  "& .MuiSlider-valueLabel": {
-    lineHeight: 1.2,
-    fontSize: 12,
-    background: "unset",
-    padding: 0,
-    width: 32,
-    height: 32,
-    borderRadius: "50% 50% 50% 0",
-    backgroundColor: "#52af77",
-    transformOrigin: "bottom left",
-    transform: "translate(50%, -100%) rotate(-45deg) scale(0)",
-    "&:before": { display: "none" },
-    "&.MuiSlider-valueLabelOpen": {
-      transform: "translate(50%, -100%) rotate(-45deg) scale(1)",
-    },
-    "& > *": {
-      transform: "rotate(45deg)",
-    },
-  },
-});
-
 export const ConfigPanel = (props: { content: string; type: string }) => {
-  const [promptRefinementString, setPromptRefinementString] = useState(
-    "please make it more humorous",
-  );
+  const [promptRefinementString, setPromptRefinementString] = useState("");
+
+  const writingStyles = ["(default)", "academic", "humorous", "eloquent", "engaging", "passionate"];
+  const [writingStyle, setWritingStyle] = useState(writingStyles[0]);
+  const [writingStyleIndex, setWritingStyleIndex] = useState(0);
+
+  const levelsOfDetail = ["concise", "(default)", "detailed"]
+  const [levelOfDetail, setLevelOfDetail] = useState(levelsOfDetail[1]);
+  const handleLevelOfDetailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLevelOfDetail((event.target as HTMLInputElement).value);
+  };
 
   const focusChatID = useAppSelector(selectFocusChatID);
   const treeNodes = useTreeNodes();
@@ -127,59 +99,133 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
   }, [promptRefinementString, props.content]);
 
   const handleReset = () => {
-    setPromptRefinementString("");
+    setWritingStyle(writingStyles[0]);
+    setWritingStyleIndex(0);
+    setLevelOfDetail(levelsOfDetail[1])
   };
 
   const handleApply = () => {
     // TODO
   };
 
+  useEffect(() => {
+    const buttons = document.getElementsByClassName("style-button");
+    if (buttons.length === 0) return;
+    buttons[writingStyleIndex].classList.add("selectedStyleButtonStyle");
+
+    return () => {
+      if (buttons.length === 0) return;
+      buttons[writingStyleIndex].classList.remove("selectedStyleButtonStyle");
+    };
+  }, [writingStyleIndex]);
+
+  useEffect(() => {
+    let prompt = "";
+
+    // both not default
+    if (writingStyle != writingStyles[0] && levelOfDetail != levelsOfDetail[1]) {
+      prompt = `Please make this paragraph more ${writingStyle} and ${levelOfDetail}`;
+      setPromptRefinementString(prompt)
+      return;
+    }
+    
+    // style not default
+    if (writingStyle != writingStyles[0]) {
+      prompt = `Please make this paragraph more ${writingStyle}`;
+    }
+
+    // LOD not default
+    if (levelOfDetail != levelsOfDetail[1]) {
+      prompt = `Please make this paragraph more ${levelOfDetail}`;
+    }
+
+    setPromptRefinementString(prompt);
+  }, [writingStyle, levelOfDetail]);
+
   return (
     <div className="configPanel ml-3 mt-0 flex w-full flex-col">
-      <div className="text-space mb-2 flex h-[10.7rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow">
-        {/* <div className="text-space mb-2 flex h-[10rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow"> */}
+      <div className="text-space mb-4 flex h-[6rem] w-full overflow-scroll rounded border-2 border-white bg-neutral-100 bg-opacity-100 p-3  pt-2 text-xs leading-5 hover:border-neutral-200 hover:shadow">
         {blockContent || props.content}
-        {/* </div> */}
       </div>
-      <div className="h-[6rem] w-full">
-        <div className="mb-3">
-          <InputBase
-            type="text"
-            className="rounded-md border-2 border-gray-200 p-2 py-1 text-gray-500 transition-all duration-500 ease-in-out"
-            color="secondary"
-            title="Prompt refinement"
-            placeholder={`Prompt here for detail refinement...\ne.g. Make this node's text more humorous/detailed`}
-            fullWidth={true}
-            multiline={true}
-            rows={4}
-            size="small"
-            onChange={(e) => setPromptRefinementString(e.target.value)}
-            value={promptRefinementString}
-          />
+      <div className="relative mb-4">
+        <div className="grid grid-cols-3 gap-1 rounded-md border-2 border-gray-200 pt-2 pb-1">
+          {writingStyles.map((v, i) => (
+            <div
+              className="style-button flex h-5 w-full items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-1"
+              key={i}
+              onClick={() => {
+                setWritingStyleIndex(i);
+                setWritingStyle(v);
+              }}
+            >
+              {v}
+            </div>
+          ))}
         </div>
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outlined"
-            className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
-            onClick={handleConfirm}
-          >
-            Confirm
-          </Button>
-          <Button
-            variant="outlined"
-            className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
-            onClick={handleReset}
-          >
-            Reset
-          </Button>
-          <Button
-            variant="outlined"
-            className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
-            onClick={handleApply}
-          >
-            Apply
-          </Button>
+        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">writing style</label>
+      </div>
+      <div className="relative mb-4">
+        <div className="relative rounded-md border-2 border-gray-200 pt-1 px-2 flex justify-center">
+          <FormControl>
+            <RadioGroup
+              row={true}
+              defaultValue="default"
+              value={levelOfDetail}
+              onChange={handleLevelOfDetailChange}
+              name="level of detail"
+            >
+              {levelsOfDetail.map((v, i) => (
+                <FormControlLabel
+                  key={i}
+                  value={v}
+                  control={<Radio size="small" color="success" />}
+                  label={v}
+                  classes={{ label: "text-xs text-gray-500"}}
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
         </div>
+        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">level of detail</label>
+      </div>
+      <div className="relative mb-4">
+        <InputBase
+          type="text"
+          className="relative text-sm rounded-md border-2 border-gray-200 pt-2 px-2 text-gray-500 transition-all duration-500 ease-in-out"
+          color="secondary"
+          title="Prompt refinement"
+          placeholder={`e.g. explain like I'm ten years old`}
+          fullWidth={true}
+          size="small"
+          multiline={true}
+          rows={2}
+          onChange={(e) => setPromptRefinementString(e.target.value)}
+          value={promptRefinementString}
+        />
+        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">prompt</label>
+      </div>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outlined"
+          className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
+          onClick={handleConfirm}
+        >
+          Confirm
+        </Button>
+        <Button
+          variant="outlined"
+          className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
+          onClick={handleReset}
+        >
+          Reset
+        </Button>
+        <Button
+          variant="outlined"
+          className="flex h-7 w-16 rounded-md border-2 border-gray-200 py-1 text-gray-500 transition-all duration-500 ease-in-out hover:border-gray-50 hover:bg-gray-50"
+          onClick={handleApply}
+        >
+          Apply
+        </Button>
       </div>
     </div>
   );
