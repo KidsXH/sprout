@@ -148,6 +148,13 @@ export class Planner {
     const codeSnippet = codeLines.slice(start - 1, end).join("\n");
     return `You are supposed to explain the code \`\`\`${codeSnippet}\`\`\` in the next multiple steps. Please write the observation, thought, and action for the next steps.`;
   }
+
+  planPrompt4Group(code: string, lineNumber: [number, number]) {
+    const [start, end] = lineNumber;
+    const codeLines = code.split("\n");
+    const codeSnippet = codeLines.slice(start - 1, end).join("\n");
+    return `You are supposed to explain the code \`\`\`${codeSnippet}\`\`\` in one paragraph. Please write the observation, thought, and action for the next steps.`;
+  }
 }
 
 export const parseMessage = (

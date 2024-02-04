@@ -75,7 +75,6 @@ export const BranchView = () => {
   useEffect(() => {
     // console.log("[branch] focusChatNodeID", focusChatNodeID);
     // console.log("[branch] treeNodes", treeNodes);
-
     const focusTreeNodeID = treeNodes.findIndex((d) =>
       d.requestID.includes(focusChatNodeID),
     );
@@ -154,7 +153,9 @@ export const BranchView = () => {
       //   .attr("viewBox", `${-width / 2} -10 ${width} ${height + 10}`);
       return;
     }
-
+    if (nodes[parentNode] === undefined) {
+      return;
+    }
     let siblingNodes = parentNode >= 0 ? nodes[parentNode].children : [];
     if (siblingNodes.length > 3) siblingNodes = siblingNodes.slice(0, 3);
     let xPositionListIndex = [0, 1, 2];

@@ -215,6 +215,47 @@ const usePlannerCommands = () => {
       });
   };
 
+  const nextGroup = () => {
+    const numThoughts = 1;
+    dispatch(setNumRuns(numThoughts));
+    dispatch(clearActiveChannels());
+    const planner = planners[0];
+    const channel = numChannels;
+    planner.initialize(sourceCode, channel);
+    planner.setMemory(
+      requestMemory.map((request) => request.request),
+      tutorialMemory.map((node) => node.action),
+    );
+    const planPrompt = planner.planPrompt4Group(
+      sourceCode,
+      selectedCodeRangeOnTree,
+    );
+    dispatch(
+      activateChannel({
+        channelID: channel,
+        isActive: true,
+        isDone: false,
+        lastChatNodeID: -1,
+      }),
+    );
+    planner
+      .nextWithPlan(planPrompt)
+      .then((res) => {
+        const { hasNext, id } = res;
+        if (hasNext) {
+          saveRequestMessages(planners[id], requestPool, dispatch);
+        } else {
+          dispatch(deactivateChannel(planners[id].channel));
+        }
+        dispatch(decreaseNumRuns());
+      })
+      .catch((err) => {
+        console.log("[Planner Error]", err);
+        dispatch(decreaseNumRuns());
+        dispatch(setCommand("pause"));
+      });
+  };
+
   const vote = (channels: ChannelStatus[]) => {
     const voteMap: Map<string, number[]> = new Map();
     let maxVotes = 0;
@@ -313,6 +354,14 @@ const usePlannerCommands = () => {
       if (runningState === "paused") {
         dispatch(setRunningState("running"));
         nextSplit();
+        dispatch(setCommand("none"));
+      }
+    }
+
+    if (command === "next-group") {
+      if (runningState === "paused") {
+        dispatch(setRunningState("running"));
+        nextGroup();
         dispatch(setCommand("none"));
       }
     }

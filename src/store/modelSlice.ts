@@ -20,6 +20,7 @@ interface modelState {
     | "continue-next"
     | "next-plan"
     | "next-split"
+    | "next-group"
     | "finish"
     | "none";
   modelName: string;

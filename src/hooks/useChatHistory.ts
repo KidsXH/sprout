@@ -244,6 +244,7 @@ const request2chatNode = (
           targetCode: functionArgs.code || "",
           summary: functionArgs.summary || "",
         },
+        disabled: false,
       } as ChatNodeType;
     }
   }
