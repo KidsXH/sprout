@@ -1,6 +1,9 @@
 import { dispatch } from "d3";
 
-import { updateHighlightNode } from "@/store/highlightSlice";
+import {
+  updateHighlightNode,
+  updateTextSelected,
+} from "@/store/highlightSlice";
 import { useAppDispatch } from "@/hooks/redux";
 import { PropsWithChildren } from "react";
 
@@ -13,6 +16,7 @@ export const TextBlock = (props: {
   const handleClick = () => {
     // console.log(props);
     dispatch(updateHighlightNode(props.index));
+    dispatch(updateTextSelected(props.index));
   };
   return (
     <>
@@ -60,7 +64,10 @@ const TitleBlock = (props: PropsWithChildren<{}>) => {
 
 const BackgroundBlock = (props: PropsWithChildren<{}>) => {
   return (
-    <div className="text-block mb-2 w-full rounded  border-2 border-white bg-neutral-100 p-2 text-justify hover:border-neutral-200 hover:shadow">
+    <div
+      className="text-block mb-2 w-full rounded  border-2 border-white bg-neutral-100 p-2 text-justify hover:border-neutral-200 hover:shadow"
+      contentEditable="true"
+    >
       <p className="">
         <span className="font-bold">Background</span> - {props.children}
       </p>

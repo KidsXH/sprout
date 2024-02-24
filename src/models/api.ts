@@ -13,6 +13,7 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
+import votingPrompt from "./prompts/voting.txt";
 
 export class BaseModel {
   openai: OpenAI;
@@ -20,7 +21,7 @@ export class BaseModel {
   systemMessage?: ChatCompletionSystemMessageParam;
   chatMessages: ChatCompletionMessageParam[] = [];
   functions?: Array<ChatCompletionTool>;
-  temperature = 1.0;
+  temperature = 1;
   stop = ["\n1.Observation"];
 
   constructor(apiKey: string, modelName: string) {
@@ -39,7 +40,8 @@ export class BaseModel {
       ? [this.systemMessage, ...messages]
       : messages;
     console.log("[Request]", {
-      model: this.model,
+      // model: this.model,
+      model: "gpt-3.5-turbo-1106",
       messages: fullMessages,
       tools: this.functions,
       tool_choice: "auto",
@@ -62,6 +64,7 @@ export class BaseModel {
       tool_choice: "auto",
       temperature: this.temperature,
       stop: this.stop,
+      // seed: 0,
     });
   }
 
@@ -127,7 +130,7 @@ export class VotingModel {
   systemMessage?: ChatCompletionSystemMessageParam;
   chatMessages: ChatCompletionMessageParam[] = [];
   functions?: Array<ChatCompletionTool>;
-  temperature = 1.0;
+  temperature = 1;
   stop = ["\n1.Observation"];
 
   constructor(apiKey: string, modelName: string) {
@@ -138,26 +141,33 @@ export class VotingModel {
     this.model = modelName;
   }
 
-  async vote(choices: { id: number; content: string }[]) {
+  async vote(choices: { id: number; content: string; key: string }[]) {
     let choice_content = "";
-    choices.forEach((choice) => {
-      choice_content += "choice" + choice.id + ": " + choice.content + "\n";
+    choices.forEach((choice, index) => {
+      choice_content += "choice" + index + ": " + choice.content + "\n";
     });
+    console.log("[api.ts] voting content", choice_content);
     const completion = await this.openai.chat.completions.create({
       messages: [
         {
           role: "system",
-          content:
-            "Given an instruction and several choices, decide which choice is most promising. Analyze each choice in detail, then conclude in the last line 'The best choice is {s}', where s the integer id of the choice.\n choices: \n" +
-            choice_content,
+          content: votingPrompt,
         },
+
+        {
+          role: "system",
+          content: "Here is the choices: \n" + choice_content,
+        },
+
         // { role: "user", content: prompt },
       ],
-      model: "gpt-3.5-turbo",
-      // response_format: { type: "json_object" },
+      model: "gpt-3.5-turbo-1106",
+      response_format: { type: "json_object" },
+      // seed: 0,
     });
 
-    console.log("[api.ts] voting", completion.choices[0]);
+    console.log("[api.ts] voting completion content", completion.choices[0]);
+    return completion.choices[0].message;
   }
 }
 

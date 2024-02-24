@@ -5,7 +5,9 @@ import Button from "@mui/material-next/Button";
 import InputBase from "@mui/material/InputBase";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel, { formControlLabelClasses } from "@mui/material/FormControlLabel";
+import FormControlLabel, {
+  formControlLabelClasses,
+} from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import { createStyles, makeStyles, styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
@@ -20,17 +22,27 @@ import // ChatCompletionFunctions,
 // OpenAIApi,
 "openai";
 import { BaseModel, RefineModel } from "@/models/api";
+import { updateRequestContent } from "@/store/nodeSlice";
 
 export const ConfigPanel = (props: { content: string; type: string }) => {
   const [promptRefinementString, setPromptRefinementString] = useState("");
 
-  const writingStyles = ["(default)", "academic", "humorous", "eloquent", "engaging", "passionate"];
+  const writingStyles = [
+    "(default)",
+    "academic",
+    "humorous",
+    "eloquent",
+    "engaging",
+    "passionate",
+  ];
   const [writingStyle, setWritingStyle] = useState(writingStyles[0]);
   const [writingStyleIndex, setWritingStyleIndex] = useState(0);
 
-  const levelsOfDetail = ["concise", "(default)", "detailed"]
+  const levelsOfDetail = ["concise", "(default)", "detailed"];
   const [levelOfDetail, setLevelOfDetail] = useState(levelsOfDetail[1]);
-  const handleLevelOfDetailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLevelOfDetailChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setLevelOfDetail((event.target as HTMLInputElement).value);
   };
 
@@ -101,12 +113,12 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
   const handleReset = () => {
     setWritingStyle(writingStyles[0]);
     setWritingStyleIndex(0);
-    setLevelOfDetail(levelsOfDetail[1])
+    setLevelOfDetail(levelsOfDetail[1]);
   };
 
-  const handleApply = () => {
-    // TODO
-  };
+  const handleApply = useCallback(() => {
+    dispatch(updateRequestContent({ id: focusChatID, content: blockContent }));
+  }, [blockContent, focusChatID]);
 
   useEffect(() => {
     const buttons = document.getElementsByClassName("style-button");
@@ -123,12 +135,15 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
     let prompt = "";
 
     // both not default
-    if (writingStyle != writingStyles[0] && levelOfDetail != levelsOfDetail[1]) {
+    if (
+      writingStyle != writingStyles[0] &&
+      levelOfDetail != levelsOfDetail[1]
+    ) {
       prompt = `Please make this paragraph more ${writingStyle} and ${levelOfDetail}`;
-      setPromptRefinementString(prompt)
+      setPromptRefinementString(prompt);
       return;
     }
-    
+
     // style not default
     if (writingStyle != writingStyles[0]) {
       prompt = `Please make this paragraph more ${writingStyle}`;
@@ -148,7 +163,7 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
         {blockContent || props.content}
       </div>
       <div className="relative mb-4">
-        <div className="grid grid-cols-3 gap-1 rounded-md border-2 border-gray-200 pt-2 pb-1">
+        <div className="grid grid-cols-3 gap-1 rounded-md border-2 border-gray-200 pb-1 pt-2">
           {writingStyles.map((v, i) => (
             <div
               className="style-button flex h-5 w-full items-center justify-center text-xs text-slate-500 underline decoration-gray-200 decoration-solid decoration-4 underline-offset-1"
@@ -162,10 +177,12 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
             </div>
           ))}
         </div>
-        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">writing style</label>
+        <label className="absolute left-2 top-[-1ex] z-10 bg-white px-2 text-xs text-gray-400">
+          writing style
+        </label>
       </div>
       <div className="relative mb-4">
-        <div className="relative rounded-md border-2 border-gray-200 pt-1 px-2 flex justify-center">
+        <div className="relative flex justify-center rounded-md border-2 border-gray-200 px-2 pt-1">
           <FormControl>
             <RadioGroup
               row={true}
@@ -180,18 +197,20 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
                   value={v}
                   control={<Radio size="small" color="success" />}
                   label={v}
-                  classes={{ label: "text-xs text-gray-500"}}
+                  classes={{ label: "text-xs text-gray-500" }}
                 />
               ))}
             </RadioGroup>
           </FormControl>
         </div>
-        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">level of detail</label>
+        <label className="absolute left-2 top-[-1ex] z-10 bg-white px-2 text-xs text-gray-400">
+          level of detail
+        </label>
       </div>
       <div className="relative mb-4">
         <InputBase
           type="text"
-          className="relative text-sm rounded-md border-2 border-gray-200 pt-2 px-2 text-gray-500 transition-all duration-500 ease-in-out"
+          className="relative rounded-md border-2 border-gray-200 px-2 pt-2 text-sm text-gray-500 transition-all duration-500 ease-in-out"
           color="secondary"
           title="Prompt refinement"
           placeholder={`e.g. explain like I'm ten years old`}
@@ -202,7 +221,9 @@ export const ConfigPanel = (props: { content: string; type: string }) => {
           onChange={(e) => setPromptRefinementString(e.target.value)}
           value={promptRefinementString}
         />
-        <label className="absolute text-xs text-gray-400 top-[-1ex] left-2 z-10 bg-white px-2">prompt</label>
+        <label className="absolute left-2 top-[-1ex] z-10 bg-white px-2 text-xs text-gray-400">
+          prompt
+        </label>
       </div>
       <div className="flex items-center justify-between">
         <Button

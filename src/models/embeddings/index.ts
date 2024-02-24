@@ -60,15 +60,17 @@ export async function getCoordinates(
       };
       if (embeddings.length <= 1) {
         return [[0], [0]];
-      } else if (embeddings.length <= 3) {
-        umapConfig.nNeighbors = 1;
+      } else if (embeddings.length <= 15) {
+        umapConfig.nNeighbors = embeddings.length - 2;
       } else {
-        umapConfig.nNeighbors = 2;
+        umapConfig.nNeighbors = 15;
       }
 
       const umap = new UMAP(umapConfig);
-
-      const coords = normalizeCoordinates(umap.fit(embeddings));
+      // console.log("[space view]embedding", embeddings);
+      const vectors = umap.fit(embeddings);
+      // console.log("[space view]vectors", vectors);
+      const coords = normalizeCoordinates(vectors);
 
       return coords;
     });

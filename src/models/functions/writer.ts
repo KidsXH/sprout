@@ -51,13 +51,13 @@ export const writeExplanation: ChatCompletionTool = {
           description:
             "Part of the code snippet to explain. The code must be a contiguous block of lines.",
         },
+        summary: {
+          type: "string",
+          description: "brief for this step using 1 or 2 words.",
+        },
         explanation: {
           type: "string",
           description: "Text description for the code snippet",
-        },
-        summary: {
-          type: "string",
-          description: "Summary for this step using 1 or 2 words.",
         },
       },
     },

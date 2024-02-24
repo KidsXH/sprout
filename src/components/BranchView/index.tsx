@@ -61,13 +61,20 @@ export const BranchView = () => {
     const isActive = isTreeNodeInActiveChain(node, mainChannelChats);
     const chatNode = chatNodes.find((d) => d.id === node.requestID[0]);
     // const isActive = mainChannelChats.find((d) => d === chatNode?.id);
+    let type = chatNode?.action.type || "undefined";
+    type.slice;
+    const nodeSummary =
+      chatNode?.action.summary ||
+      type[0].toUpperCase() + type.slice(1, type.length) ||
+      "no summary";
     return {
       id: node.treeID,
       parent: node.parentID,
       children: node.childrenID,
       range: node.label,
-      summary: chatNode?.action.summary || "no summary",
-      content: chatNode?.thought || "",
+      summary: nodeSummary,
+      // content: chatNode?.justification || "",
+      content: chatNode?.justification || chatNode?.thought || "",
       isActive: isActive ? 1 : 0,
     };
   });
@@ -391,18 +398,20 @@ export const BranchView = () => {
           .append("foreignObject")
           .attr("x", (d) => d.x + 10)
           .attr("y", (d, i) => d.y + textOffsetY - 22)
-          .attr("width", reasonBoxWidth - 10)
+          .attr("width", reasonBoxWidth - 5)
           .attr("height", reasonBoxHeight)
           .attr("class", "branch-node-text select-none")
           .append("xhtml:body")
           .style("font", "14px 'Helvetica Neue'")
           .style("line-height", "1.2")
+          .style("height", "30px")
           // .style("color", "#848484")
           .style("overflow", "scroll")
           .html(
             (d) =>
-              "<p className='reason-p'>" +
-              (d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text) +
+              "<p className='branch-p'>" +
+              // (d.text.length > 40 ? d.text.slice(0, 40) + "..." : d.text) +
+              d.text +
               "</p>",
             // "<p className='reason-p'>" + d.text + "</p>",
           );
@@ -484,9 +493,9 @@ export const BranchView = () => {
           .join("switch")
           .append("foreignObject")
           .attr("x", (d) => d.x + 15)
-          .attr("y", (d, i) => d.y + 15)
+          .attr("y", (d, i) => d.y + 5)
           .attr("width", reasonBoxWidth)
-          .attr("height", reasonBoxHeight)
+          .attr("height", reasonBoxHeight + 10)
           .attr("class", "reason-text select-none")
           // .append("p")
           // .attr("fill", "#000")
@@ -497,11 +506,13 @@ export const BranchView = () => {
           .style("font", "12px 'Helvetica Neue'")
           .style("line-height", "1.2")
           .style("color", "#848484")
+          .style("height", "60px")
           .style("overflow", "scroll")
           .html(
             (d) =>
               "<p className='reason-p'>" +
-              (d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text) +
+              // (d.text.length > 1800 ? d.text.slice(0, 80) + "..." : d.text) +
+              d.text +
               "</p>",
             // "<p className='reason-p'>" + d.text + "</p>",
           )

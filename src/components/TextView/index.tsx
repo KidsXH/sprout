@@ -17,6 +17,7 @@ export const TextView = () => {
   const highlightNode = useAppSelector(
     (state) => state.highlight.highlightNode,
   );
+  const nodePool = useAppSelector((state) => state.node.nodePool);
 
   const renderedContent = useProgressRender();
 

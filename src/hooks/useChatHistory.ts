@@ -2,7 +2,8 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   addChat,
   changeChannelStatus,
-  ChannelStatus, selectFocusChatID,
+  ChannelStatus,
+  selectFocusChatID,
   selectMainChannelChats,
   selectMainChannelID,
   selectNumChats,
@@ -208,7 +209,9 @@ const chat2node = (
           ? "Title"
           : functionArgs.background
           ? "Backgroud"
-          : "summary"),
+          : functionArgs.notification
+          ? "Notification"
+          : "Summary"),
       requestID: chats[index],
     };
 
@@ -244,6 +247,7 @@ const request2chatNode = (
           targetCode: functionArgs.code || "",
           summary: functionArgs.summary || "",
         },
+        justification: "",
         disabled: false,
       } as ChatNodeType;
     }

@@ -151,7 +151,7 @@ const OutlineView = () => {
 
   const clickNodeFn = useCallback(
     (treeID: number, event: any) => {
-      let nodeGroup = event.ctrlKey ? [...selectedNodes] : [];
+      let nodeGroup = event.shiftKey ? [...selectedNodes] : [];
       if (nodeGroup.includes(treeID)) {
         if (nodeGroup.length > 1) {
           nodeGroup = nodeGroup.filter((n) => n !== treeID);

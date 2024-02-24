@@ -22,8 +22,8 @@ const ChainVis = () => {
   const codeScrollTop = useAppSelector(selectCodeScrollTop);
   const textScrollTop = useAppSelector(selectTextScrollTop);
 
-  const [leftY, setLeftY] = useState<number>(0);
-  const [rightY, setRightY] = useState<number>(0);
+  // const [leftY, setLeftY] = useState<number>(0);
+  // const [rightY, setRightY] = useState<number>(0);
   const [chainScrollTop, setChainScrollTop] = useState<number>(0);
   const [codeSnippetHeight, setCodeSnippetHeight] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
@@ -32,6 +32,7 @@ const ChainVis = () => {
   const highlightNode = useAppSelector(
     (state) => state.highlight.highlightNode,
   );
+  const textSelected = useAppSelector((state) => state.highlight.textSelected);
   const highlightBlockHeight = useAppSelector(
     (state) => state.highlight.highlightBlockHeight,
   );
@@ -107,6 +108,19 @@ const ChainVis = () => {
       dispatch(updateHighlightNode(clickedNode));
     }
   }, [clickedNode]);
+
+  useEffect(() => {
+    if (textSelected !== -1) {
+      // dispatch(updateHighlightNode(textSelected));
+      // setClickedNode(-1);
+      setClickedNode(textSelected);
+    }
+    return () => {
+      if (textSelected !== -1) {
+        setClickedNode(textSelected);
+      }
+    };
+  }, [textSelected]);
 
   //block highlight
   useEffect(() => {
@@ -221,7 +235,7 @@ const ChainVis = () => {
       .data(rectData)
       .join("text")
       .attr("class", "chain-node-text select-none")
-      .attr("x", -45)
+      .attr("x", -48)
       .attr("y", (d, i) => i * interval + 10)
       .attr("text-anchor", "start")
       .attr("fill", "#000")
@@ -253,22 +267,24 @@ const ChainVis = () => {
       .data(rectData)
       .join("switch")
       .append("foreignObject")
-      .attr("x", (d) => -45)
+      .attr("x", (d) => -48)
       .attr("y", (d, i) =>
         d.sum.length > 20 ? i * interval + 15 : i * interval + 20,
       )
-      .attr("width", bigRectWidth)
+      .attr("width", bigRectWidth - 5)
       .attr("height", bigRectHeight)
       .attr("class", "chain-node-text select-none")
       .append("xhtml:body")
       .style("font", "12px 'Helvetica Neue'")
       .style("line-height", "1.2")
+      .style("height", "27px")
       // .style("color", "#848484")
       .style("overflow", "scroll")
       .html(
         (d) =>
           "<p className='reason-p'>" +
-          (d.sum.length > 35 ? d.sum.slice(0, 35) + "..." : d.sum) +
+          d.sum +
+          // (d.sum.length > 35 ? d.sum.slice(0, 35) + "..." : d.sum) +
           "</p>",
         // "<p className='reason-p'>" + d.text + "</p>",
       );

@@ -45,6 +45,7 @@ export const SpaceView = () => {
       content: string;
       id: number;
       type: string;
+      // chatID: number;
     }[]
   >([]);
   const focusChatID = useAppSelector(selectFocusChatID);
@@ -57,6 +58,7 @@ export const SpaceView = () => {
     {
       content: string;
       type: string;
+      // id: number;
       // category?: string;
     }[]
   >([]);
@@ -78,7 +80,12 @@ export const SpaceView = () => {
     );
     const currentChatNodes =
       alterInCurrent?.map((alter) => {
-        return { content: alter?.action.content || "", type: "alterInCurrent" };
+        return {
+          content: alter?.action.content || "",
+          // content: alter?.id || "",
+          type: "alterInCurrent",
+          // id: alter?.id || -1,
+        };
       }) || [];
 
     const otherTreeNode = treeNodes.find(
@@ -92,10 +99,32 @@ export const SpaceView = () => {
 
     const otherChatNodes =
       alterInOther?.map((alter) => {
-        return { content: alter?.action.content || "", type: "alterInOther" };
+        return {
+          content: alter?.action.content || "",
+          type: "alterInOther",
+          // id: alter?.id || -1,
+        };
       }) || [];
+    const allChatNodes = currentChatNodes.concat(otherChatNodes);
+    console.log("[reduce repeat] allChatNodes", allChatNodes);
 
-    setMatchChatNodes(currentChatNodes.concat(otherChatNodes));
+    const newChatNodes: { content: string; type: string }[] = [];
+    allChatNodes.forEach((node, index) => {
+      if (index == 0) {
+        newChatNodes.push(node);
+      } else {
+        if (
+          newChatNodes[newChatNodes.length - 1].content == node.content &&
+          newChatNodes[newChatNodes.length - 1].type == node.type
+        ) {
+        } else {
+          newChatNodes.push(node);
+        }
+      }
+    });
+    console.log("[reduce repeat] newChatNodes", newChatNodes);
+    setMatchChatNodes(newChatNodes);
+    // setMatchChatNodes(currentChatNodes.concat(otherChatNodes));
     // console.log("current", currentChatNodes, "other", otherChatNodes);
   }, [focusChatID]);
 
@@ -135,13 +164,15 @@ export const SpaceView = () => {
 
     if (contentArray.length == 0) return;
 
+    // console.log("[space view] contentArray", contentArray);
     getCoordinates(contentArray, apiKey).then((res) => {
-      console.log("[space view]res", res);
+      // console.log("[space view]res", res);
       if (!res || res.length == 0) {
         return;
       }
-      // console.log("[space view]res", res);
+      console.log("[space view]res", res);
       const dotData = res.map((value, index) => {
+        console.log("[space view]matchChatNodes", matchChatNodes, index);
         return {
           r: calcNodeRadius(matchChatNodes[index]["content"], 20, 150),
           x: (value[0] * (width - margin)) / 2 + width / 2,
@@ -152,6 +183,7 @@ export const SpaceView = () => {
               ? "#C6EBD4"
               : "#FBE1B9",
           content: matchChatNodes[index].content,
+          // chatID: matchChatNodes[index].id,
           id: index,
           type: matchChatNodes[index].type,
         };
@@ -224,6 +256,7 @@ export const SpaceView = () => {
         // d3.select(this).style("fill", "magenta");
         setDotID(d.id);
         setDotContent(d.content);
+        // setDotContent(d.chatID.toString() + d.content);
         setDotType(d.type);
       });
     // .append("title")
@@ -231,7 +264,7 @@ export const SpaceView = () => {
 
     // console.log("rerender");
   }),
-    [dotCorData, dotID];
+    [dotCorData];
 
   useEffect(() => {
     const svg = d3.select("#ToT-space");
