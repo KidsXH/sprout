@@ -18,6 +18,62 @@ import { setSourceCode } from "@/store/modelSlice";
 import { selectChainNodes } from "@/store/chatSlice";
 import { updateSelectedCodeRange } from "@/store/selectionSlice";
 
+const BUCKET = `def bucketSort(array):
+  
+      bucket = []
+      
+      for i in range(len(array)):
+          bucket.append([])
+
+      for j in array:
+          index_b = int(10 * j)
+          bucket[index_b].append(j)
+
+      for i in range(len(array)):
+          bucket[i] = sorted(bucket[i])
+
+      k = 0
+      for i in range(len(array)):
+          for j in range(len(bucket[i])):
+              array[k] = bucket[i][j]
+              k += 1
+      return 
+    `;
+
+export const DA = `import numpy as np
+
+np.random.seed(42)
+
+names = np.array(["Student_" + str(i) for i in range(200)])
+ages = np.random.randint(15, 25, 200).astype(float)
+scores = np.random.randint(50, 102, (200, 5)).astype(float)
+attendance = np.random.uniform(50, 101, 200)
+
+indices = np.random.choice(200, 20, replace=False)
+scores[indices, np.random.choice(5, 20)] = np.nan
+ages[indices[:10]] = np.nan
+
+ages[np.isnan(ages)] = np.nanmean(ages)
+
+for col in range(scores.shape[1]):
+    scores[np.isnan(scores[:, col]), col] = np.nanmean(scores[:, col])
+ages[ages > 100] = np.nanmean(ages)
+
+scores[scores > 100] = 100
+attendance[attendance > 100] = 100
+
+average_scores = np.mean(scores, axis=1)
+age_groups = np.digitize(ages, [16, 18, 20, 22, 25])
+
+normalized_scores = (scores - np.min(scores, axis=0)) / (np.max(scores, axis=0) - np.min(scores, axis=0))
+
+above_avg_indices = np.where((average_scores > np.mean(average_scores)) & (attendance > np.mean(attendance)))
+filtered_data = normalized_scores[above_avg_indices]
+
+age_group_means = [np.mean(normalized_scores[age_groups == i], axis=0) for i in range(5)]
+
+print(filtered_data)
+print(age_group_means)`;
 function CodeEditor() {
   const CodeRef: MutableRefObject<ReactCodeMirrorRef | null> = useRef(null);
   const highlightNodeId = useAppSelector(selectHighlightNode);
@@ -41,7 +97,9 @@ function CodeEditor() {
   useEffect(() => {
     setTimeout(() => {
       setHighlightCodeRange(
-        highlightNodeId === -1 ? [] : chainNodes[highlightNodeId].range,
+        highlightNodeId === -1 || highlightNodeId >= chainNodes.length
+          ? []
+          : chainNodes[highlightNodeId].range,
       );
     }, 0);
     return () => {

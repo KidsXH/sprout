@@ -67,6 +67,7 @@ const BackgroundBlock = (props: PropsWithChildren<{}>) => {
     <div
       className="text-block mb-2 w-full rounded  border-2 border-white bg-neutral-100 p-2 text-justify hover:border-neutral-200 hover:shadow"
       contentEditable="true"
+      suppressContentEditableWarning={true}
     >
       <p className="">
         <span className="font-bold">Background</span> - {props.children}

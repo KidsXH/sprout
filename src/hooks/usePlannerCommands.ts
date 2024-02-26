@@ -346,17 +346,20 @@ const usePlannerCommands = () => {
     if (content) {
       const parsed_content = JSON.parse(content);
       // console.log("[voting], parsed_content", parsed_content);
-      // if (parsed_content.best) {
-      let bestID = parsed_content.best == undefined ? 0 : parsed_content.best;
 
-      // console.log("[voting complete] ", choices);
-      // console.log("[voting complete] ", choices[bestID].id);
+      let bestID = 0;
+      bestID = parsed_content.best == undefined ? 0 : parsed_content.best;
+      if (bestID + 1 > choices.length) bestID = 0;
+      console.log("[voting complete], parsed_content", parsed_content);
+      console.log("[voting complete] choices ", choices);
+      console.log("[voting complete] bestID ", bestID);
+      console.log("[voting complete] id ", choices[bestID].id);
 
       if (parsed_content.justification !== undefined) {
         choices.forEach((element: any, index: number) => {
           const node = nodePool.find((node) => node.id === element.lastNode);
-          // console.log("[voting justification] ", node, index);
-          if (node) {
+          console.log("[voting complete]node index ", node, index);
+          if (node && index < parsed_content.justification.length) {
             dispatch(
               updateNode({
                 id: element.lastNode,

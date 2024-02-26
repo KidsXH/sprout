@@ -173,19 +173,21 @@ export const SpaceView = () => {
       console.log("[space view]res", res);
       const dotData = res.map((value, index) => {
         console.log("[space view]matchChatNodes", matchChatNodes, index);
+        let node =
+          index < matchChatNodes.length
+            ? matchChatNodes[index]
+            : { type: "alterInCurrent", content: "" };
+
         return {
-          r: calcNodeRadius(matchChatNodes[index]["content"], 20, 150),
+          r: calcNodeRadius(node["content"], 20, 150),
           x: (value[0] * (width - margin)) / 2 + width / 2,
           y: (value[1] * (height - margin)) / 2 + height / 2,
-          stroke: matchChatNodes[index].type == "current" ? "#8BBD9E" : "#fff",
-          fill:
-            matchChatNodes[index].type == "alterInCurrent"
-              ? "#C6EBD4"
-              : "#FBE1B9",
-          content: matchChatNodes[index].content,
+          stroke: node.type == "current" ? "#8BBD9E" : "#fff",
+          fill: node.type == "alterInCurrent" ? "#C6EBD4" : "#FBE1B9",
+          content: node.content,
           // chatID: matchChatNodes[index].id,
           id: index,
-          type: matchChatNodes[index].type,
+          type: node.type,
         };
       });
 
