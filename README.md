@@ -50,7 +50,7 @@ SPROUT offers series of features that are designed for enhancing user experience
 
 ## Development
 
-To develop Quantivine locally, follow these steps:
+To develop SPROUT locally, follow these steps:
 
 1. Install all the dependencies.
 
