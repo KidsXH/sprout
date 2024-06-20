@@ -1,6 +1,6 @@
-# SPROUT: Authoring Programming Tutorials with Interactive Visualization of Large Language Model Generation Process
+# SPROUT: an Interactive Authoring Tool for Generating Programming Tutorials with the Visualization of Large Language Models
 
-Here is the official implementation of the system in paper ["SPROUT: Authoring Programming Tutorials with Interactive Visualization of Large Language Model Generation Process"](https://arxiv.org/abs/2312.01801).
+Here is the official implementation of the system in paper ["SPROUT: an Interactive Authoring Tool for Generating Programming Tutorials with the Visualization of Large Language Models"](https://doi.org/10.1109/TVCG.2024.3410523) (IEEE TVCG 2024).
 
 ![features](./images/system-ui.png)
 
@@ -36,15 +36,13 @@ SPROUT offers series of features that are designed for enhancing user experience
                   Ollie Woodman and
                   Yi Yang and
                   Wei Chen},
-  title        = {{SPROUT:} Authoring Programming Tutorials with Interactive Visualization
-                  of Large Language Model Generation Process},
-  journal      = {CoRR},
-  volume       = {abs/2312.01801},
-  year         = {2023},
-  url          = {https://doi.org/10.48550/arXiv.2312.01801},
-  doi          = {10.48550/ARXIV.2312.01801},
-  eprinttype    = {arXiv},
-  eprint       = {2312.01801},
+  title        = {{SPROUT:} an Interactive Authoring Tool for Generating Programming Tutorials with the Visualization of Large Language Models},
+  journal      = {IEEE Transactions on Visualization and Computer Graphics},
+  volume       = {},
+  number       = {},
+  pages        = {1-15},
+  year         = {2024},
+  doi          = {10.1109/TVCG.2024.3410523},
 }
 ```
 
